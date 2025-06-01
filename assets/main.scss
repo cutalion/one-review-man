@@ -1,0 +1,390 @@
+---
+# Only the main Sass file needs front matter (the dashes are enough)
+---
+
+@import "minima";
+
+// Dark theme variables
+$dark-background-color: #0d1117;
+$dark-text-color: #f0f6fc;
+$dark-header-background: #161b22;
+$dark-border-color: #30363d;
+$dark-link-color: #58a6ff;
+$dark-code-background: #21262d;
+$dark-card-background: #21262d;
+
+// Force dark theme for all users
+body {
+  background-color: $dark-background-color !important;
+  color: $dark-text-color !important;
+}
+
+.site-header {
+  background-color: $dark-header-background !important;
+  border-bottom-color: $dark-border-color !important;
+}
+
+.site-title, .site-title:visited {
+  color: $dark-text-color !important;
+}
+
+.site-nav {
+  background-color: $dark-header-background !important;
+}
+
+.site-nav .page-link {
+  color: $dark-text-color !important;
+}
+
+.site-nav .page-link:hover {
+  color: $dark-link-color !important;
+}
+
+.site-footer {
+  background-color: $dark-header-background !important;
+  border-top-color: $dark-border-color !important;
+  color: $dark-text-color !important;
+}
+
+a {
+  color: $dark-link-color !important;
+}
+
+a:visited {
+  color: lighten($dark-link-color, 10%) !important;
+}
+
+a:hover {
+  color: lighten($dark-link-color, 20%) !important;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: $dark-text-color !important;
+}
+
+.post-content h1, .post-content h2, .post-content h3, .post-content h4, .post-content h5, .post-content h6 {
+  color: $dark-text-color !important;
+}
+
+blockquote {
+  color: darken($dark-text-color, 20%) !important;
+  border-left-color: $dark-border-color !important;
+}
+
+pre, code {
+  background-color: $dark-code-background !important;
+  color: $dark-text-color !important;
+}
+
+.highlighter-rouge .highlight {
+  background-color: $dark-code-background !important;
+}
+
+// Card backgrounds for custom elements
+.chapter-card, .character-profile-card, .nav-card {
+  background-color: $dark-card-background !important;
+  border-color: $dark-border-color !important;
+  color: $dark-text-color !important;
+}
+
+.chapter-preview {
+  background-color: $dark-card-background !important;
+  border-left-color: $dark-link-color !important;
+}
+
+.no-chapters, .no-characters {
+  background-color: $dark-card-background !important;
+  color: $dark-text-color !important;
+}
+
+.progress-section, .character-stats {
+  background-color: $dark-card-background !important;
+}
+
+.stat-box {
+  background-color: $dark-background-color !important;
+  border-color: $dark-border-color !important;
+}
+
+.footer-note {
+  background-color: $dark-card-background !important;
+  border-left-color: $dark-link-color !important;
+}
+
+// Chapter-specific elements with higher specificity to override inline styles
+.chapter-summary, .chapter-characters, .new-characters, .chapter-navigation {
+  background-color: $dark-card-background !important;
+  color: $dark-text-color !important;
+  border-color: $dark-border-color !important;
+}
+
+.chapter-summary h3, .chapter-characters h3, .new-characters h3 {
+  color: $dark-text-color !important;
+}
+
+// Additional chapter navigation elements
+.chapter-nav {
+  background-color: $dark-card-background !important;
+}
+
+.nav-link {
+  background-color: $dark-card-background !important;
+  color: $dark-text-color !important;
+  border-color: $dark-border-color !important;
+}
+
+.nav-link:hover {
+  background-color: $dark-link-color !important;
+  color: $dark-text-color !important;
+  border-color: $dark-link-color !important;
+}
+
+.chapters-index {
+  background-color: $dark-link-color !important;
+  color: $dark-text-color !important;
+  border-color: $dark-link-color !important;
+}
+
+.progress-bar {
+  background-color: $dark-border-color !important;
+}
+
+.progress-fill {
+  background-color: $dark-link-color !important;
+}
+
+// Override any remaining inline styles for character-related elements
+.character-list {
+  color: $dark-text-color !important;
+}
+
+.character-link {
+  color: $dark-link-color !important;
+  background-color: $dark-card-background !important;
+}
+
+.character-link:hover {
+  background-color: $dark-border-color !important;
+}
+
+// Navigation menu on mobile
+.site-nav .menu-icon > svg {
+  fill: $dark-text-color !important;
+}
+
+.site-nav .trigger {
+  background-color: $dark-header-background !important;
+  border-color: $dark-border-color !important;
+}
+
+// Also add media query for users who prefer dark mode
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: $dark-background-color !important;
+    color: $dark-text-color !important;
+  }
+
+  .site-header {
+    background-color: $dark-header-background !important;
+    border-bottom-color: $dark-border-color !important;
+  }
+
+  .site-title, .site-title:visited {
+    color: $dark-text-color !important;
+  }
+
+  .site-nav {
+    background-color: $dark-header-background !important;
+  }
+
+  .site-nav .page-link {
+    color: $dark-text-color !important;
+  }
+
+  .site-nav .page-link:hover {
+    color: $dark-link-color !important;
+  }
+
+  .site-footer {
+    background-color: $dark-header-background !important;
+    border-top-color: $dark-border-color !important;
+    color: $dark-text-color !important;
+  }
+
+  a {
+    color: $dark-link-color !important;
+  }
+
+  a:visited {
+    color: lighten($dark-link-color, 10%) !important;
+  }
+
+  a:hover {
+    color: lighten($dark-link-color, 20%) !important;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    color: $dark-text-color !important;
+  }
+
+  .post-content h1, .post-content h2, .post-content h3, .post-content h4, .post-content h5, .post-content h6 {
+    color: $dark-text-color !important;
+  }
+
+  blockquote {
+    color: darken($dark-text-color, 20%) !important;
+    border-left-color: $dark-border-color !important;
+  }
+
+  pre, code {
+    background-color: $dark-code-background !important;
+    color: $dark-text-color !important;
+  }
+
+  .highlighter-rouge .highlight {
+    background-color: $dark-code-background !important;
+  }
+
+  .chapter-card, .character-profile-card, .nav-card {
+    background-color: $dark-card-background !important;
+    border-color: $dark-border-color !important;
+    color: $dark-text-color !important;
+  }
+
+  .chapter-preview {
+    background-color: $dark-card-background !important;
+    border-left-color: $dark-link-color !important;
+  }
+
+  .no-chapters, .no-characters {
+    background-color: $dark-card-background !important;
+    color: $dark-text-color !important;
+  }
+
+  .progress-section, .character-stats {
+    background-color: $dark-card-background !important;
+  }
+
+  .stat-box {
+    background-color: $dark-background-color !important;
+    border-color: $dark-border-color !important;
+  }
+
+  .footer-note {
+    background-color: $dark-card-background !important;
+    border-left-color: $dark-link-color !important;
+  }
+
+  .site-nav .menu-icon > svg {
+    fill: $dark-text-color !important;
+  }
+
+  .site-nav .trigger {
+    background-color: $dark-header-background !important;
+    border-color: $dark-border-color !important;
+  }
+
+  .chapter-summary, .chapter-characters, .new-characters, .chapter-navigation {
+    background-color: $dark-card-background !important;
+    color: $dark-text-color !important;
+    border-color: $dark-border-color !important;
+  }
+
+  .chapter-summary h3, .chapter-characters h3, .new-characters h3 {
+    color: $dark-text-color !important;
+  }
+
+  .chapter-nav {
+    background-color: $dark-card-background !important;
+  }
+
+  .nav-link {
+    background-color: $dark-card-background !important;
+    color: $dark-text-color !important;
+    border-color: $dark-border-color !important;
+  }
+
+  .nav-link:hover {
+    background-color: $dark-link-color !important;
+    color: $dark-text-color !important;
+    border-color: $dark-link-color !important;
+  }
+
+  .chapters-index {
+    background-color: $dark-link-color !important;
+    color: $dark-text-color !important;
+    border-color: $dark-link-color !important;
+  }
+
+  .progress-bar {
+    background-color: $dark-border-color !important;
+  }
+
+  .progress-fill {
+    background-color: $dark-link-color !important;
+  }
+
+  .character-list {
+    color: $dark-text-color !important;
+  }
+
+  .character-link {
+    color: $dark-link-color !important;
+    background-color: $dark-card-background !important;
+  }
+
+  .character-link:hover {
+    background-color: $dark-border-color !important;
+  }
+
+  // Comprehensive light background overrides for dark mode users
+  [style*="background-color: #f8f9fa"], 
+  [style*="background-color: #f1f2f6"],
+  [style*="background-color: #e8f5e8"],
+  [style*="background-color: #e8f4f8"],
+  [style*="background-color: white"],
+  [style*="background-color: #fff"] {
+    background-color: $dark-card-background !important;
+    color: $dark-text-color !important;
+  }
+
+  .bg-light, .bg-white, .bg-gray-100, .bg-gray-50 {
+    background-color: $dark-card-background !important;
+    color: $dark-text-color !important;
+  }
+
+  .text-dark, .text-black {
+    color: $dark-text-color !important;
+  }
+
+  .border-light, .border-gray {
+    border-color: $dark-border-color !important;
+  }
+}
+
+// Comprehensive light background overrides
+[style*="background-color: #f8f9fa"], 
+[style*="background-color: #f1f2f6"],
+[style*="background-color: #e8f5e8"],
+[style*="background-color: #e8f4f8"],
+[style*="background-color: white"],
+[style*="background-color: #fff"] {
+  background-color: $dark-card-background !important;
+  color: $dark-text-color !important;
+}
+
+// Generic overrides for common light theme classes
+.bg-light, .bg-white, .bg-gray-100, .bg-gray-50 {
+  background-color: $dark-card-background !important;
+  color: $dark-text-color !important;
+}
+
+// Text color overrides for dark backgrounds
+.text-dark, .text-black {
+  color: $dark-text-color !important;
+}
+
+// Border overrides for dark theme
+.border-light, .border-gray {
+  border-color: $dark-border-color !important;
+} 

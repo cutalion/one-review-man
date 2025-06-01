@@ -3,6 +3,7 @@ layout: default
 title: "Все Главы - One Review Man"
 lang: ru
 permalink: /chapters/
+nav_order: 1
 ---
 
 # Все Главы

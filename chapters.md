@@ -3,6 +3,7 @@ layout: default
 title: "All Chapters - One Review Man"
 lang: en
 permalink: /chapters/
+nav_order: 1
 ---
 
 # All Chapters

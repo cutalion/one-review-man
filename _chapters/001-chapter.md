@@ -28,6 +28,7 @@ difficulty_level: beginner
 one_punch_man_references:
 - overpowered_protagonist
 - mentor-disciple_relationship
+permalink: /chapters/001-chapter/
 generated_date: '2025-06-01'
 status: generated
 lang: en
@@ -39,14 +40,14 @@ In the bustling open office of TechnoCorp, where keyboards clattered like a symp
 
 "One Review Man-san, your pull request is ready for review," announced the Project Manager, walking by with a stack of reports that nobody would ever read.
 
-One Review Man, or Satoru to the one who dared to call him by his real name, nodded, "Thank you, I’ll submit it now."
+One Review Man, or Satoru to the one who dared to call him by his real name, nodded, "Thank you, I'll submit it now."
 
 In the adjacent cubicle, the AI-Enhanced Disciple, known as Genki, glanced over with admiration, "Satoru-sensei, your code is always flawless. How do you do it?"
 
 Satoru shrugged with a nonchalance that could rival a sloth on a Sunday. "I just code for fun."
 
 ## The Code Review
-The code review meeting began, a ritual where developers gathered to critique each other’s work, except in the case of One Review Man, where it turned into a session of awe and reverence.
+The code review meeting began, a ritual where developers gathered to critique each other's work, except in the case of One Review Man, where it turned into a session of awe and reverence.
 
 "Let's see," began the Senior Engineer, scrolling through the codebase, "Ah yes, perfectly implemented sorting algorithm, no bugs, no unnecessary complexity. As expected, One Review Man-san."
 
@@ -68,7 +69,7 @@ Meanwhile, Genki was tangled in a web of dependencies, struggling with a new fra
 
 "Satoru-sensei," Genki called, "This framework is a labyrinth of spaghetti code!"
 
-Satoru patted him on the back, "Don’t worry, Genki. Just think of it as a bowl of ramen, and you’ll find your way."
+Satoru patted him on the back, "Don't worry, Genki. Just think of it as a bowl of ramen, and you'll find your way."
 
 ## The Stand-Up Meeting
 The day ended with a stand-up meeting, where developers shared their progress in a circle of mutual exhaustion.
@@ -86,7 +87,7 @@ As they exited the office, a new notification appeared on Satoru's phone: "URGEN
 
 Satoru smiled slightly—perhaps this would finally be a challenge.
 
-"Looks like we’ve got our next mission," he said to Genki.
+"Looks like we've got our next mission," he said to Genki.
 
 Genki's eyes gleamed with excitement, "Let's do it, Satoru-sensei!"
 

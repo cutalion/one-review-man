@@ -2,16 +2,23 @@
 layout: character
 name: CTO
 slug: cto
-description: The Chief Technology Officer who frequently relies on One Review Man
-  to solve critical issues in the tech company DynaTech.
+description: The Chief Technology Officer who often relies on One Review Man to solve
+  critical issues at DynaTech Corp.
 personality_traits:
 - pragmatic
 - over-caffeinated
 - sarcastic
 programming_skills: Expert in system architecture, proficient in high-level programming
-  languages such as Python, Java, and occasional forays into Rust despite personal
-  misgivings.
+  languages like Python, Java, and occasionally experiments with Rust despite personal
+  reservations.
+catchphrase: If it's broken, call One Review Man. If it's not broken, it will be.
+backstory: The CTO climbed the corporate ladder through technical excellence and strategic
+  thinking, but still gets nervous during critical deployments.
+quirks: Drinks coffee like it's a life support system and has an extensive collection
+  of tech conference t-shirts that he never wears.
 first_appearance: Chapter 1
+relationships: []
+permalink: /characters/cto/
 created_date: '2025-06-01'
 lang: en
 ---

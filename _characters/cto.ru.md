@@ -16,6 +16,7 @@ backstory: ''
 quirks: ''
 first_appearance: Chapter 1
 relationships: []
+permalink: /characters/cto/
 lang: ru
 translated_from: en
 translated_date: '2025-06-01'

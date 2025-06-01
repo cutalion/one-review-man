@@ -3,22 +3,27 @@ layout: default
 title: "Персонажи - One Review Man"
 lang: ru
 permalink: /characters/
+nav_order: 2
 ---
 
 # Персонажи
 
 Познакомьтесь с эксцентричной командой **One Review Man** - каждый со своей уникальной личностью, предысторией и ролью в нашей рабочей комедии!
 
-{% assign characters = site.data.characters.ru.characters %}
+{% assign characters = site.characters | where: "lang", page.lang %}
 
 {% if characters and characters.size > 0 %}
   <div class="characters-grid">
-    {% for character_data in characters %}
-      {% assign character = character_data[1] %}
+    {% for character in characters %}
       <div class="character-profile-card">
         <div class="character-header">
           <h2 class="character-name">
-            <a href="/characters/{{ character.slug }}">{{ character.name }}</a>
+            {% assign character_page = site.characters | where: "slug", character.slug | first %}
+            {% if character_page %}
+              <a href="{{ character_page.url }}">{{ character.name }}</a>
+            {% else %}
+              <a href="/characters/{{ character.slug | slugify }}">{{ character.name }}</a>
+            {% endif %}
           </h2>
           {% if character.first_appearance %}
             <span class="first-appearance-badge">
@@ -48,13 +53,18 @@ permalink: /characters/
         
         {% if character.relationships and character.relationships.size > 0 %}
           <div class="relationships-section">
-            <strong>Отношения:</strong>
+            <strong>Связи:</strong>
             <ul class="relationships-list">
               {% for relationship in character.relationships %}
                 {% assign other_char = site.data.characters.ru.characters[relationship.character] %}
+                {% assign other_char_page = site.characters | where: "slug", relationship.character | first %}
                 <li>
                   {% if other_char %}
-                    <a href="/characters/{{ relationship.character }}">{{ other_char.name }}</a>
+                    {% if other_char_page %}
+                      <a href="{{ other_char_page.url }}">{{ other_char.name }}</a>
+                    {% else %}
+                      <a href="/characters/{{ relationship.character | slugify }}">{{ other_char.name }}</a>
+                    {% endif %}
                   {% else %}
                     {{ relationship.character }}
                   {% endif %}
@@ -112,7 +122,7 @@ permalink: /characters/
       </div>
     {% endif %}
     
-    {% assign characters_with_relationships = characters | where_exp: "char", "char[1].relationships.size > 0" %}
+    {% assign characters_with_relationships = characters | where_exp: "char", "char.relationships.size > 0" %}
     <div class="stat-box">
       <span class="stat-number">{{ characters_with_relationships.size | default: 0 }}</span>
       <span class="stat-label">Есть Отношения</span>

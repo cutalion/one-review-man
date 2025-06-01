@@ -286,6 +286,10 @@ class ChapterGenerator
     new_characters = chapter_data['new_characters'] || []
     character_slugs = new_characters.map { |char| slugify(char['name']) }
 
+    # Generate proper permalink for Jekyll Polyglot (use dashes, not underscores)
+    chapter_slug = format_chapter_filename(chapter_num).gsub('.md', '').gsub('_', '-')
+    permalink = "/chapters/#{chapter_slug}/"
+
     front_matter = {
       'layout' => 'chapter',
       'title' => chapter_data['title'],
@@ -298,6 +302,7 @@ class ChapterGenerator
       'word_count' => chapter_data['word_count'],
       'difficulty_level' => chapter_data['difficulty_level'],
       'one_punch_man_references' => chapter_data['one_punch_man_references'] || [],
+      'permalink' => permalink,
       'generated_date' => Date.today.to_s,
       'status' => 'generated',
       'lang' => 'en'
@@ -510,6 +515,10 @@ class ChapterGenerator
   def create_character_page(slug, character_data)
     filename = "_characters/#{slug}.md"
 
+    # Generate proper permalink for Jekyll Polyglot (use dashes, not underscores)
+    permalink_slug = slug.gsub('_', '-')
+    permalink = "/characters/#{permalink_slug}/"
+
     front_matter = {
       'layout' => 'character',
       'name' => character_data['name'],
@@ -518,6 +527,7 @@ class ChapterGenerator
       'personality_traits' => character_data['personality_traits'] || [],
       'programming_skills' => character_data['programming_skills'],
       'first_appearance' => character_data['first_appearance'],
+      'permalink' => permalink,
       'created_date' => Date.today.to_s,
       'lang' => 'en'
     }

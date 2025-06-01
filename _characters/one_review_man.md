@@ -13,6 +13,7 @@ programming_skills: Writes perfect code that passes any review, unmatched debugg
   with unshakeable confidence, and a natural mentor to other developers.
 first_appearance: Chapter 1
 relationships: []
+permalink: /characters/one-review-man/
 created_date: '2025-06-01'
 lang: en
 ---

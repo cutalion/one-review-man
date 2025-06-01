@@ -2,15 +2,23 @@
 layout: character
 name: Senior Engineer
 slug: senior_engineer
-description: A seasoned developer who admires One Review Man's unparalleled reviewing
-  prowess and leads his team with a mix of wisdom and eccentricity.
+description: An experienced developer who marvels at One Review Man's unparalleled
+  code review mastery and leads his team with a blend of wisdom and eccentricity.
 personality_traits:
-- meticulous
+- thorough
 - witty
-- grizzled
-programming_skills: Expert in Python, C++, and JavaScript with a knack for optimizing
-  legacy code and unearthing bugs that others miss.
+- slightly disheveled
+programming_skills: Expert in Python, C++, and JavaScript with a talent for optimizing
+  legacy code and spotting bugs others miss.
+catchphrase: Code is like wine, it gets better with age, if you don't forget it in
+  the cellar.
+backstory: Senior Engineer started his career when code was written on paper and
+  has since become a master craftsman, always striving for excellence.
+quirks: Loves leaving code comments in poetic form and always carries a notepad for
+  jotting down new ideas.
 first_appearance: Chapter 1
+relationships: []
+permalink: /characters/senior-engineer/
 created_date: '2025-06-01'
 lang: en
 ---

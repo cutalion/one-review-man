@@ -42,8 +42,13 @@ layout: default
           {% for relationship in page.relationships %}
             <li class="relationship">
               {% assign other_character = site.data.characters.characters[relationship.character] %}
+              {% assign other_character_page = site.characters | where: "slug", relationship.character | first %}
               {% if other_character %}
-                <strong><a href="/characters/{{ relationship.character }}">{{ other_character.name }}</a></strong> - {{ relationship.type }}
+                {% if other_character_page %}
+                  <strong><a href="{{ other_character_page.url }}">{{ other_character.name }}</a></strong> - {{ relationship.type }}
+                {% else %}
+                  <strong><a href="/characters/{{ relationship.character | slugify }}">{{ other_character.name }}</a></strong> - {{ relationship.type }}
+                {% endif %}
               {% else %}
                 <strong>{{ relationship.character }}</strong> - {{ relationship.type }}
               {% endif %}
@@ -91,19 +96,19 @@ layout: default
 .character-header {
   text-align: center;
   padding: 2rem 0;
-  border-bottom: 2px solid #e1e5e9;
+  border-bottom: 2px solid #30363d;
   margin-bottom: 2rem;
 }
 
 .character-name {
-  color: #2c3e50;
+  color: #f0f6fc;
   margin-bottom: 1rem;
   font-size: 2.5rem;
 }
 
 .character-description {
   font-size: 1.2rem;
-  color: #7f8c8d;
+  color: #8b949e;
   font-style: italic;
   max-width: 600px;
   margin: 0 auto;
@@ -118,9 +123,9 @@ layout: default
 
 .personality-traits, .first-appearance, .relationships {
   padding: 1.5rem;
-  background-color: #f8f9fa;
+  background-color: #21262d;
   border-radius: 8px;
-  border-left: 4px solid #3498db;
+  border-left: 4px solid #58a6ff;
 }
 
 .trait-list {
@@ -132,8 +137,8 @@ layout: default
 }
 
 .trait {
-  background-color: #3498db;
-  color: white;
+  background-color: #58a6ff;
+  color: #f0f6fc;
   padding: 0.3rem 0.8rem;
   border-radius: 15px;
   font-size: 0.9rem;
@@ -146,7 +151,7 @@ layout: default
 
 .relationship, .appearance {
   padding: 0.5rem 0;
-  border-bottom: 1px solid #e1e5e9;
+  border-bottom: 1px solid #30363d;
 }
 
 .relationship:last-child, .appearance:last-child {
@@ -154,8 +159,8 @@ layout: default
 }
 
 .debut-badge {
-  background-color: #e74c3c;
-  color: white;
+  background-color: #f85149;
+  color: #f0f6fc;
   padding: 0.2rem 0.5rem;
   border-radius: 10px;
   font-size: 0.8rem;
@@ -170,19 +175,19 @@ layout: default
 .character-appearances {
   margin-top: 2rem;
   padding: 1.5rem;
-  background-color: #e8f5e8;
+  background-color: #21262d;
   border-radius: 8px;
 }
 
 .character-navigation {
   margin-top: 3rem;
   padding-top: 2rem;
-  border-top: 1px solid #e1e5e9;
+  border-top: 1px solid #30363d;
   text-align: center;
 }
 
 .back-link {
-  color: #3498db;
+  color: #58a6ff;
   text-decoration: none;
   font-weight: bold;
 }

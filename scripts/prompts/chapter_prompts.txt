@@ -7,24 +7,27 @@ You are writing "One Review Man" - a programming comedy parody of the manga/anim
 Generate Chapter {CHAPTER_NUMBER}: {CHAPTER_TITLE_HINT}
 
 CORE CONCEPT:
-- One Review Man (real name: Satoru) is a super-programmer who writes perfect code
+- One Review Man (real name: {ONE_REVIEW_MAN_REAL_NAME}) is a super-programmer who writes perfect code
 - All his pull requests are accepted and merged without comments on the first review
 - Like Saitama in One-Punch Man, he's become bored with his overwhelming ability
+- Almost nobody takes him seriously or believes in his abilities (just like in One-Punch Man)
+- Colleagues often dismiss his achievements as luck, timing, or trivial problems
+- His unimpressive appearance and casual demeanor make people underestimate him
 - The story parodies programming culture, code reviews, and tech workplace dynamics
 
 NAMING CONVENTIONS (CRITICAL):
-- One Review Man's real name is "Satoru" (パロディ of Saitama)
-- AI-Enhanced Disciple's real name is "Genki" (パロディ of Genos)
+- One Review Man's real name is "{ONE_REVIEW_MAN_REAL_NAME}" (to be generated during character creation)
+- AI-Enhanced Disciple's real name is "{AI_ENHANCED_DISCIPLE_REAL_NAME}" (to be generated during character creation)
 - Most characters call them by professional titles: "One Review Man", "AI-Enhanced Disciple"
-- ONLY when Satoru and Genki speak to each other do they use real names
-- Genki is the ONLY character who calls him "Satoru" (usually "Satoru-sensei")
+- ONLY when {ONE_REVIEW_MAN_REAL_NAME} and {AI_ENHANCED_DISCIPLE_REAL_NAME} speak to each other do they use real names
+- {AI_ENHANCED_DISCIPLE_REAL_NAME} is the ONLY character who calls him "{ONE_REVIEW_MAN_REAL_NAME}" (usually "{ONE_REVIEW_MAN_REAL_NAME}-sensei")
 - Everyone else must use "One Review Man" or respectful titles
 - This creates the same dynamic as Saitama/Genos in the original
 
 TRANSLATION NOTES:
 - For Russian: "One Review Man" becomes "Ванревьюмен" (like "One Punch Man" → "Ванпанчмен")
-- Real names keep Japanese style: "Satoru" → "Сатору", "Genki" → "Генки"
-- Respectful address: "Сатору-сенсей" for "Satoru-sensei"
+- Real names keep Japanese style when generated
+- Respectful address: "{ONE_REVIEW_MAN_REAL_NAME}-сенсей" for "{ONE_REVIEW_MAN_REAL_NAME}-sensei"
 
 Context:
 - Setting: Modern tech company/startup environment
@@ -35,29 +38,44 @@ Context:
 {CHARACTER_CONTEXT}
 
 KEY CHARACTERS TO REFERENCE:
-- One Review Man (Satoru): The protagonist, master programmer (parody of Saitama)
+- One Review Man ({ONE_REVIEW_MAN_REAL_NAME}): The protagonist, master programmer (parody of Saitama)
   * Most people call him "One Review Man" or "One Review Man-san"
-  * Only Genki calls him "Satoru" or "Satoru-sensei"
-- The AI-Enhanced Disciple (Genki): Cyborg-like character with neurointerface who seeks to learn (parody of Genos)
-  * Satoru calls him "Genki" when they're talking privately
+  * Only {AI_ENHANCED_DISCIPLE_REAL_NAME} calls him "{ONE_REVIEW_MAN_REAL_NAME}" or "{ONE_REVIEW_MAN_REAL_NAME}-sensei"
+  * Despite his incredible abilities, colleagues rarely take him seriously
+  * Often dismissed as "just lucky" or "only good at simple problems"
+- The AI-Enhanced Disciple ({AI_ENHANCED_DISCIPLE_REAL_NAME}): Cyborg-like character with neurointerface who seeks to learn (parody of Genos)
+  * {ONE_REVIEW_MAN_REAL_NAME} calls him "{AI_ENHANCED_DISCIPLE_REAL_NAME}" when they're talking privately
   * Others call him "AI-Enhanced Disciple" or "Disciple-kun"
+  * One of the few who truly recognizes {ONE_REVIEW_MAN_REAL_NAME}'s abilities
 
 DIALOGUE RULES:
 - Other characters → One Review Man: "One Review Man", "One Review Man-san", "sir", etc.
-- Genki → Satoru: "Satoru-sensei", "Satoru", "Master"
-- Satoru → Genki: "Genki", occasionally "Disciple"
-- Others → Genki: "AI-Enhanced Disciple", "Disciple-kun", "the cyborg"
+- {AI_ENHANCED_DISCIPLE_REAL_NAME} → {ONE_REVIEW_MAN_REAL_NAME}: "{ONE_REVIEW_MAN_REAL_NAME}-sensei", "{ONE_REVIEW_MAN_REAL_NAME}", "Master"
+- {ONE_REVIEW_MAN_REAL_NAME} → {AI_ENHANCED_DISCIPLE_REAL_NAME}: "{AI_ENHANCED_DISCIPLE_REAL_NAME}", occasionally "Disciple"
+- Others → {AI_ENHANCED_DISCIPLE_REAL_NAME}: "AI-Enhanced Disciple", "Disciple-kun", "the cyborg"
 - Internal monologue can use real names
+
+UNDERESTIMATION THEME (CRITICAL):
+- Colleagues constantly underestimate One Review Man's abilities
+- His solutions are dismissed as "obvious" or "anyone could have done that"
+- People attribute his success to external factors rather than skill
+- He maintains a humble, unassuming demeanor that reinforces this perception
+- When disasters strike, people rarely think to ask him for help initially
+- His casual approach to complex problems makes others think he's not taking things seriously
+- Only after witnessing his abilities do some (rarely) begin to respect him
+- This mirrors Saitama's treatment in One-Punch Man perfectly
 
 Chapter Requirements:
 - Include programming humor (bugs, code reviews, deployments, etc.)
 - Reference One-Punch Man tropes adapted to programming context
+- Show how colleagues dismiss or underestimate One Review Man's abilities
 - Use tech industry absurdities (standup meetings, sprint planning, etc.)
 - Include unexpected coding disasters or solutions
 - Maintain the "overpowered protagonist" theme from One-Punch Man
 - Follow naming conventions consistently throughout dialogue
 - Show the master/disciple relationship dynamic
 - End with setup for next programming comedy scenario
+- Demonstrate the gap between One Review Man's actual abilities and others' perceptions
 
 Programming Comedy Elements to Include:
 - Code review disasters (except for One Review Man's perfect code)
@@ -84,7 +102,7 @@ Format the output as:
 - Personality: {CHARACTER_TRAITS}
 - Programming Skills: {CHARACTER_CODING_LEVEL}
 - Relationship to One Review Man: {CHARACTER_RELATIONSHIP}
-- How they address One Review Man: [Professional title unless they're Genki]
+- How they address One Review Man: [Professional title unless they're {AI_ENHANCED_DISCIPLE_REAL_NAME}]
 
 ## New Character Creation Prompt
 If introducing new characters in this chapter, ensure they:
@@ -110,7 +128,7 @@ Consider incorporating:
 - Conference presentations or tech talks
 - Startup pitch meetings with absurd technical requirements
 - Legacy code archaeology
-- Private conversations between Satoru and Genki (using real names)
+- Private conversations between {ONE_REVIEW_MAN_REAL_NAME} and {AI_ENHANCED_DISCIPLE_REAL_NAME} (using real names)
 - Workplace interactions (using professional titles)
 
 ## One-Punch Man Parody Elements
@@ -123,16 +141,19 @@ Adapt these One-Punch Man concepts to programming:
 - Caped Baldy nickname → Programming-related nickname
 - S-Class heroes → Senior/Principal engineers
 - Villain organizations → Competing tech companies or bad coding practices
-- Saitama's casual attitude → Satoru's nonchalant approach to impossible bugs
-- Genos's formal speech → Genki's technical jargon and respectful address
+- Saitama's casual attitude → {ONE_REVIEW_MAN_REAL_NAME}'s nonchalant approach to impossible bugs
+- Genos's formal speech → {AI_ENHANCED_DISCIPLE_REAL_NAME}'s technical jargon and respectful address
+- Nobody believing in Saitama → Colleagues dismissing One Review Man's abilities
+- Credit being given to other heroes → Other developers getting credit for One Review Man's work
 
 ## Chapter Ending Prompts
 End the chapter with one of:
-- A massive production bug that only One Review Man can solve
+- A massive production bug that only One Review Man can solve (while others doubt him)
 - Introduction of a new, seemingly impossible programming challenge
-- Genki attempting to replicate Satoru's abilities and calling him "Satoru-sensei"
-- A code review scenario showcasing One Review Man's perfection
+- {AI_ENHANCED_DISCIPLE_REAL_NAME} attempting to replicate {ONE_REVIEW_MAN_REAL_NAME}'s abilities and calling him "{ONE_REVIEW_MAN_REAL_NAME}-sensei"
+- A code review scenario showcasing One Review Man's perfection (dismissed by others as luck)
 - Setup for a programming contest or technical challenge
 - Discovery of an ancient codebase that threatens the entire system
 - A new team member who doesn't believe in One Review Man's abilities and learns his title
-- A private moment between Satoru and Genki using real names 
+- A private moment between {ONE_REVIEW_MAN_REAL_NAME} and {AI_ENHANCED_DISCIPLE_REAL_NAME} using real names
+- Colleagues attributing One Review Man's success to external factors 

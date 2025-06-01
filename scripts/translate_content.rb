@@ -439,9 +439,9 @@ class ContentTranslator
   end
 
   def create_translated_chapter_file(target_file, source_data, translation_data, target_lang)
-    # Generate clean permalink without language suffix
-    source_basename = File.basename(target_file, ".#{target_lang}.md")
-    clean_permalink = "/chapters/#{source_basename}/"
+    # Generate proper permalink for Jekyll Polyglot (same as English, Polyglot will handle /ru/ prefix)
+    source_basename = File.basename(target_file, ".#{target_lang}.md").gsub('_', '-')
+    permalink = "/chapters/#{source_basename}/"
 
     # Preserve all metadata from source, update with translations
     front_matter = source_data.dup
@@ -450,7 +450,7 @@ class ContentTranslator
     front_matter.update({
                           'title' => translation_data['title'],
                           'summary' => translation_data['summary'],
-                          'permalink' => clean_permalink,
+                          'permalink' => permalink,
                           'lang' => target_lang,
                           'translated_from' => 'en',
                           'translated_date' => Date.today.to_s
@@ -466,6 +466,11 @@ class ContentTranslator
   end
 
   def create_translated_character_file(target_file, source_data, translation_data, target_lang)
+    # Generate proper permalink for Jekyll Polyglot (same as English, Polyglot will handle /ru/ prefix)
+    character_slug = source_data['slug']
+    permalink_slug = character_slug.gsub('_', '-')
+    permalink = "/characters/#{permalink_slug}/"
+
     front_matter = {
       'layout' => 'character',
       'name' => translation_data['name'],
@@ -478,6 +483,7 @@ class ContentTranslator
       'quirks' => translation_data['quirks'],
       'first_appearance' => source_data['first_appearance'],
       'relationships' => source_data['relationships'] || [],
+      'permalink' => permalink,
       'lang' => target_lang,
       'translated_from' => 'en',
       'translated_date' => Date.today.to_s

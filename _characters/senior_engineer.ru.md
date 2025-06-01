@@ -17,6 +17,7 @@ quirks: Обожает оставлять комментарии в коде в 
   блокнот для записей о новых идеях.
 first_appearance: Chapter 1
 relationships: []
+permalink: /characters/senior-engineer/
 lang: ru
 translated_from: en
 translated_date: '2025-06-01'

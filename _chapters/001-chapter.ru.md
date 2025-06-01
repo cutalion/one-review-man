@@ -28,10 +28,10 @@ difficulty_level: beginner
 one_punch_man_references:
 - overpowered_protagonist
 - mentor-disciple_relationship
+permalink: /chapters/001-chapter/
 generated_date: '2025-06-01'
 status: generated
 lang: ru
-permalink: "/chapters/001-chapter/"
 translated_from: en
 translated_date: '2025-06-01'
 ---

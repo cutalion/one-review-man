@@ -355,6 +355,10 @@ class CharacterManager
   def create_character_page(slug, character_data)
     filename = "_characters/#{slug}.md"
 
+    # Generate proper permalink for Jekyll Polyglot (use dashes, not underscores)
+    permalink_slug = slug.gsub('_', '-')
+    permalink = "/characters/#{permalink_slug}/"
+
     front_matter = {
       'layout' => 'character',
       'name' => character_data['name'],
@@ -364,6 +368,7 @@ class CharacterManager
       'programming_skills' => character_data['programming_skills'],
       'first_appearance' => character_data['first_appearance'],
       'relationships' => character_data['relationships'] || [],
+      'permalink' => permalink,
       'created_date' => Date.today.to_s,
       'lang' => 'en'
     }

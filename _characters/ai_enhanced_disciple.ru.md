@@ -19,6 +19,7 @@ quirks: Постоянно носит с собой гаджеты, которы
 first_appearance: Chapter 1
 relationships:
 - One Review Man (master/mentor)
+permalink: /characters/ai-enhanced-disciple/
 lang: ru
 translated_from: en
 translated_date: '2025-06-01'

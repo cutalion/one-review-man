@@ -1,9 +1,12 @@
 <div class="character-card">
   <div class="character-card-header">
     <h4 class="character-card-name">
-      <a href="/characters/{{ include.character.slug | default: include.character.name | slugify }}">
-        {{ include.character.name }}
-      </a>
+      {% assign character_page = site.characters | where: "slug", include.character.slug | first %}
+      {% if character_page %}
+        <a href="{{ character_page.url }}">{{ include.character.name }}</a>
+      {% else %}
+        <a href="/characters/{{ include.character.slug | slugify }}">{{ include.character.name }}</a>
+      {% endif %}
     </h4>
   </div>
   

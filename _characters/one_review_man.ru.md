@@ -20,6 +20,7 @@ quirks: Обожает собирать коллекцию забавных ко
   и всегда использует аналогии с искусством, чтобы объяснить сложные концепции.
 first_appearance: Chapter 1
 relationships: []
+permalink: /characters/one-review-man/
 lang: ru
 translated_from: en
 translated_date: '2025-06-01'

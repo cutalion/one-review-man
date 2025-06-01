@@ -17,6 +17,7 @@ quirks: Всегда задает слишком много вопросов н�
   о коде, которые никто не понимает.
 first_appearance: Chapter 1
 relationships: []
+permalink: /characters/junior-developer/
 lang: ru
 translated_from: en
 translated_date: '2025-06-01'

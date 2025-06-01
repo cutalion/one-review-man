@@ -6,7 +6,7 @@ en:
     author: AI Collective
     genre: Humor/Comedy
     target_chapters: 50
-    current_chapter: 1
+    current_chapter: 2
   generation:
     model: gpt-4.1
     chapter_length_target: 1500-3000 words
@@ -20,11 +20,11 @@ en:
     - bureaucratic absurdity
     - everyday situations gone wrong
   status:
-    last_generated: '2025-06-01'
-    generation_count: 1
+    last_generated: '2025-06-02'
+    generation_count: 2
     characters_created: 2
     active_storylines: []
-    chapters_written: 1
+    chapters_written: 2
 ru:
   book:
     title: Ванревьюмэн
