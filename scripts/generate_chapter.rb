@@ -212,15 +212,23 @@ class ChapterGenerator
     # Get used plot devices
     used_devices = get_used_plot_devices
 
+    # Get character real names for template replacement
+    one_review_man = @characters['characters'].values.find { |c| c['name'] == 'One Review Man' }
+    ai_disciple = @characters['characters'].values.find { |c| c['name'] == 'AI-Enhanced Disciple' }
+    
+    one_review_man_real_name = one_review_man&.dig('real_name') || '[to be generated]'
+    ai_disciple_real_name = ai_disciple&.dig('real_name') || '[to be generated]'
+
     # Replace template variables
     prompt_template
       .gsub('{CHAPTER_NUMBER}', chapter_num.to_s)
-      .gsub('{CHAPTER_TITLE_HINT}', generate_title_hint(chapter_num))
       .gsub('{TARGET_LENGTH}', book_metadata.dig('generation', 'chapter_length_target') || '1500-3000 words')
       .gsub('{PREVIOUS_CHAPTERS_SUMMARY}', previous_summary)
       .gsub('{CHARACTER_CONTEXT}', character_context.empty? ? 'No existing characters.' : "Existing characters:\n#{character_context}")
       .gsub('{USED_PLOT_DEVICES}', used_devices.join(', '))
       .gsub('{SPECIAL_INSTRUCTIONS}', get_special_instructions(chapter_num))
+      .gsub('{ONE_REVIEW_MAN_REAL_NAME}', one_review_man_real_name)
+      .gsub('{AI_ENHANCED_DISCIPLE_REAL_NAME}', ai_disciple_real_name)
   end
 
   def load_prompt_template
@@ -403,23 +411,6 @@ class ChapterGenerator
 
       Please create a complete character profile with typical fields: name, description, personality_traits, programming_skills, catchphrase, backstory, quirks.
     PROMPT
-  end
-
-  def generate_title_hint(chapter_num)
-    hints = [
-      'The Great Mix-up',
-      'When Technology Fails',
-      'The Meeting That Never Was',
-      'Copy Machine Catastrophe',
-      'Email Chaos',
-      'The New Policy',
-      'Elevator Encounters',
-      'Break Room Drama',
-      'The Mysterious Memo',
-      'Conference Call Confusion'
-    ]
-
-    hints[(chapter_num - 1) % hints.length]
   end
 
   def get_special_instructions(chapter_num)

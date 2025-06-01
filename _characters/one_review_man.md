@@ -2,41 +2,44 @@
 layout: character
 name: One Review Man
 slug: one_review_man
-description: One Review Man is the ultimate programmer whose code is flawless and
-  instantly approved in every code review, leaving him bored with his own perfection.
+description: A programmer whose code always passes reviews instantly, leaving him
+  unchallenged and bored with his unmatched abilities. Despite his immense coding
+  skills, he maintains a simple lifestyle and humble attitude, quietly mentoring his
+  overly eager disciple, Genki.
 personality_traits:
 - calm
 - humble
-- unimpressed
-programming_skills: Writes perfect code that passes any review, unmatched debugging
-  abilities, master of every programming language and framework, deploys to production
-  with unshakeable confidence, and a natural mentor to other developers.
+- indifferent
+programming_skills: Flawlessly writes clean, efficient, bug-free code in any programming
+  language or framework on the first try. Instantly understands complex systems, effortlessly
+  solves impossible coding tasks and debugging challenges, and deploys confidently
+  to production environments without a single hiccup.
 first_appearance: Chapter 1
 relationships: []
-permalink: /characters/one-review-man/
-created_date: '2025-06-01'
+permalink: "/characters/one-review-man/"
+created_date: '2025-06-02'
 lang: en
 ---
 
 ## About One Review Man
 
-One Review Man is the ultimate programmer whose code is flawless and instantly approved in every code review, leaving him bored with his own perfection.
+A programmer whose code always passes reviews instantly, leaving him unchallenged and bored with his unmatched abilities. Despite his immense coding skills, he maintains a simple lifestyle and humble attitude, quietly mentoring his overly eager disciple, Genki.
 
 ## Programming Skills
 
-Writes perfect code that passes any review, unmatched debugging abilities, master of every programming language and framework, deploys to production with unshakeable confidence, and a natural mentor to other developers.
+Flawlessly writes clean, efficient, bug-free code in any programming language or framework on the first try. Instantly understands complex systems, effortlessly solves impossible coding tasks and debugging challenges, and deploys confidently to production environments without a single hiccup.
 
 ## Backstory
 
-Satoru became One Review Man after an intense training regimen of 100 pull requests, 100 bug fixes, and 100 unit tests every day, leading to his ultimate programming prowess but leaving him in search of excitement.
+Once an average developer constantly bogged down by code reviews and endless debug sessions, Satoru underwent a grueling regimen: daily solving 100 coding problems, reading 10 technical blogs, refactoring legacy codebases, and abstaining from copy-pasting for three years straight. After his intense training, he found himself possessing unparalleled programming mastery, becoming bored when every pull request he opened was instantly approved and merged.
 
 ## Notable Quirks
 
-Despite his abilities, Satoru maintains a simple, unassuming appearance and is often found in plain t-shirts and jeans, much to the surprise of those who witness his coding brilliance.
+Frequently seen casually coding complex programs with one hand while eating snacks or browsing online sales with the other. Often indifferent towards colleagues' astonishment at his coding miracles, responding with a simple shrug.
 
 ## Catchphrase
 
-> "Done."
+> "Sure."
 
 ## Appearances
 

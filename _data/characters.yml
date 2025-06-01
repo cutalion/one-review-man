@@ -3,140 +3,136 @@ en:
   characters:
     one_review_man:
       name: One Review Man
-      description: One Review Man is the ultimate programmer whose code is flawless
-        and instantly approved in every code review, leaving him bored with his own
-        perfection.
+      description: A programmer whose code always passes reviews instantly, leaving
+        him unchallenged and bored with his unmatched abilities. Despite his immense
+        coding skills, he maintains a simple lifestyle and humble attitude, quietly
+        mentoring his overly eager disciple, Genki.
       personality_traits:
       - calm
       - humble
-      - unimpressed
-      programming_skills: Writes perfect code that passes any review, unmatched debugging
-        abilities, master of every programming language and framework, deploys to
-        production with unshakeable confidence, and a natural mentor to other developers.
-      catchphrase: Done.
-      backstory: Satoru became One Review Man after an intense training regimen of
-        100 pull requests, 100 bug fixes, and 100 unit tests every day, leading to
-        his ultimate programming prowess but leaving him in search of excitement.
-      quirks: Despite his abilities, Satoru maintains a simple, unassuming appearance
-        and is often found in plain t-shirts and jeans, much to the surprise of those
-        who witness his coding brilliance.
+      - indifferent
+      programming_skills: Flawlessly writes clean, efficient, bug-free code in any
+        programming language or framework on the first try. Instantly understands
+        complex systems, effortlessly solves impossible coding tasks and debugging
+        challenges, and deploys confidently to production environments without a single
+        hiccup.
+      catchphrase: Sure.
+      backstory: 'Once an average developer constantly bogged down by code reviews
+        and endless debug sessions, Satoru underwent a grueling regimen: daily solving
+        100 coding problems, reading 10 technical blogs, refactoring legacy codebases,
+        and abstaining from copy-pasting for three years straight. After his intense
+        training, he found himself possessing unparalleled programming mastery, becoming
+        bored when every pull request he opened was instantly approved and merged.'
+      quirks: Frequently seen casually coding complex programs with one hand while
+        eating snacks or browsing online sales with the other. Often indifferent towards
+        colleagues' astonishment at his coding miracles, responding with a simple
+        shrug.
       first_appearance: Chapter 1
       slug: one_review_man
-      created_date: '2025-06-01'
+      created_date: '2025-06-02'
     ai_enhanced_disciple:
       name: AI-Enhanced Disciple
-      description: A dedicated and technologically augmented programmer who looks
-        up to One Review Man with deep admiration, seeking to emulate his flawless
-        programming skills.
+      description: A young, ambitious programmer enhanced with advanced cybernetic
+        implants and AI assistance. Despite his sophisticated technology, he struggles
+        to reach the effortless programming mastery shown by his mentor, One Review
+        Man. Completely devoted to learning from his master, he meticulously documents
+        every interaction and insight, constantly seeking wisdom in even the simplest
+        coding examples.
       personality_traits:
-      - dedicated
       - analytical
-      - technology-obsessed
-      programming_skills: Neurointerface technology, AI-assisted programming, machine
-        learning integration, advanced debugging tools
-      catchphrase: Satoru-sensei, please teach me your techniques!
-      backstory: Genki was a prodigy in the tech world, constantly innovating but
-        never satisfied with his own work. After witnessing Satoru's effortless perfection
-        in a coding competition, he decided to enhance himself with AI technology
-        in pursuit of being the best. Despite his advancements, he is still humbled
-        by One Review Man's natural talent and has sworn to learn from him.
-      quirks: Overcomplicates simple problems with high-tech solutions and takes excessive
-        notes, often quoting programming documentation in conversation.
+      - respectful
+      - obsessively dedicated
+      programming_skills: Possesses advanced neurointerface technology that integrates
+        AI-assisted auto-complete, real-time machine learning debugging, predictive
+        coding algorithms, and augmented reality documentation tools. Yet, despite
+        these powerful capabilities, he often complicates simple solutions and still
+        commits beginner mistakes.
+      catchphrase: Satoru-sensei, please reveal the secret behind your flawless reviews!
+      backstory: Originally a talented programmer frustrated by constant code reviews
+        and endless debugging cycles, Genki volunteered to undergo an experimental
+        AI-cybernetic enhancement project to exponentially accelerate his programming
+        capabilities. After successfully completing the transformation, he encountered
+        Satoru (One Review Man), whose effortless coding skills utterly humbled and
+        inspired him. Since then, Genki has dedicated himself completely to becoming
+        Satoru's disciple, determined to comprehend the elegant simplicity behind
+        his master's unmatched talent.
+      quirks: Frequently records overly detailed logs of every mundane action performed
+        by Satoru-sensei, convinced these trivial routines hold secret insights. Often
+        interrupts conversations with detailed technical explanations no one requested.
       first_appearance: Chapter 1
       relationships:
       - One Review Man (master/mentor)
       slug: ai_enhanced_disciple
-      created_date: '2025-06-01'
-    senior_engineer:
-      name: Senior Engineer
-      description: A seasoned developer who admires One Review Man's unparalleled
-        reviewing prowess and leads his team with a mix of wisdom and eccentricity.
+      created_date: '2025-06-02'
+    scrum_master_sato:
+      name: Scrum Master Sato
+      description: A strict, no-nonsense team lead obsessed with Agile practices and
+        Jira boards, known for his meticulous planning and legendary stand-up meetings.
       personality_traits:
-      - meticulous
-      - witty
-      - grizzled
-      programming_skills: Expert in Python, C++, and JavaScript with a knack for optimizing
-        legacy code and unearthing bugs that others miss.
-      catchphrase: Let's refactor like it's 1999!
-      backstory: Harold Byte started his programming journey on a Commodore 64, becoming
-        renowned for writing a bug-free game in BASIC at the age of 12. He climbed
-        the ranks through sheer dedication, eventually joining the same company as
-        One Review Man, where he quickly became fascinated by the latter's unique
-        ability to detect code flaws. Despite his grizzled demeanor, Harold is known
-        for his quirky sense of humor and fatherly approach to mentorship.
-      quirks: Always carries a vintage punch card in his pocket for 'good code vibes'
-        and insists on conducting code reviews while sipping on his signature blend
-        of triple espresso.
+      - disciplined
+      - obsessive-compulsive
+      - authoritative
+      programming_skills: Expert in Agile methodologies, Jira automation scripting,
+        Excel macros, and crafting unnecessarily complex Jira workflows.
+      catchphrase: If it's not in Jira, it doesn't exist!
+      backstory: Formerly a carefree junior developer, Kenji Sato experienced a traumatic
+        project delay early in his career caused by poor task management. Vowing never
+        to repeat this disaster, he transformed into Scrum Master Sato—sworn protector
+        of sprint cycles and vigilant keeper of Jira tickets. He now roams the tech
+        landscape enforcing Agile discipline on unsuspecting developers.
+      quirks: Always carries a deck of planning poker cards, has an irrational fear
+        of tasks labeled 'Miscellaneous', and insists on using 'story points' as a
+        unit of measure even in unrelated tasks.
       first_appearance: Chapter 1
-      slug: senior_engineer
-      created_date: '2025-06-01'
+      slug: scrum_master_sato
+      created_date: '2025-06-02'
       language: en
-    cto:
-      name: CTO
-      description: The Chief Technology Officer who frequently relies on One Review
-        Man to solve critical issues in the tech company DynaTech.
+    frontend_developer_tanaka:
+      name: Frontend Developer Tanaka
+      description: A cynical frontend developer who consistently doubts the legendary
+        debugging abilities of One Review Man, attributing his successes purely to
+        luck and trivialities.
       personality_traits:
-      - pragmatic
-      - over-caffeinated
+      - skeptical
       - sarcastic
-      programming_skills: Expert in system architecture, proficient in high-level
-        programming languages such as Python, Java, and occasional forays into Rust
-        despite personal misgivings.
-      catchphrase: If it ain't broke, it's in production.
-      backstory: Cassandra T. Olson rose through the ranks from a junior developer
-        at DynaTech to become the CTO after she single-handedly debugged a catastrophic
-        system error using only a sticky note and sheer force of will. Her reliance
-        on One Review Man stems from countless late-night system overhauls that require
-        more than just caffeine and hope.
-      quirks: Has a habit of naming all servers after obscure sci-fi characters and
-        communicates exclusively through GIFs after 9 PM.
+      - competitive
+      programming_skills: Expert in HTML, CSS, JavaScript frameworks (primarily React),
+        pixel-perfect UI design, and ruthless critique of poorly designed interfaces.
+      catchphrase: Pfft, even Stack Overflow could've solved that.
+      backstory: Once considered the frontend prodigy of Silicon City, Tanaka quickly
+        rose through the ranks with his impeccable UI designs and code elegance. However,
+        the sudden emergence and praise showered upon the mysterious 'One Review Man'
+        threatens his carefully curated status as the city's best coder. Convinced
+        that coding skills can't simply be perfected with a single review, Tanaka
+        now dedicates his free time to exposing what he believes is the overhyped
+        reputation of One Review Man.
+      quirks: Always carries a specialized ergonomic keyboard and gets visibly annoyed
+        by misaligned pixels or inconsistent button padding.
       first_appearance: Chapter 1
-      slug: cto
-      created_date: '2025-06-01'
+      slug: frontend_developer_tanaka
+      created_date: '2025-06-02'
       language: en
-    junior_developer:
-      name: Junior Developer
-      description: An eager yet overwhelmed newbie who looks up to One Review Man.
+    backend_lead_haruto:
+      name: Backend Lead Haruto
+      description: A veteran backend engineer known for his vast experience but infamous
+        for panicking at the slightest sign of production issues. Deeply skeptical
+        of younger teammates and newcomers, he habitually questions their every decision.
       personality_traits:
-      - enthusiastic
-      - naive
-      - easily flustered
-      programming_skills: Basic understanding of Python, JavaScript, and a talent
-        for writing overly verbose comments
-      catchphrase: Is this a bug or a feature?
-      backstory: Jamie was a philosophy major who took a coding bootcamp after accidentally
-        submitting a paper using Python to write the entire thesis. Inspired by One
-        Review Man, they joined the tech world to become a hero in debugging.
-      quirks: Has a tendency to overuse emojis in commit messages and keeps a rubber
-        duck on the desk for 'consultations'.
+      - skeptical
+      - easily-panicked
+      - overly-cautious
+      programming_skills: Expert knowledge of Java, SQL database optimization, legacy
+        code maintenance, debugging obscure back-end errors, and crisis-driven hotfix
+        deployments.
+      catchphrase: Wait, you're deploying THAT to production!?
+      backstory: Haruto began his career in the early days of enterprise software,
+        shaped by traumatic outages and catastrophic deployments. His numerous encounters
+        with midnight server crashes made him extremely cautious. Now, he's the paranoid
+        guardian of the company's backend systems, balancing technical brilliance
+        with a hair-trigger panic response.
+      quirks: Always carries around an emergency stress ball labeled 'Rollback Button'.
+        Tends to nervously refresh monitoring dashboards even on calm days.
       first_appearance: Chapter 1
-      slug: junior_developer
-      created_date: '2025-06-01'
-      language: en
-    framework_evangelist_san:
-      name: Framework Evangelist-san
-      description: A confident, overly enthusiastic programmer obsessed with promoting
-        UltraJS, a trendy new JavaScript framework he claims will revolutionize web
-        development, despite skepticism from peers.
-      personality_traits:
-      - enthusiastic
-      - confident
-      - persistent
-      - overdramatic
-      programming_skills: Expert-level JavaScript knowledge, deep familiarity with
-        UltraJS framework internals, adept at frontend architecture, skilled in creating
-        flashy but impractical tech demos.
-      catchphrase: Your framework is already deprecated!
-      backstory: Previously a popular frontend developer known for his trendy conference
-        talks and viral Medium articles, Junpei discovered UltraJS during a tech retreat.
-        Convinced it was the solution to all frontend woes, he now travels from meetup
-        to meetup, tirelessly advocating for UltraJS, even when no one asked. His
-        boundless energy and flamboyant promotional style have made him both famous
-        and infamous in the developer community.
-      quirks: Always wears an UltraJS-themed hoodie and carries a pile of branded
-        stickers; frequently interrupts meetings to suggest rewriting projects from
-        scratch using UltraJS.
-      first_appearance: Chapter 2
-      slug: framework_evangelist_san
+      slug: backend_lead_haruto
       created_date: '2025-06-02'
       language: en

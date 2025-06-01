@@ -4,7 +4,7 @@
 ## Base Chapter Prompt
 You are writing "One Review Man" - a programming comedy parody of the manga/anime "One-Punch Man".
 
-Generate Chapter {CHAPTER_NUMBER}: {CHAPTER_TITLE_HINT}
+Generate Chapter {CHAPTER_NUMBER}
 
 CORE CONCEPT:
 - One Review Man (real name: {ONE_REVIEW_MAN_REAL_NAME}) is a super-programmer who writes perfect code

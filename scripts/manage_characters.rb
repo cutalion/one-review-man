@@ -223,17 +223,17 @@ class CharacterManager
 
       NAMING CONVENTIONS:
       - Professional Name: "One Review Man" (like "One-Punch Man" is Saitama's hero name)
-      - Real Name: "Satoru" (parody of Saitama's real name)
+      - Real Name: Generate an appropriate Japanese-style name (parody of Saitama's real name)
       - Most people call him "One Review Man" or respectful variations
-      - Only his disciple (AI-Enhanced Disciple) calls him "Satoru" or "Satoru-sensei"
-      - He calls his disciple "Genki" when they talk privately
+      - Only his disciple (AI-Enhanced Disciple) calls him by his real name or "real-name-sensei"
+      - He calls his disciple by their real name when they talk privately
 
       EXISTING CHARACTERS:
       #{existing_chars_context.empty? ? 'No existing characters yet.' : existing_chars_context}
 
       CHARACTER REQUIREMENTS:
       - Name: "One Review Man" (professional title/hero name)
-      - Real Name: "Satoru" (his actual given name)
+      - Real Name: Generate a suitable Japanese-style real name
       - Must be the ultimate programmer (like Saitama is the ultimate hero)
       - Writes flawless code that never needs revisions
       - All pull requests are instantly approved and merged
@@ -253,7 +253,7 @@ class CharacterManager
       - Nonchalant attitude toward "impossible" programming challenges
 
       Please generate this character with typical fields: name, real_name, description, personality_traits, programming_skills, catchphrase, backstory, quirks.
-      Remember: Most colleagues call him "One Review Man", only his disciple uses "Satoru".
+      Remember: Most colleagues call him "One Review Man", only his disciple uses his real name.
     PROMPT
   end
 
@@ -268,23 +268,23 @@ class CharacterManager
 
       NAMING CONVENTIONS:
       - Professional Name: "AI-Enhanced Disciple" (like "Demon Cyborg" is Genos's hero classification)
-      - Real Name: "Genki" (parody of Genos's real name)
+      - Real Name: Generate an appropriate Japanese-style name (parody of Genos's real name)
       - Most people call him "AI-Enhanced Disciple" or "Disciple-kun"
-      - One Review Man (Satoru) calls him "Genki" in private conversations
-      - He calls One Review Man "Satoru-sensei" or "Master" (the only one who uses his real name)
+      - One Review Man calls him by his real name in private conversations
+      - He calls One Review Man by "real-name-sensei" or "Master" (the only one who uses One Review Man's real name)
 
       EXISTING CHARACTERS:
       #{existing_chars_context.empty? ? 'No existing characters yet.' : existing_chars_context}
 
       CHARACTER REQUIREMENTS:
       - Name: "AI-Enhanced Disciple" (professional title/hero designation)
-      - Real Name: "Genki" (his actual given name)
+      - Real Name: Generate a suitable Japanese-style real name
       - Must be like Genos - dedicated student/disciple
       - Has cybernetic/AI enhancements for programming
       - Uses advanced technology but still can't match One Review Man's natural perfection
       - Extremely dedicated and analytical
       - Takes detailed notes and documentation
-      - Speaks formally and respectfully, especially to "Satoru-sensei"
+      - Speaks formally and respectfully, especially to his "sensei"
       - Technology-obsessed personality
       - Parodies Genos's relationship with Saitama
       - Shows deep respect and admiration for his master
@@ -296,16 +296,16 @@ class CharacterManager
       - Advanced debugging tools
       - Still makes mistakes despite technology
       - Overcomplicates simple solutions
-      - Constantly seeks to understand Satoru's "simple" methods
+      - Constantly seeks to understand One Review Man's "simple" methods
 
       DIALOGUE CHARACTERISTICS:
       - Formal, technical speech patterns
-      - Addresses One Review Man as "Satoru-sensei" or "Master"
+      - Addresses One Review Man as "real-name-sensei" or "Master"
       - Uses programming jargon extensively
       - Shows reverence and dedication in speech
 
       Please generate this character with typical fields: name, real_name, description, personality_traits, programming_skills, catchphrase, backstory, quirks.
-      The character should have a respectful catchphrase directed at One Review Man using "Satoru-sensei" (like "Sensei, please teach me your techniques!").
+      The character should have a respectful catchphrase directed at One Review Man using "sensei" (like "Sensei, please teach me your techniques!").
     PROMPT
   end
 
