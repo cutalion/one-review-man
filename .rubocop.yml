@@ -1,0 +1,15 @@
+AllCops:
+  TargetRubyVersion: 3.3
+  NewCops: enable
+  Exclude:
+    - '_site/**/*'
+    - '.jekyll-cache/**/*'
+    - 'vendor/**/*'
+    - 'Gemfile.lock'
+
+Layout/LineLength:
+  Exclude:
+    - 'scripts/prompts/**/*'
+  AllowedPatterns:
+    - '\s*#.*'
+    - '^\s*PROMPT.*'

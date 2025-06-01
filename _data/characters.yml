@@ -1,0 +1,115 @@
+---
+en:
+  characters:
+    one_review_man:
+      name: One Review Man
+      description: One Review Man is the ultimate programmer whose code is flawless
+        and instantly approved in every code review, leaving him bored with his own
+        perfection.
+      personality_traits:
+      - calm
+      - humble
+      - unimpressed
+      programming_skills: Writes perfect code that passes any review, unmatched debugging
+        abilities, master of every programming language and framework, deploys to
+        production with unshakeable confidence, and a natural mentor to other developers.
+      catchphrase: Done.
+      backstory: Satoru became One Review Man after an intense training regimen of
+        100 pull requests, 100 bug fixes, and 100 unit tests every day, leading to
+        his ultimate programming prowess but leaving him in search of excitement.
+      quirks: Despite his abilities, Satoru maintains a simple, unassuming appearance
+        and is often found in plain t-shirts and jeans, much to the surprise of those
+        who witness his coding brilliance.
+      first_appearance: Chapter 1
+      slug: one_review_man
+      created_date: '2025-06-01'
+    ai_enhanced_disciple:
+      name: AI-Enhanced Disciple
+      description: A dedicated and technologically augmented programmer who looks
+        up to One Review Man with deep admiration, seeking to emulate his flawless
+        programming skills.
+      personality_traits:
+      - dedicated
+      - analytical
+      - technology-obsessed
+      programming_skills: Neurointerface technology, AI-assisted programming, machine
+        learning integration, advanced debugging tools
+      catchphrase: Satoru-sensei, please teach me your techniques!
+      backstory: Genki was a prodigy in the tech world, constantly innovating but
+        never satisfied with his own work. After witnessing Satoru's effortless perfection
+        in a coding competition, he decided to enhance himself with AI technology
+        in pursuit of being the best. Despite his advancements, he is still humbled
+        by One Review Man's natural talent and has sworn to learn from him.
+      quirks: Overcomplicates simple problems with high-tech solutions and takes excessive
+        notes, often quoting programming documentation in conversation.
+      first_appearance: Chapter 1
+      relationships:
+      - One Review Man (master/mentor)
+      slug: ai_enhanced_disciple
+      created_date: '2025-06-01'
+    senior_engineer:
+      name: Senior Engineer
+      description: A seasoned developer who admires One Review Man's unparalleled
+        reviewing prowess and leads his team with a mix of wisdom and eccentricity.
+      personality_traits:
+      - meticulous
+      - witty
+      - grizzled
+      programming_skills: Expert in Python, C++, and JavaScript with a knack for optimizing
+        legacy code and unearthing bugs that others miss.
+      catchphrase: Let's refactor like it's 1999!
+      backstory: Harold Byte started his programming journey on a Commodore 64, becoming
+        renowned for writing a bug-free game in BASIC at the age of 12. He climbed
+        the ranks through sheer dedication, eventually joining the same company as
+        One Review Man, where he quickly became fascinated by the latter's unique
+        ability to detect code flaws. Despite his grizzled demeanor, Harold is known
+        for his quirky sense of humor and fatherly approach to mentorship.
+      quirks: Always carries a vintage punch card in his pocket for 'good code vibes'
+        and insists on conducting code reviews while sipping on his signature blend
+        of triple espresso.
+      first_appearance: Chapter 1
+      slug: senior_engineer
+      created_date: '2025-06-01'
+      language: en
+    cto:
+      name: CTO
+      description: The Chief Technology Officer who frequently relies on One Review
+        Man to solve critical issues in the tech company DynaTech.
+      personality_traits:
+      - pragmatic
+      - over-caffeinated
+      - sarcastic
+      programming_skills: Expert in system architecture, proficient in high-level
+        programming languages such as Python, Java, and occasional forays into Rust
+        despite personal misgivings.
+      catchphrase: If it ain't broke, it's in production.
+      backstory: Cassandra T. Olson rose through the ranks from a junior developer
+        at DynaTech to become the CTO after she single-handedly debugged a catastrophic
+        system error using only a sticky note and sheer force of will. Her reliance
+        on One Review Man stems from countless late-night system overhauls that require
+        more than just caffeine and hope.
+      quirks: Has a habit of naming all servers after obscure sci-fi characters and
+        communicates exclusively through GIFs after 9 PM.
+      first_appearance: Chapter 1
+      slug: cto
+      created_date: '2025-06-01'
+      language: en
+    junior_developer:
+      name: Junior Developer
+      description: An eager yet overwhelmed newbie who looks up to One Review Man.
+      personality_traits:
+      - enthusiastic
+      - naive
+      - easily flustered
+      programming_skills: Basic understanding of Python, JavaScript, and a talent
+        for writing overly verbose comments
+      catchphrase: Is this a bug or a feature?
+      backstory: Jamie was a philosophy major who took a coding bootcamp after accidentally
+        submitting a paper using Python to write the entire thesis. Inspired by One
+        Review Man, they joined the tech world to become a hero in debugging.
+      quirks: Has a tendency to overuse emojis in commit messages and keeps a rubber
+        duck on the desk for 'consultations'.
+      first_appearance: Chapter 1
+      slug: junior_developer
+      created_date: '2025-06-01'
+      language: en

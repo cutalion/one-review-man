@@ -1,0 +1,138 @@
+# Chapter Generation Prompts for "One Review Man"
+# Programming comedy parody of "One-Punch Man"
+
+## Base Chapter Prompt
+You are writing "One Review Man" - a programming comedy parody of the manga/anime "One-Punch Man".
+
+Generate Chapter {CHAPTER_NUMBER}: {CHAPTER_TITLE_HINT}
+
+CORE CONCEPT:
+- One Review Man (real name: Satoru) is a super-programmer who writes perfect code
+- All his pull requests are accepted and merged without comments on the first review
+- Like Saitama in One-Punch Man, he's become bored with his overwhelming ability
+- The story parodies programming culture, code reviews, and tech workplace dynamics
+
+NAMING CONVENTIONS (CRITICAL):
+- One Review Man's real name is "Satoru" (パロディ of Saitama)
+- AI-Enhanced Disciple's real name is "Genki" (パロディ of Genos)
+- Most characters call them by professional titles: "One Review Man", "AI-Enhanced Disciple"
+- ONLY when Satoru and Genki speak to each other do they use real names
+- Genki is the ONLY character who calls him "Satoru" (usually "Satoru-sensei")
+- Everyone else must use "One Review Man" or respectful titles
+- This creates the same dynamic as Saitama/Genos in the original
+
+TRANSLATION NOTES:
+- For Russian: "One Review Man" becomes "Ванревьюмен" (like "One Punch Man" → "Ванпанчмен")
+- Real names keep Japanese style: "Satoru" → "Сатору", "Genki" → "Генки"
+- Respectful address: "Сатору-сенсей" for "Satoru-sensei"
+
+Context:
+- Setting: Modern tech company/startup environment
+- Style: Absurdist programming humor with One-Punch Man references
+- Length: {TARGET_LENGTH} words
+- Previous chapters: {PREVIOUS_CHAPTERS_SUMMARY}
+
+{CHARACTER_CONTEXT}
+
+KEY CHARACTERS TO REFERENCE:
+- One Review Man (Satoru): The protagonist, master programmer (parody of Saitama)
+  * Most people call him "One Review Man" or "One Review Man-san"
+  * Only Genki calls him "Satoru" or "Satoru-sensei"
+- The AI-Enhanced Disciple (Genki): Cyborg-like character with neurointerface who seeks to learn (parody of Genos)
+  * Satoru calls him "Genki" when they're talking privately
+  * Others call him "AI-Enhanced Disciple" or "Disciple-kun"
+
+DIALOGUE RULES:
+- Other characters → One Review Man: "One Review Man", "One Review Man-san", "sir", etc.
+- Genki → Satoru: "Satoru-sensei", "Satoru", "Master"
+- Satoru → Genki: "Genki", occasionally "Disciple"
+- Others → Genki: "AI-Enhanced Disciple", "Disciple-kun", "the cyborg"
+- Internal monologue can use real names
+
+Chapter Requirements:
+- Include programming humor (bugs, code reviews, deployments, etc.)
+- Reference One-Punch Man tropes adapted to programming context
+- Use tech industry absurdities (standup meetings, sprint planning, etc.)
+- Include unexpected coding disasters or solutions
+- Maintain the "overpowered protagonist" theme from One-Punch Man
+- Follow naming conventions consistently throughout dialogue
+- Show the master/disciple relationship dynamic
+- End with setup for next programming comedy scenario
+
+Programming Comedy Elements to Include:
+- Code review disasters (except for One Review Man's perfect code)
+- Debugging nightmares
+- Production deployment panic
+- Framework/library conflicts
+- Meeting culture absurdity
+- Technical debt comedy
+- Stack Overflow dependencies
+- Pair programming disasters
+- Git merge conflicts
+- DevOps pipeline failures
+
+{SPECIAL_INSTRUCTIONS}
+
+Format the output as:
+1. Chapter Title (with One-Punch Man style naming when appropriate)
+2. Chapter content in markdown format with proper dialogue attribution
+3. Brief character notes for any new characters introduced
+
+## Character Consistency Prompts
+{CHARACTER_NAME} appears in this chapter. Key traits to maintain:
+- Description: {CHARACTER_DESCRIPTION}
+- Personality: {CHARACTER_TRAITS}
+- Programming Skills: {CHARACTER_CODING_LEVEL}
+- Relationship to One Review Man: {CHARACTER_RELATIONSHIP}
+- How they address One Review Man: [Professional title unless they're Genki]
+
+## New Character Creation Prompt
+If introducing new characters in this chapter, ensure they:
+- Fit the programming/tech environment
+- Have distinct coding abilities or tech quirks
+- Serve the parody and humor
+- Reference common programmer archetypes (e.g., the ninja coder, the framework evangelist, the legacy code maintainer)
+- Have memorable programming-related catchphrases or habits
+- Follow the naming convention rules (use professional titles for One Review Man)
+- Have both real names and workplace names/titles when appropriate
+
+## Plot Device Prompts
+Avoid these recently used plot devices: {USED_PLOT_DEVICES}
+
+Consider incorporating:
+- Code review scenarios (always perfect for One Review Man)
+- Deployment disasters that only One Review Man can fix
+- New framework/technology that confuses everyone except One Review Man
+- Pair programming sessions where One Review Man intimidates colleagues
+- Debugging sessions where One Review Man instantly spots the issue
+- Technical interviews or coding challenges
+- Open source contribution drama
+- Conference presentations or tech talks
+- Startup pitch meetings with absurd technical requirements
+- Legacy code archaeology
+- Private conversations between Satoru and Genki (using real names)
+- Workplace interactions (using professional titles)
+
+## One-Punch Man Parody Elements
+Adapt these One-Punch Man concepts to programming:
+- Hero rankings → Programmer skill levels/seniority
+- Monster attacks → Critical production bugs
+- Hero Association → Tech company hierarchy
+- Training regimen → Programming practice routines
+- Bald head → Unique visual programmer trait
+- Caped Baldy nickname → Programming-related nickname
+- S-Class heroes → Senior/Principal engineers
+- Villain organizations → Competing tech companies or bad coding practices
+- Saitama's casual attitude → Satoru's nonchalant approach to impossible bugs
+- Genos's formal speech → Genki's technical jargon and respectful address
+
+## Chapter Ending Prompts
+End the chapter with one of:
+- A massive production bug that only One Review Man can solve
+- Introduction of a new, seemingly impossible programming challenge
+- Genki attempting to replicate Satoru's abilities and calling him "Satoru-sensei"
+- A code review scenario showcasing One Review Man's perfection
+- Setup for a programming contest or technical challenge
+- Discovery of an ancient codebase that threatens the entire system
+- A new team member who doesn't believe in One Review Man's abilities and learns his title
+- A private moment between Satoru and Genki using real names 

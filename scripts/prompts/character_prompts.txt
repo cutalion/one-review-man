@@ -1,0 +1,152 @@
+# Character Generation Prompts for "One Review Man"
+# Programming comedy parody of "One-Punch Man"
+
+## Base Character Prompt
+You are creating a character for "One Review Man" - a programming comedy parody of the manga/anime "One-Punch Man".
+
+Create a new character: {CHARACTER_TYPE}
+
+UNIVERSE CONTEXT:
+- One Review Man (real name: Satoru) is a super-programmer who writes perfect code
+- His disciple is the AI-Enhanced Disciple (real name: Genki)
+- All his pull requests are accepted and merged without comments on the first review
+- The story parodies programming culture, code reviews, and tech workplace dynamics
+- Characters should fit the modern tech company/startup environment
+
+NAMING CONVENTIONS (IMPORTANT):
+- One Review Man's real name is "Satoru" (like Saitama in the original)
+- AI-Enhanced Disciple's real name is "Genki" (like Genos in the original)
+- Most people call them by their professional/hero titles ("One Review Man", "AI-Enhanced Disciple")
+- Only when Satoru and Genki speak to each other do they use real names
+- Other characters should have both real names and professional/nickname versions when appropriate
+- Nobody calls One Review Man by his real name "Satoru" except his disciple
+
+TRANSLATION NOTES:
+- For Russian: "One Review Man" becomes "Ванревьюмен" (like "One Punch Man" → "Ванпанчмен")
+- Real names keep Japanese style: "Satoru" → "Сатору", "Genki" → "Генки"
+- Professional titles are translated: "AI-Enhanced Disciple" → "ИИ-Усиленный Ученик"
+
+{EXISTING_CHARACTERS_CONTEXT}
+
+CHARACTER REQUIREMENTS:
+- Name: Should be programming/tech related or parody One-Punch Man characters
+- Real Name: Give characters actual names (like Satoru/Genki) when appropriate
+- Professional Title: How they're known in the workplace (like "One Review Man")
+- Description: Clear role and appearance
+- Personality Traits: 3-5 distinct traits that drive comedy
+- Programming Skills: What's their coding specialty/weakness?
+- Catchphrase: Memorable programming-related phrase
+- Backstory: How they became this character
+- Quirks: Funny habits or behaviors related to programming
+- Relationship to One Review Man: How they interact with the protagonist
+
+PROGRAMMING ARCHETYPES TO CONSIDER:
+- The Framework Evangelist (always pushing new tech)
+- The Legacy Code Archaeologist (maintains ancient systems)
+- The Ninja Coder (writes impossible-to-understand code)
+- The Meeting Addict (loves standups and retrospectives)
+- The Stack Overflow Dependent (can't code without copy-paste)
+- The Premature Optimizer (optimizes everything before it works)
+- The Bug Magnet (breaks everything they touch)
+- The Documentation Hater (refuses to write docs)
+- The Test Zealot (100% coverage or nothing)
+- The DevOps Diva (infrastructure drama queen)
+
+ONE-PUNCH MAN PARODY ELEMENTS:
+Adapt these concepts to programming:
+- Hero rankings → Programmer skill levels (Junior, Senior, Principal, Architect)
+- Monster attacks → Critical production bugs
+- Hero Association → Tech company hierarchy
+- Special powers → Unique programming abilities
+- Training regimens → Coding practice routines
+
+{SPECIAL_REQUIREMENTS}
+
+FORMAT THE OUTPUT AS:
+Name: [Professional/workplace name]
+Real Name: [Actual given name, if different from professional name]
+Description: [Physical appearance and general role]
+Programming Skills: [What they code, how good they are]
+Personality Traits: [List of 3-5 traits]
+Catchphrase: "[Memorable quote]"
+Backstory: [How they became this character]
+Quirks: [Funny programming-related habits]
+Relationship to One Review Man: [How they interact with protagonist]
+
+## Character Type Prompts
+
+### HERO CHARACTERS (Fellow Programmers)
+Create a hero character who:
+- Has impressive programming skills but not as perfect as One Review Man
+- Looks up to or competes with One Review Man
+- Has a specialty that creates comedy (e.g., only codes in obscure languages)
+- Fits the tech company environment
+- Uses professional titles when addressing One Review Man ("One Review Man-san" or similar)
+
+### VILLAIN CHARACTERS (Bad Coders/Practices)
+Create a villain character who:
+- Represents bad programming practices
+- Creates chaos in the codebase
+- Challenges One Review Man's perfect code
+- Embodies everything wrong with software development
+- May have a professional alias that hides their destructive nature
+
+### SIDE CHARACTERS (Workplace NPCs)
+Create a side character who:
+- Fills a specific role in the tech company
+- Provides comic relief through their job function
+- Has a unique perspective on One Review Man's abilities
+- Represents a common workplace archetype
+- Uses workplace hierarchy when addressing the protagonist
+
+### MENTOR CHARACTERS (Senior Figures)
+Create a mentor character who:
+- Has deep programming wisdom
+- May have trained One Review Man or others
+- Represents old-school vs new-school development
+- Provides guidance during coding crises
+- May be one of the few who knew One Review Man before his hero status
+
+## Character Consistency Checks
+If character already exists, ensure:
+- Personality remains consistent
+- Programming skills don't contradict previous appearances
+- Relationships with other characters make sense
+- Character growth feels natural
+- Naming conventions are followed consistently
+
+## Character Relationship Prompts
+Consider these relationships:
+- Mentor/Student (teaching programming concepts)
+- Rivals (competing coding styles or philosophies)
+- Partners (pair programming dynamics)
+- Teammates (same project, different specialties)
+- Nemeses (opposing coding philosophies)
+
+## Special Character Types
+
+### AI-ENHANCED CHARACTERS
+Characters with AI assistance:
+- Neural interfaces for coding
+- AI pair programming partners
+- Machine learning enhanced debugging
+- Algorithmic decision making
+- May have both human names and AI designations
+
+### MANAGEMENT CHARACTERS
+Non-coding characters who drive plot:
+- Product Managers (requirements chaos)
+- Scrum Masters (meeting obsession)
+- CTOs (high-level technical decisions)
+- Clients (impossible feature requests)
+- Usually address programmers by professional titles
+
+### LEGACY SYSTEM CHARACTERS
+Characters tied to old technology:
+- COBOL maintainers
+- Mainframe operators
+- Assembly language specialists
+- Y2K survivors
+- Often have old-fashioned naming conventions
+
+Remember: Every character should serve the comedy while fitting naturally into the programming parody universe of One Review Man! Follow the naming conventions to maintain consistency with the One-Punch Man parody structure. 

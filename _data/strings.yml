@@ -1,0 +1,136 @@
+# Translation strings for the site
+en:
+  site_title: "One Review Man"
+  site_subtitle: "AI Generated Humor Book"
+  nav:
+    home: "Home"
+    chapters: "Chapters"
+    characters: "Characters"
+    about: "About"
+  
+  chapters:
+    title: "All Chapters"
+    no_chapters: "No Chapters Yet!"
+    no_chapters_desc: "The story is about to begin. Check back soon for the first chapter of hilarious workplace comedy!"
+    progress: "Book Progress"
+    chapters_written: "Chapters Written"
+    target_chapters: "Target Chapters"
+    complete: "Complete"
+    
+  characters:
+    title: "Characters"
+    no_characters: "No Characters Yet!"
+    no_characters_desc: "Our cast of characters is waiting to be created. Each chapter may introduce new personalities to join the comedy!"
+    personality: "Personality:"
+    relationships: "Relationships:"
+    appears_in: "Appears in"
+    chapter: "chapter"
+    chapters: "chapters"
+    statistics: "Character Statistics"
+    total_characters: "Total Characters"
+    have_relationships: "Have Relationships"
+    
+  chapter:
+    characters_in_chapter: "Characters in this chapter:"
+    new_characters: "New characters introduced:"
+    previous: "Previous"
+    next: "Next"
+    all_chapters: "All Chapters"
+    generated_on: "Generated on"
+    
+  character:
+    personality_traits: "Personality Traits"
+    first_appearance: "First Appearance"
+    chapter_appearances: "Chapter Appearances"
+    debut: "Debut"
+    all_characters: "All Characters"
+    
+  home:
+    welcome: "Welcome to the absurdly hilarious world of"
+    description: "Follow the misadventures of office workers as they navigate bureaucratic nightmares, technological mishaps, and the endless comedy of modern work life."
+    book_status: "Book Status"
+    current_chapter: "Current Chapter"
+    target_chapters: "Target Chapters"
+    characters_created: "Characters Created"
+    last_generated: "Last Generated"
+    not_yet_started: "Not yet started"
+    quick_navigation: "Quick Navigation"
+    read_chapters: "Read Chapters"
+    read_chapters_desc: "Dive into the hilarious adventures"
+    meet_characters: "Meet Characters"
+    meet_characters_desc: "Get to know our quirky cast"
+    about_project: "About the Project"
+    about_project_desc: "Learn how AI creates comedy"
+    latest_chapters: "Latest Chapters"
+    featured_characters: "Featured Characters"
+    no_content_chapters: "No chapters have been generated yet. The adventure is about to begin! 🚀"
+    no_content_characters: "Characters are waiting to be created! Each will have their own unique personality and quirks. 🎭"
+    footer_note: "This book is generated chapter by chapter using AI, creating an ever-evolving story of workplace comedy and absurdist humor. Each chapter builds on the last, with characters developing relationships and getting into increasingly ridiculous situations."
+
+ru:
+  site_title: "Один Обзорщик"
+  site_subtitle: "ИИ-генерируемая Юмористическая Книга"
+  nav:
+    home: "Главная"
+    chapters: "Главы"
+    characters: "Персонажи"
+    about: "О проекте"
+    
+  chapters:
+    title: "Все Главы"
+    no_chapters: "Глав Пока Нет!"
+    no_chapters_desc: "История вот-вот начнётся. Скоро здесь появится первая глава уморительной офисной комедии!"
+    progress: "Прогресс Книги"
+    chapters_written: "Написано Глав"
+    target_chapters: "Целевое Количество"
+    complete: "Завершено"
+    
+  characters:
+    title: "Персонажи"
+    no_characters: "Персонажей Пока Нет!"
+    no_characters_desc: "Наши персонажи ждут своего создания. Каждая глава может представить новые личности для участия в комедии!"
+    personality: "Характер:"
+    relationships: "Отношения:"
+    appears_in: "Появляется в"
+    chapter: "главе"
+    chapters: "главах"
+    statistics: "Статистика Персонажей"
+    total_characters: "Всего Персонажей"
+    have_relationships: "Имеют Отношения"
+    
+  chapter:
+    characters_in_chapter: "Персонажи в этой главе:"
+    new_characters: "Представлены новые персонажи:"
+    previous: "Предыдущая"
+    next: "Следующая"
+    all_chapters: "Все Главы"
+    generated_on: "Сгенерировано"
+    
+  character:
+    personality_traits: "Черты Характера"
+    first_appearance: "Первое Появление"
+    chapter_appearances: "Появления в Главах"
+    debut: "Дебют"
+    all_characters: "Все Персонажи"
+    
+  home:
+    welcome: "Добро пожаловать в абсурдно смешной мир"
+    description: "Следите за злоключениями офисных работников, которые преодолевают бюрократические кошмары, технологические сбои и бесконечную комедию современной рабочей жизни."
+    book_status: "Статус Книги"
+    current_chapter: "Текущая Глава"
+    target_chapters: "Целевое Количество Глав"
+    characters_created: "Создано Персонажей"
+    last_generated: "Последняя Генерация"
+    not_yet_started: "Ещё не начато"
+    quick_navigation: "Быстрая Навигация"
+    read_chapters: "Читать Главы"
+    read_chapters_desc: "Окунитесь в весёлые приключения"
+    meet_characters: "Знакомство с Персонажами"
+    meet_characters_desc: "Познакомьтесь с нашим эксцентричным составом"
+    about_project: "О Проекте"
+    about_project_desc: "Узнайте, как ИИ создаёт комедию"
+    latest_chapters: "Последние Главы"
+    featured_characters: "Избранные Персонажи"
+    no_content_chapters: "Главы ещё не сгенерированы. Приключение вот-вот начнётся! 🚀"
+    no_content_characters: "Персонажи ждут своего создания! Каждый будет иметь свою уникальную личность и причуды. 🎭"
+    footer_note: "Эта книга генерируется глава за главой с помощью ИИ, создавая постоянно развивающуюся историю офисной комедии и абсурдистского юмора. Каждая глава строится на предыдущей, персонажи развивают отношения и попадают во всё более нелепые ситуации." 

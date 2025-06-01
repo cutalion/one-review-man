@@ -1,0 +1,30 @@
+<span class="character-mention">
+  <a href="/characters/{{ include.character.slug | default: include.character.name | slugify }}" 
+     class="character-link" 
+     title="{{ include.character.description }}">
+    {{ include.character.name }}
+  </a>
+</span>
+
+<style>
+.character-mention {
+  display: inline-block;
+}
+
+.character-link {
+  color: #3498db;
+  text-decoration: none;
+  padding: 0.2rem 0.5rem;
+  background-color: #ecf0f1;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.character-link:hover {
+  background-color: #3498db;
+  color: white;
+  text-decoration: none;
+}
+</style> 

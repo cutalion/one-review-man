@@ -1,0 +1,53 @@
+# OpenAI Configuration for One Review Man
+# ==========================================
+#
+# SECURITY BEST PRACTICE:
+# Set API keys via environment variables instead of this file:
+#
+#   export OPENAI_API_KEY="your-api-key-here"
+#   export OPENAI_ORG_ID="your-org-id"        # optional
+#   export OPENAI_PROJECT_ID="your-project"   # optional
+#   export OPENAI_BASE_URL="custom-url"       # optional
+#
+# This keeps secrets out of your repository!
+
+# Alternatively, you can set these in this file (less secure):
+# openai_api_key: your-api-key-here
+# openai_org_id: your-org-id
+# openai_project_id: your-project
+# openai_base_url: custom-url
+
+# Default model (used when no task-specific model is specified)
+model: gpt-4o-mini
+
+# Task-specific models (optional)
+# You can specify different models for different types of tasks
+models:
+  # Content generation (chapters, characters, improvements)
+  generation: gpt-4o              # Higher quality for creative writing
+  
+  # Translation tasks
+  translation: gpt-4o-mini        # Fast and cost-effective for translation
+  
+  # Chat/interactive tasks
+  chat: gpt-4o-mini              # Quick responses for interactive use
+
+timeout: 240
+max_retries: 2
+default_options:
+  temperature: 0.7
+  max_tokens: 2000
+
+# Task-specific options (optional)
+task_options:
+  generation:
+    temperature: 0.8    # More creative for content generation
+    max_tokens: 4000    # Longer responses for chapters
+  
+  translation:
+    temperature: 0.3    # More consistent for translation
+    max_tokens: 3000    # Adequate for translation tasks
+  
+  chat:
+    temperature: 0.7    # Balanced for conversations
+    max_tokens: 2000    # Standard length for chat

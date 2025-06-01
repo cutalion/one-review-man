@@ -1,0 +1,114 @@
+---
+layout: default
+---
+
+<article class="chapter">
+  <header class="chapter-header">
+    <h1 class="chapter-title">{{ page.title }}</h1>
+    <div class="chapter-meta">
+      <span class="chapter-number">Chapter {{ page.chapter_number }}</span>
+      {% if page.generated_date %}
+        <span class="generated-date">Generated on {{ page.generated_date | date: "%B %d, %Y" }}</span>
+      {% endif %}
+    </div>
+    
+    {% if page.summary %}
+      <div class="chapter-summary">
+        <p><em>{{ page.summary }}</em></p>
+      </div>
+    {% endif %}
+  </header>
+
+  {% if page.characters and page.characters.size > 0 %}
+    <div class="chapter-characters">
+      <h3>Characters in this chapter:</h3>
+      <div class="character-list">
+        {% for character_slug in page.characters %}
+          {% assign character = site.data.characters.characters[character_slug] %}
+          {% if character %}
+            {% include character_mention.html character=character %}
+          {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+
+  <div class="chapter-content">
+    {{ content }}
+  </div>
+
+  {% if page.new_characters and page.new_characters.size > 0 %}
+    <div class="new-characters">
+      <h3>New characters introduced:</h3>
+      {% for character_slug in page.new_characters %}
+        {% assign character = site.data.characters.characters[character_slug] %}
+        {% if character %}
+          {% include character_card.html character=character %}
+        {% endif %}
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <nav class="chapter-navigation">
+    {% include chapter_nav.html %}
+  </nav>
+</article>
+
+<style>
+.chapter-header {
+  border-bottom: 2px solid #e1e5e9;
+  padding-bottom: 1rem;
+  margin-bottom: 2rem;
+}
+
+.chapter-title {
+  color: #2c3e50;
+  margin-bottom: 0.5rem;
+}
+
+.chapter-meta {
+  display: flex;
+  gap: 1rem;
+  color: #7f8c8d;
+  font-size: 0.9rem;
+}
+
+.chapter-summary {
+  margin-top: 1rem;
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border-left: 4px solid #3498db;
+}
+
+.chapter-characters {
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background-color: #f1f2f6;
+  border-radius: 8px;
+}
+
+.character-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.chapter-content {
+  line-height: 1.6;
+  font-size: 1.1rem;
+}
+
+.new-characters {
+  margin-top: 2rem;
+  padding: 1rem;
+  background-color: #e8f5e8;
+  border-radius: 8px;
+}
+
+.chapter-navigation {
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 1px solid #e1e5e9;
+}
+</style> 

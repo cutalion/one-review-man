@@ -1,0 +1,166 @@
+---
+layout: base
+---
+
+<!DOCTYPE html>
+<html lang="{{ page.lang | default: site.default_lang | default: 'en' }}">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+  <title>{% if page.title %}{{ page.title | escape }} - {{ site.title | escape }}{% else %}{{ site.title | escape }}{% endif %}</title>
+  <meta name="description" content="{{ page.excerpt | default: site.description | strip_html | normalize_whitespace | truncate: 160 | escape }}">
+  
+  <link rel="stylesheet" href="{{ '/assets/main.css' | relative_url }}">
+  <link rel="canonical" href="{{ page.url | replace:'index.html','' | absolute_url }}">
+  
+  {% if site.plugins contains 'jekyll-feed' %}
+    <link type="application/atom+xml" rel="alternate" href="{{ '/feed.xml' | relative_url }}" title="{{ site.title | escape }}" />
+  {% endif %}
+  
+  <!-- Custom styles -->
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+      line-height: 1.5;
+      color: #333;
+      background-color: #fff;
+      margin: 0;
+      padding: 0;
+    }
+    
+    .site-wrapper {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .site-header {
+      border-bottom: 1px solid #e8e8e8;
+      background-color: #fdfdfd;
+      padding: 1rem 0;
+    }
+    
+    .wrapper {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1rem;
+    }
+    
+    .site-header .wrapper {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .site-title {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #2c3e50;
+      text-decoration: none;
+    }
+    
+    .site-title:hover {
+      color: #3498db;
+      text-decoration: none;
+    }
+    
+    .site-nav .trigger {
+      display: flex;
+      gap: 1rem;
+    }
+    
+    .page-link {
+      color: #555;
+      text-decoration: none;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      transition: background-color 0.2s ease;
+    }
+    
+    .page-link:hover {
+      background-color: #f1f1f1;
+      color: #3498db;
+      text-decoration: none;
+    }
+    
+    .page-content {
+      flex: 1;
+      padding: 2rem 0;
+    }
+    
+    .site-footer {
+      background-color: #f8f8f8;
+      border-top: 1px solid #e8e8e8;
+      padding: 2rem 0;
+      margin-top: auto;
+    }
+    
+    .footer-content {
+      text-align: center;
+      color: #777;
+    }
+    
+    .footer-content p {
+      margin: 0.5rem 0;
+    }
+    
+    @media (max-width: 768px) {
+      .site-header .wrapper {
+        flex-direction: column;
+        gap: 1rem;
+      }
+      
+      .site-nav .trigger {
+        justify-content: center;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Include language switcher -->
+  {% include language_switcher.html %}
+  
+  <div class="site-wrapper">
+    <header class="site-header">
+      <div class="wrapper">
+        <a class="site-title" href="{{ '/' | relative_url }}">{{ site.title | escape }}</a>
+        
+        <nav class="site-nav">
+          <div class="trigger">
+            <a class="page-link" href="{{ '/chapters' | relative_url }}">
+              {% if page.lang == 'ru' %}Главы{% else %}Chapters{% endif %}
+            </a>
+            <a class="page-link" href="{{ '/characters' | relative_url }}">
+              {% if page.lang == 'ru' %}Персонажи{% else %}Characters{% endif %}
+            </a>
+          </div>
+        </nav>
+      </div>
+    </header>
+
+    <main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        {{ content }}
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="wrapper">
+        <div class="footer-content">
+          <p>{{ site.description }}</p>
+          <p>
+            {% if page.lang == 'ru' %}
+              Создано с ❤️ и ИИ
+            {% else %}
+              Built with ❤️ and AI
+            {% endif %}
+          </p>
+        </div>
+      </div>
+    </footer>
+  </div>
+</body>
+</html> 
