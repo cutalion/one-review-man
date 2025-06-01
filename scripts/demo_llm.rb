@@ -32,7 +32,7 @@ class LLMDemo
     puts '⚠️  Note: If no LLM is configured, mock responses will be used'
     puts ''
 
-    while true
+    loop do
       show_menu
       choice = gets.chomp.downcase
 
@@ -225,7 +225,7 @@ class LLMDemo
 
     context = "You are discussing 'One Review Man', a programming comedy parody of One-Punch Man. The story follows a super-programmer who writes perfect code and gets all pull requests approved on first review. IMPORTANT NAMING: The protagonist's real name is Satoru (like Saitama), but most people call him 'One Review Man'. His disciple's real name is Genki (like Genos), professional title 'AI-Enhanced Disciple'. Only Genki calls him 'Satoru-sensei', everyone else uses 'One Review Man'. When Satoru and Genki speak privately, they use real names. RUSSIAN TRANSLATION: 'One Review Man' becomes 'Ванревьюмен' (like 'One Punch Man' → 'Ванпанчмен'), real names become 'Сатору' and 'Генки'."
 
-    while true
+    loop do
       print 'You: '
       message = gets.chomp
 
@@ -285,7 +285,7 @@ class LLMDemo
     puts ''
     puts 'Current settings:'
     puts "  Default Model: #{config['model'] || 'gpt-4o-mini (default)'}"
-    
+
     # Show task-specific models if configured
     if config['models']
       puts '  Task-specific models:'
@@ -293,7 +293,7 @@ class LLMDemo
         puts "    #{task.capitalize}: #{model}"
       end
     end
-    
+
     puts "  Timeout: #{config['timeout'] || 240} seconds"
     puts "  Max retries: #{config['max_retries'] || 2}"
 

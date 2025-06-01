@@ -171,7 +171,7 @@ class ContentTranslator
 
     # Check chapters
     source_chapters = get_all_chapters
-    
+
     puts "\nChapters:"
     source_chapters.each do |chapter|
       chapter_num = chapter['chapter_number']
@@ -182,13 +182,13 @@ class ContentTranslator
       puts "  Chapter #{chapter_num}: #{chapter['title']} - #{status}"
     end
 
-    # Check characters  
+    # Check characters
     puts "\nCharacters:"
-    Dir.glob("_characters/*.md").reject { |f| f.include?('.ru.') || f.include?('.en.') }.each do |source_file|
+    Dir.glob('_characters/*.md').reject { |f| f.include?('.ru.') || f.include?('.en.') }.each do |source_file|
       character_slug = File.basename(source_file, '.md')
       character_data = parse_character_file(source_file)
       character_name = character_data['name'] || character_slug.gsub('_', ' ').split.map(&:capitalize).join(' ')
-      
+
       target_file = "_characters/#{character_slug}.#{target_lang}.md"
       translated = File.exist?(target_file)
       status = translated ? '✅ Translated' : '❌ Missing'
@@ -199,21 +199,21 @@ class ContentTranslator
   def translate_chapter_with_ai(chapter_number, target_lang)
     # Find the English chapter file using the standard naming convention
     source_file = "_chapters/#{format_chapter_filename(chapter_number)}"
-    
+
     unless File.exist?(source_file)
       puts "❌ Chapter #{chapter_number} not found at #{source_file}"
       return false
     end
 
     puts "🤖 Translating Chapter #{chapter_number} to #{target_lang.upcase} with AI..."
-    
+
     # Parse the source chapter
     chapter_data = parse_chapter_file(source_file)
-    
+
     # Generate target filename using suffix approach (consistent with project pattern)
     source_basename = File.basename(source_file, '.md')
     target_file = "_chapters/#{source_basename}.#{target_lang}.md"
-    
+
     begin
       # Use LLM to translate with structured output
       translation_data = @llm_service.translate_chapter_structured(
@@ -222,13 +222,13 @@ class ContentTranslator
         chapter_data['content'],
         target_lang
       )
-      
+
       # Create translated chapter file
       create_translated_chapter_file(target_file, chapter_data, translation_data, target_lang)
-      
+
       puts "✅ Chapter #{chapter_number} translated successfully!"
       puts "📄 Created: #{target_file}"
-      
+
       true
     rescue LLMService::LLMError => e
       puts "❌ Translation failed: #{e.message}"
@@ -239,20 +239,20 @@ class ContentTranslator
   def translate_character_with_ai(character_slug, target_lang)
     # Find the English character file
     source_file = "_characters/#{character_slug}.md"
-    
+
     unless File.exist?(source_file)
       puts "❌ Character '#{character_slug}' not found in _characters/"
       return false
     end
 
     puts "🤖 Translating character '#{character_slug}' to #{target_lang.upcase} with AI..."
-    
+
     # Parse the source character
     character_data = parse_character_file(source_file)
-    
+
     # Generate target filename using suffix approach (consistent with project pattern)
     target_file = "_characters/#{character_slug}.#{target_lang}.md"
-    
+
     begin
       # Use LLM to translate with structured output
       translation_data = @llm_service.translate_character_structured(
@@ -265,13 +265,13 @@ class ContentTranslator
         character_data['quirks'] || '',
         target_lang
       )
-      
+
       # Create translated character file
       create_translated_character_file(target_file, character_data, translation_data, target_lang)
-      
+
       puts "✅ Character '#{character_slug}' translated successfully!"
       puts "📄 Created: #{target_file}"
-      
+
       true
     rescue LLMService::LLMError => e
       puts "❌ Translation failed: #{e.message}"
@@ -281,39 +281,35 @@ class ContentTranslator
 
   def translate_all_content(target_lang)
     puts "🌍 Translating all ready content to #{target_lang.upcase}..."
-    
+
     success_count = 0
     total_count = 0
-    
+
     # Translate all chapters (only English originals, not already translated files)
     puts "\n📚 Translating chapters..."
-    Dir.glob("_chapters/*.md").reject { |f| f.include?('.ru.') || f.include?('.en.') }.each do |chapter_file|
+    Dir.glob('_chapters/*.md').reject { |f| f.include?('.ru.') || f.include?('.en.') }.each do |chapter_file|
       chapter_data = parse_chapter_file(chapter_file)
       chapter_num = chapter_data['chapter_number']
-      
-      if chapter_num
-        total_count += 1
-        if translate_chapter_with_ai(chapter_num, target_lang)
-          success_count += 1
-        end
-      end
+
+      next unless chapter_num
+
+      total_count += 1
+      success_count += 1 if translate_chapter_with_ai(chapter_num, target_lang)
     end
-    
+
     # Translate all characters (only English originals, not already translated files)
     puts "\n👥 Translating characters..."
-    Dir.glob("_characters/*.md").reject { |f| f.include?('.ru.') || f.include?('.en.') }.each do |character_file|
+    Dir.glob('_characters/*.md').reject { |f| f.include?('.ru.') || f.include?('.en.') }.each do |character_file|
       character_slug = File.basename(character_file, '.md')
-      
+
       total_count += 1
-      if translate_character_with_ai(character_slug, target_lang)
-        success_count += 1
-      end
+      success_count += 1 if translate_character_with_ai(character_slug, target_lang)
     end
-    
+
     puts "\n📊 Translation Summary:"
     puts "✅ Successfully translated: #{success_count}/#{total_count}"
     puts "❌ Failed: #{total_count - success_count}/#{total_count}"
-    
+
     success_count == total_count
   end
 
@@ -446,7 +442,7 @@ class ContentTranslator
     # Generate clean permalink without language suffix
     source_basename = File.basename(target_file, ".#{target_lang}.md")
     clean_permalink = "/chapters/#{source_basename}/"
-    
+
     # Preserve all metadata from source, update with translations
     front_matter = source_data.dup
     front_matter.delete('content')
@@ -584,20 +580,18 @@ if __FILE__ == $PROGRAM_NAME
   when 'all-characters'
     if ARGV[1]
       target_lang = ARGV[1]
-      
+
       # Translate all characters with AI (only English originals, not already translated files)
       puts "🌍 Translating all characters to #{target_lang.upcase} with AI..."
       success_count = 0
       total_count = 0
-      
-      Dir.glob("_characters/*.md").reject { |f| f.include?('.ru.') || f.include?('.en.') }.each do |character_file|
+
+      Dir.glob('_characters/*.md').reject { |f| f.include?('.ru.') || f.include?('.en.') }.each do |character_file|
         character_slug = File.basename(character_file, '.md')
         total_count += 1
-        if translator.translate_character_with_ai(character_slug, target_lang)
-          success_count += 1
-        end
+        success_count += 1 if translator.translate_character_with_ai(character_slug, target_lang)
       end
-      
+
       puts "\n📊 Character Translation Summary:"
       puts "✅ Successfully translated: #{success_count}/#{total_count}"
       puts "❌ Failed: #{total_count - success_count}/#{total_count}"

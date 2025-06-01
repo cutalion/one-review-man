@@ -23,10 +23,10 @@ class LLMService
     puts '🤖 Generating chapter content...'
 
     response = call_llm(prompt, get_task_options('generation', {
-      max_tokens: 4000,
-      temperature: 0.7,
-      system_prompt: 'You are a creative writer specializing in programming humor and parody. Write engaging, funny content that captures the absurdist spirit of programming culture.'
-    }).merge(options), 'generation')
+                                                   max_tokens: 4000,
+                                                   temperature: 0.7,
+                                                   system_prompt: 'You are a creative writer specializing in programming humor and parody. Write engaging, funny content that captures the absurdist spirit of programming culture.'
+                                                 }).merge(options), 'generation')
 
     raise APIError, 'Failed to generate chapter content' unless response && response['content']
 
@@ -41,34 +41,33 @@ class LLMService
     enhanced_prompt = build_chapter_prompt_with_schema(prompt)
 
     response = call_llm_structured(enhanced_prompt, get_task_options('generation', {
-      max_tokens: 4000,
-      temperature: 0.7,
-      system_prompt: 'You are a creative writer specializing in programming humor and parody. Write engaging, funny content that captures the absurdist spirit of programming culture. Respond with valid JSON only.',
-      response_format: { type: 'json_object' }
-    }).merge(options), 'generation')
+                                                                       max_tokens: 4000,
+                                                                       temperature: 0.7,
+                                                                       system_prompt: 'You are a creative writer specializing in programming humor and parody. Write engaging, funny content that captures the absurdist spirit of programming culture. Respond with valid JSON only.',
+                                                                       response_format: { type: 'json_object' }
+                                                                     }).merge(options), 'generation')
 
     raise APIError, 'Failed to generate chapter content' unless response && response['content']
 
     puts '✅ Structured chapter generated successfully!'
-    
+
     # Handle both JSON string and Hash responses (for mocks)
     begin
-      if response['content'].is_a?(Hash)
-        # Mock response is already a hash
-        chapter_data = response['content']
-      else
-        # Real API response is JSON string
-        chapter_data = JSON.parse(response['content'])
-      end
-      
+      chapter_data = if response['content'].is_a?(Hash)
+                       # Mock response is already a hash
+                       response['content']
+                     else
+                       # Real API response is JSON string
+                       JSON.parse(response['content'])
+                     end
+
       validate_chapter_data(chapter_data)
       chapter_data
     rescue JSON::ParserError => e
       puts "❌ JSON parsing error: #{e.message}"
       puts "Raw response: #{response['content']}"
       # Fallback to old text-based chapter generation
-      fallback_chapter = parse_chapter_content(response['content'])
-      fallback_chapter
+      parse_chapter_content(response['content'])
     end
   end
 
@@ -80,26 +79,26 @@ class LLMService
 
     # Use structured outputs for reliable character data
     response = call_llm_structured(enhanced_prompt, get_task_options('generation', {
-      max_tokens: 1500,
-      temperature: 0.8,
-      system_prompt: 'You are a character designer for programming comedy stories. Create memorable, funny characters that fit the tech/programming world. Respond with valid JSON only.',
-      response_format: { type: 'json_object' }
-    }).merge(options), 'generation')
+                                                                       max_tokens: 1500,
+                                                                       temperature: 0.8,
+                                                                       system_prompt: 'You are a character designer for programming comedy stories. Create memorable, funny characters that fit the tech/programming world. Respond with valid JSON only.',
+                                                                       response_format: { type: 'json_object' }
+                                                                     }).merge(options), 'generation')
 
     raise APIError, 'Failed to generate character' unless response && response['content']
 
     puts '✅ Character generated successfully!'
-    
+
     # Handle both JSON string and Hash responses (for mocks)
     begin
-      if response['content'].is_a?(Hash)
-        # Mock response is already a hash
-        character_data = response['content']
-      else
-        # Real API response is JSON string
-        character_data = JSON.parse(response['content'])
-      end
-      
+      character_data = if response['content'].is_a?(Hash)
+                         # Mock response is already a hash
+                         response['content']
+                       else
+                         # Real API response is JSON string
+                         JSON.parse(response['content'])
+                       end
+
       validate_character_data(character_data)
       character_data
     rescue JSON::ParserError => e
@@ -122,10 +121,10 @@ class LLMService
     prompt = build_improvement_prompt(content, improvement_type)
 
     response = call_llm(prompt, get_task_options('generation', {
-      max_tokens: 3000,
-      temperature: 0.6,
-      system_prompt: system_prompts[improvement_type] || system_prompts['clarity']
-    }).merge(options), 'generation')
+                                                   max_tokens: 3000,
+                                                   temperature: 0.6,
+                                                   system_prompt: system_prompts[improvement_type] || system_prompts['clarity']
+                                                 }).merge(options), 'generation')
 
     raise APIError, 'Failed to improve content' unless response && response['content']
 
@@ -139,9 +138,9 @@ class LLMService
     prompt = context ? "#{context}\n\nUser: #{message}" : message
 
     response = call_llm(prompt, get_task_options('chat', {
-      max_tokens: 2000,
-      temperature: 0.7
-    }).merge(options), 'chat')
+                                                   max_tokens: 2000,
+                                                   temperature: 0.7
+                                                 }).merge(options), 'chat')
 
     raise APIError, 'Failed to get response from LLM' unless response && response['content']
 
@@ -155,24 +154,24 @@ class LLMService
     prompt = build_chapter_translation_prompt(title, summary, content, target_lang)
 
     response = call_llm_structured(prompt, get_task_options('translation', {
-      max_tokens: 4000,
-      temperature: 0.3, # Lower temperature for more consistent translation
-      system_prompt: "You are a professional translator specializing in programming humor and technical content. Translate accurately while preserving the comedy and technical references. Respond with valid JSON only.",
-      response_format: { type: 'json_object' }
-    }), 'translation')
+                                                              max_tokens: 4000,
+                                                              temperature: 0.3, # Lower temperature for more consistent translation
+                                                              system_prompt: 'You are a professional translator specializing in programming humor and technical content. Translate accurately while preserving the comedy and technical references. Respond with valid JSON only.',
+                                                              response_format: { type: 'json_object' }
+                                                            }), 'translation')
 
     raise APIError, 'Failed to translate chapter' unless response && response['content']
 
     puts '✅ Chapter translation completed!'
-    
+
     # Handle both JSON string and Hash responses
     begin
-      if response['content'].is_a?(Hash)
-        translation_data = response['content']
-      else
-        translation_data = JSON.parse(response['content'])
-      end
-      
+      translation_data = if response['content'].is_a?(Hash)
+                           response['content']
+                         else
+                           JSON.parse(response['content'])
+                         end
+
       validate_chapter_translation_data(translation_data)
       translation_data
     rescue JSON::ParserError => e
@@ -183,38 +182,41 @@ class LLMService
     end
   end
 
-  def translate_character_structured(name, description, personality_traits, programming_skills, catchphrase, backstory, quirks, target_lang)
+  def translate_character_structured(name, description, personality_traits, programming_skills, catchphrase, backstory,
+                                     quirks, target_lang)
     puts "🤖 Translating character to #{target_lang}..."
 
     # Build translation prompt with schema
-    prompt = build_character_translation_prompt(name, description, personality_traits, programming_skills, catchphrase, backstory, quirks, target_lang)
+    prompt = build_character_translation_prompt(name, description, personality_traits, programming_skills, catchphrase,
+                                                backstory, quirks, target_lang)
 
     response = call_llm_structured(prompt, get_task_options('translation', {
-      max_tokens: 2000,
-      temperature: 0.3, # Lower temperature for more consistent translation
-      system_prompt: "You are a professional translator specializing in programming humor and character development. Translate character details accurately while preserving personality and humor. Respond with valid JSON only.",
-      response_format: { type: 'json_object' }
-    }), 'translation')
+                                                              max_tokens: 2000,
+                                                              temperature: 0.3, # Lower temperature for more consistent translation
+                                                              system_prompt: 'You are a professional translator specializing in programming humor and character development. Translate character details accurately while preserving personality and humor. Respond with valid JSON only.',
+                                                              response_format: { type: 'json_object' }
+                                                            }), 'translation')
 
     raise APIError, 'Failed to translate character' unless response && response['content']
 
     puts '✅ Character translation completed!'
-    
+
     # Handle both JSON string and Hash responses
     begin
-      if response['content'].is_a?(Hash)
-        translation_data = response['content']
-      else
-        translation_data = JSON.parse(response['content'])
-      end
-      
+      translation_data = if response['content'].is_a?(Hash)
+                           response['content']
+                         else
+                           JSON.parse(response['content'])
+                         end
+
       validate_character_translation_data(translation_data)
       translation_data
     rescue JSON::ParserError => e
       puts "❌ JSON parsing error: #{e.message}"
       puts "Raw response: #{response['content']}"
       # Fallback to simple translation
-      fallback_character_translation(name, description, personality_traits, programming_skills, catchphrase, backstory, quirks, target_lang)
+      fallback_character_translation(name, description, personality_traits, programming_skills, catchphrase, backstory,
+                                     quirks, target_lang)
     end
   end
 
@@ -235,7 +237,7 @@ class LLMService
     # Use environment variables first (recommended), then fall back to config
     api_key = ENV['OPENAI_API_KEY'] || @config['openai_api_key']
     organization = ENV['OPENAI_ORG_ID'] || @config['openai_org_id']
-    project = ENV['OPENAI_PROJECT_ID'] || @config['openai_project_id']
+    ENV['OPENAI_PROJECT_ID'] || @config['openai_project_id']
     base_url = ENV['OPENAI_BASE_URL'] || @config['openai_base_url']
 
     unless api_key
@@ -246,13 +248,13 @@ class LLMService
 
     # Initialize client with correct parameters for ruby-openai gem
     client_options = {
-      access_token: api_key,  # ruby-openai uses access_token, not api_key
-      log_errors: true  # Helpful for development
+      access_token: api_key, # ruby-openai uses access_token, not api_key
+      log_errors: true # Helpful for development
     }
 
     # Add optional parameters if present - using ruby-openai parameter names
     client_options[:organization_id] = organization if organization
-    # Note: ruby-openai gem doesn't support project parameter
+    # NOTE: ruby-openai gem doesn't support project parameter
     client_options[:uri_base] = base_url if base_url
     client_options[:request_timeout] = @config['timeout'] || 240
 
@@ -425,7 +427,7 @@ class LLMService
     character[current_section] = content_buffer.join(' ').strip if current_section && content_buffer.any?
 
     # Convert traits to array if it's a string
-    if character['personality_traits'] && character['personality_traits'].is_a?(String)
+    if character['personality_traits'].is_a?(String)
       character['personality_traits'] = character['personality_traits'].split(',').map(&:strip)
     end
 
@@ -560,19 +562,17 @@ class LLMService
           description: 'Notable quirks or unique characteristics'
         }
       },
-      required: ['name', 'description', 'personality_traits', 'programming_skills'],
+      required: %w[name description personality_traits programming_skills],
       additionalProperties: false
     }
   end
 
   def validate_character_data(data)
     required_fields = %w[name description personality_traits programming_skills]
-    
+
     missing_fields = required_fields.select { |field| data[field].nil? || data[field].to_s.strip.empty? }
-    
-    if missing_fields.any?
-      raise APIError, "Missing required character fields: #{missing_fields.join(', ')}"
-    end
+
+    raise APIError, "Missing required character fields: #{missing_fields.join(', ')}" if missing_fields.any?
 
     # Ensure personality_traits is an array
     unless data['personality_traits'].is_a?(Array)
@@ -580,19 +580,17 @@ class LLMService
     end
 
     # Ensure name is not empty
-    if data['name'].to_s.strip.empty?
-      raise APIError, "Character name cannot be empty"
-    end
+    raise APIError, 'Character name cannot be empty' if data['name'].to_s.strip.empty?
 
-    puts "✅ Character data validation passed"
+    puts '✅ Character data validation passed'
     true
   end
 
   def build_character_prompt_with_schema(prompt)
     schema_description = <<~SCHEMA
-      
+
       IMPORTANT: Respond with valid JSON that matches this exact schema:
-      
+
       {
         "name": "Professional/workplace name (string)",
         "real_name": "Actual given name (string, optional - include if different from professional name)",
@@ -603,26 +601,26 @@ class LLMService
         "backstory": "Character background story (string, optional)",
         "quirks": "Notable quirks or unique characteristics (string, optional)"
       }
-      
+
       Required fields: name, description, personality_traits, programming_skills
       Optional fields: real_name, catchphrase, backstory, quirks
-      
+
       NAMING CONVENTIONS:
       - For One Review Man: name="One Review Man", real_name="Satoru"
-      - For AI-Enhanced Disciple: name="AI-Enhanced Disciple", real_name="Genki"  
+      - For AI-Enhanced Disciple: name="AI-Enhanced Disciple", real_name="Genki"#{'  '}
       - For other characters: include real_name only if they have both professional and personal names
-      
+
       Make sure personality_traits is always an array of strings.
     SCHEMA
-    
+
     "#{prompt}#{schema_description}"
   end
 
   def build_chapter_prompt_with_schema(prompt)
     schema_description = <<~SCHEMA
-      
+
       IMPORTANT: Respond with valid JSON that matches this exact schema:
-      
+
       {
         "title": "Chapter title (string)",
         "content": "Chapter content in markdown format (string)",
@@ -639,33 +637,29 @@ class LLMService
         "difficulty_level": "beginner",
         "one_punch_man_references": ["reference1", "reference2"]
       }
-      
+
       Required fields: title, content, summary
       Optional but recommended: new_characters, programming_themes, comedy_elements, word_count, difficulty_level, one_punch_man_references
-      
+
       Programming themes can include: code_review, debugging, deployment, git_conflicts, meetings, technical_debt, framework_wars, stack_overflow, pair_programming, devops
       Comedy elements can include: absurd_situation, tech_parody, workplace_humor, overpowered_protagonist, bureaucracy_satire
       Difficulty levels: beginner, intermediate, advanced
-      
+
       Make sure content is engaging programming comedy that parodies One-Punch Man tropes.
     SCHEMA
-    
+
     "#{prompt}#{schema_description}"
   end
 
   def validate_chapter_data(data)
     required_fields = %w[title content summary]
-    
+
     missing_fields = required_fields.select { |field| data[field].nil? || data[field].to_s.strip.empty? }
-    
-    if missing_fields.any?
-      raise APIError, "Missing required chapter fields: #{missing_fields.join(', ')}"
-    end
+
+    raise APIError, "Missing required chapter fields: #{missing_fields.join(', ')}" if missing_fields.any?
 
     # Ensure title is not empty
-    if data['title'].to_s.strip.empty?
-      raise APIError, "Chapter title cannot be empty"
-    end
+    raise APIError, 'Chapter title cannot be empty' if data['title'].to_s.strip.empty?
 
     # Validate optional arrays
     %w[new_characters programming_themes comedy_elements one_punch_man_references].each do |field|
@@ -675,11 +669,9 @@ class LLMService
     end
 
     # Validate word count if present
-    if data['word_count'] && !data['word_count'].is_a?(Integer)
-      puts "⚠️  Warning: word_count should be an integer"
-    end
+    puts '⚠️  Warning: word_count should be an integer' if data['word_count'] && !data['word_count'].is_a?(Integer)
 
-    puts "✅ Chapter data validation passed"
+    puts '✅ Chapter data validation passed'
     true
   end
 
@@ -714,9 +706,7 @@ class LLMService
     chapter[current_section] = content_buffer.join(' ').strip if current_section && content_buffer.any?
 
     # Convert metadata to hash if it's a string
-    if chapter['metadata'] && chapter['metadata'].is_a?(String)
-      chapter['metadata'] = JSON.parse(chapter['metadata'])
-    end
+    chapter['metadata'] = JSON.parse(chapter['metadata']) if chapter['metadata'].is_a?(String)
 
     chapter
   end
@@ -729,14 +719,14 @@ class LLMService
       'de' => 'German',
       'zh' => 'Chinese'
     }
-    
+
     target_language_name = language_names[target_lang] || target_lang.upcase
-    
+
     # Special handling for Russian transliterations
-    special_instructions = ""
+    special_instructions = ''
     if target_lang == 'ru'
       special_instructions = <<~RUSSIAN_INSTRUCTIONS
-        
+
         RUSSIAN TRANSLITERATION RULES:
         - "One Review Man" → "Ванревьюмен" (follows the same pattern as "One Punch Man" → "Ванпанчмен")
         - "AI-Enhanced Disciple" → "ИИ-Усиленный Ученик"
@@ -745,26 +735,26 @@ class LLMService
         - Programming terms: mix English and Russian naturally (e.g., "программист", "код", but "pull request", "git")
       RUSSIAN_INSTRUCTIONS
     end
-    
+
     prompt = <<~PROMPT
       Translate the following programming comedy chapter from English to #{target_language_name}.
-      
+
       PRESERVE:
       - Programming humor and technical jokes
-      - One-Punch Man parody references  
+      - One-Punch Man parody references#{'  '}
       - Character personalities and catchphrases
       - Markdown formatting
       - Technical terms (translate context, keep some English technical terms where appropriate)
       - Naming conventions and character address patterns
       #{special_instructions}
-      
+
       SOURCE CHAPTER:
       Title: #{title}
       Summary: #{summary}
-      
+
       Content:
       #{content}
-      
+
       TRANSLATION INSTRUCTIONS:
       - Translate all narrative text to #{target_language_name}
       - Keep programming terms in English where commonly used (e.g., "pull request", "merge", "deployment")
@@ -774,63 +764,60 @@ class LLMService
     PROMPT
 
     schema_description = <<~SCHEMA
-      
+
       IMPORTANT: Respond with valid JSON that matches this exact schema:
-      
+
       {
         "title": "Translated chapter title (string)",
         "summary": "Translated chapter summary (string)",
         "content": "Translated chapter content in markdown format (string)"
       }
-      
+
       Required fields: title, summary, content
       All fields should contain the translated text in #{target_language_name}.
     SCHEMA
-    
+
     "#{prompt}#{schema_description}"
   end
 
   def validate_chapter_translation_data(data)
     required_fields = %w[title summary content]
-    
+
     missing_fields = required_fields.select { |field| data[field].nil? || data[field].to_s.strip.empty? }
-    
-    if missing_fields.any?
-      raise APIError, "Missing required chapter translation fields: #{missing_fields.join(', ')}"
-    end
+
+    raise APIError, "Missing required chapter translation fields: #{missing_fields.join(', ')}" if missing_fields.any?
 
     # Ensure title is not empty
-    if data['title'].to_s.strip.empty?
-      raise APIError, "Chapter title cannot be empty"
-    end
+    raise APIError, 'Chapter title cannot be empty' if data['title'].to_s.strip.empty?
 
-    puts "✅ Chapter translation data validation passed"
+    puts '✅ Chapter translation data validation passed'
     true
   end
 
-  def fallback_chapter_translation(title, summary, content, target_lang)
+  def fallback_chapter_translation(_title, _summary, _content, _target_lang)
     # Implement fallback translation logic here
     # This is a placeholder and should be replaced with actual implementation
-    puts "❌ Fallback translation not implemented"
+    puts '❌ Fallback translation not implemented'
     {}
   end
 
-  def build_character_translation_prompt(name, description, personality_traits, programming_skills, catchphrase, backstory, quirks, target_lang)
+  def build_character_translation_prompt(name, description, personality_traits, programming_skills, catchphrase,
+                                         backstory, quirks, target_lang)
     language_names = {
       'ru' => 'Russian',
-      'es' => 'Spanish', 
+      'es' => 'Spanish',
       'fr' => 'French',
       'de' => 'German',
       'zh' => 'Chinese'
     }
-    
+
     target_language_name = language_names[target_lang] || target_lang.upcase
-    
+
     # Special handling for Russian transliterations
-    special_instructions = ""
+    special_instructions = ''
     if target_lang == 'ru'
       special_instructions = <<~RUSSIAN_INSTRUCTIONS
-        
+
         RUSSIAN TRANSLITERATION RULES:
         - "One Review Man" → "Ванревьюмен" (follows the same pattern as "One Punch Man" → "Ванпанчмен")
         - "AI-Enhanced Disciple" → "ИИ-Усиленный Ученик"
@@ -840,10 +827,10 @@ class LLMService
         - Programming terms: mix English and Russian naturally (e.g., "программист", "код", but "pull request", "git")
       RUSSIAN_INSTRUCTIONS
     end
-    
+
     prompt = <<~PROMPT
       Translate the following programming comedy character from English to #{target_language_name}.
-      
+
       PRESERVE:
       - Programming humor and personality
       - Technical skills and abilities
@@ -851,7 +838,7 @@ class LLMService
       - Programming-related catchphrases
       - Character naming conventions and address patterns
       #{special_instructions}
-      
+
       SOURCE CHARACTER:
       Name: #{name}
       Description: #{description}
@@ -860,7 +847,7 @@ class LLMService
       Catchphrase: #{catchphrase}
       Backstory: #{backstory}
       Quirks: #{quirks}
-      
+
       TRANSLATION INSTRUCTIONS:
       - Translate all descriptive text to #{target_language_name}
       - Keep programming terms in English where commonly used
@@ -871,9 +858,9 @@ class LLMService
     PROMPT
 
     schema_description = <<~SCHEMA
-      
+
       IMPORTANT: Respond with valid JSON that matches this exact schema:
-      
+
       {
         "name": "Translated character name (string)",
         "description": "Translated character description (string)",
@@ -883,24 +870,22 @@ class LLMService
         "backstory": "Translated character background story (string, optional)",
         "quirks": "Translated notable quirks or unique characteristics (string, optional)"
       }
-      
+
       Required fields: name, description, personality_traits, programming_skills
       Optional fields: catchphrase, backstory, quirks
       All fields should contain translated text in #{target_language_name}.
       Make sure personality_traits is always an array of strings.
     SCHEMA
-    
+
     "#{prompt}#{schema_description}"
   end
 
   def validate_character_translation_data(data)
     required_fields = %w[name description personality_traits programming_skills]
-    
+
     missing_fields = required_fields.select { |field| data[field].nil? || data[field].to_s.strip.empty? }
-    
-    if missing_fields.any?
-      raise APIError, "Missing required character translation fields: #{missing_fields.join(', ')}"
-    end
+
+    raise APIError, "Missing required character translation fields: #{missing_fields.join(', ')}" if missing_fields.any?
 
     # Ensure personality_traits is an array
     unless data['personality_traits'].is_a?(Array)
@@ -908,18 +893,17 @@ class LLMService
     end
 
     # Ensure name is not empty
-    if data['name'].to_s.strip.empty?
-      raise APIError, "Character name cannot be empty"
-    end
+    raise APIError, 'Character name cannot be empty' if data['name'].to_s.strip.empty?
 
-    puts "✅ Character translation data validation passed"
+    puts '✅ Character translation data validation passed'
     true
   end
 
-  def fallback_character_translation(name, description, personality_traits, programming_skills, catchphrase, backstory, quirks, target_lang)
+  def fallback_character_translation(_name, _description, _personality_traits, _programming_skills, _catchphrase, _backstory,
+                                     _quirks, _target_lang)
     # Implement fallback translation logic here
     # This is a placeholder and should be replaced with actual implementation
-    puts "❌ Fallback translation not implemented"
+    puts '❌ Fallback translation not implemented'
     {}
   end
 
@@ -927,15 +911,15 @@ class LLMService
   def get_task_options(task_type, base_options = {})
     # Start with default options
     merged_options = (@config['default_options'] || {}).dup
-    
+
     # Override with task-specific options if they exist
     if @config['task_options'] && @config['task_options'][task_type]
       merged_options.merge!(@config['task_options'][task_type])
     end
-    
+
     # Finally merge with any provided base options (method-level defaults)
     merged_options.merge!(base_options)
-    
+
     # Convert string keys to symbol keys for consistency
     merged_options.transform_keys(&:to_sym)
   end

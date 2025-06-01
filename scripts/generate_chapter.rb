@@ -54,7 +54,7 @@ class ChapterGenerator
         update_book_progress(current_chapter)
 
         puts "✅ Chapter #{current_chapter} generated successfully!"
-        
+
         # Display generation summary
         display_chapter_summary(chapter_data)
       else
@@ -160,7 +160,7 @@ class ChapterGenerator
       update_chapter_with_structured_content(chapter_file, chapter_data)
 
       puts "✅ Chapter #{chapter_number} regenerated successfully!"
-      
+
       # Display generation summary
       display_chapter_summary(chapter_data)
     rescue LLMService::LLMError => e
@@ -266,7 +266,7 @@ class ChapterGenerator
             new_characters << { 'name' => char_name, 'description' => char_desc }
           end
         when :summary
-          summary = (summary || '') + stripped_line + ' '
+          summary = "#{summary || ''}#{stripped_line} "
         end
       end
     end
@@ -588,28 +588,26 @@ class ChapterGenerator
 
   def display_chapter_summary(chapter_data)
     puts "\n📊 Chapter Generation Summary"
-    puts "=" * 40
+    puts '=' * 40
     puts "Title: #{chapter_data['title']}"
     puts "Word Count: #{chapter_data['word_count'] || 'Not specified'}"
     puts "Difficulty: #{chapter_data['difficulty_level'] || 'Not specified'}"
-    
+
     if chapter_data['programming_themes']&.any?
       puts "Programming Themes: #{chapter_data['programming_themes'].join(', ')}"
     end
-    
-    if chapter_data['comedy_elements']&.any?
-      puts "Comedy Elements: #{chapter_data['comedy_elements'].join(', ')}"
-    end
-    
+
+    puts "Comedy Elements: #{chapter_data['comedy_elements'].join(', ')}" if chapter_data['comedy_elements']&.any?
+
     if chapter_data['one_punch_man_references']&.any?
       puts "One-Punch Man References: #{chapter_data['one_punch_man_references'].join(', ')}"
     end
-    
+
     if chapter_data['new_characters']&.any?
       puts "New Characters: #{chapter_data['new_characters'].map { |c| c['name'] }.join(', ')}"
     end
-    
-    puts "=" * 40
+
+    puts '=' * 40
   end
 
   def get_characters_by_slugs(character_slugs)
@@ -620,15 +618,15 @@ class ChapterGenerator
 
   def update_book_progress(current_chapter)
     @book_data['book']['current_chapter'] = current_chapter
-    
+
     # Initialize chapters_written if it doesn't exist
     @book_data['status']['chapters_written'] ||= 0
     @book_data['status']['chapters_written'] += 1
-    
+
     @book_data['status']['last_generated'] = Date.today.to_s
     @book_data['status']['generation_count'] ||= 0
     @book_data['status']['generation_count'] += 1
-    
+
     save_book_data(@book_data)
     puts "📈 Updated book progress: Chapter #{current_chapter} completed"
   end
@@ -647,7 +645,7 @@ if __FILE__ == $PROGRAM_NAME
     chapter_num = ARGV[1]&.to_i
     improvement_type = ARGV[2] || 'humor'
 
-    if chapter_num && chapter_num > 0
+    if chapter_num&.positive?
       generator.improve_chapter(chapter_num, improvement_type)
     else
       puts 'Usage: ruby generate_chapter.rb improve <chapter_number> [humor|clarity|consistency]'
@@ -656,7 +654,7 @@ if __FILE__ == $PROGRAM_NAME
   when 'regenerate'
     chapter_num = ARGV[1]&.to_i
 
-    if chapter_num && chapter_num > 0
+    if chapter_num&.positive?
       generator.regenerate_chapter(chapter_num)
     else
       puts 'Usage: ruby generate_chapter.rb regenerate <chapter_number>'
@@ -665,7 +663,7 @@ if __FILE__ == $PROGRAM_NAME
   when 'prompt'
     chapter_num = ARGV[1]&.to_i
 
-    if chapter_num && chapter_num > 0
+    if chapter_num&.positive?
       generator.regenerate_prompt(chapter_num)
     else
       puts 'Usage: ruby generate_chapter.rb prompt <chapter_number>'

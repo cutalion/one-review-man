@@ -55,7 +55,7 @@ class CharacterManager
   end
 
   def generate_one_review_man
-    puts "🤖 Generating One Review Man - the ultimate programmer..."
+    puts '🤖 Generating One Review Man - the ultimate programmer...'
 
     # Check if One Review Man already exists
     if character_exists?('one_review_man')
@@ -72,7 +72,7 @@ class CharacterManager
       if character_data && character_data['name']
         # Clean up and validate character data
         processed_character = process_generated_character(character_data)
-        
+
         # Ensure canonical name and first appearance
         processed_character['name'] = 'One Review Man'
         processed_character['first_appearance'] = 'Chapter 1'
@@ -80,16 +80,16 @@ class CharacterManager
         success = add_character(processed_character)
 
         if success
-          puts "✅ One Review Man has been created! The ultimate programmer has joined the story."
+          puts '✅ One Review Man has been created! The ultimate programmer has joined the story.'
           return processed_character
         end
       else
-        puts "❌ Failed to generate valid character data for One Review Man"
+        puts '❌ Failed to generate valid character data for One Review Man'
         puts('Character data: ', character_data.inspect)
       end
     rescue LLMService::LLMError => e
       puts "❌ One Review Man generation failed: #{e.message}"
-      puts "Consider creating the character manually"
+      puts 'Consider creating the character manually'
     end
 
     nil
@@ -113,7 +113,7 @@ class CharacterManager
       if character_data && character_data['name']
         # Clean up and validate character data
         processed_character = process_generated_character(character_data)
-        
+
         # Ensure canonical name and first appearance
         processed_character['name'] = 'AI-Enhanced Disciple'
         processed_character['first_appearance'] = 'Chapter 1'
@@ -122,16 +122,16 @@ class CharacterManager
         success = add_character(processed_character)
 
         if success
-          puts "✅ AI-Enhanced Disciple has been created! One Review Man now has a devoted student."
+          puts '✅ AI-Enhanced Disciple has been created! One Review Man now has a devoted student.'
           return processed_character
         end
       else
-        puts "❌ Failed to generate valid character data for AI-Enhanced Disciple"
+        puts '❌ Failed to generate valid character data for AI-Enhanced Disciple'
         puts('Character data: ', character_data.inspect)
       end
     rescue LLMService::LLMError => e
       puts "❌ AI-Enhanced Disciple generation failed: #{e.message}"
-      puts "Consider creating the character manually"
+      puts 'Consider creating the character manually'
     end
 
     nil

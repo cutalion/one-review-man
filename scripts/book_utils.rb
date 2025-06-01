@@ -12,7 +12,7 @@ module BookUtils
   def load_book_data(lang = nil)
     file_path = File.join(DATA_DIR, 'book_metadata.yml')
     data = load_yaml_file(file_path)
-    
+
     if lang && data[lang]
       # Language-specific data
       data[lang]
@@ -36,7 +36,7 @@ module BookUtils
   def load_characters(lang = nil)
     file_path = File.join(DATA_DIR, 'characters.yml')
     data = load_yaml_file(file_path) || { 'characters' => {} }
-    
+
     if lang && data[lang]
       # Language-specific data
       data[lang]
@@ -66,34 +66,30 @@ module BookUtils
   # Data file saving methods - support both simple and language-specific patterns
   def save_book_data(data, lang = nil)
     file_path = File.join(DATA_DIR, 'book_metadata.yml')
-    
+
+    existing_data = load_yaml_file(file_path) || {}
     if lang
       # Save to language-specific section
-      existing_data = load_yaml_file(file_path) || {}
       existing_data[lang] = data
-      save_yaml_file(file_path, existing_data)
     else
       # For generation scripts, assume English and maintain language structure
-      existing_data = load_yaml_file(file_path) || {}
       existing_data['en'] = data
-      save_yaml_file(file_path, existing_data)
     end
+    save_yaml_file(file_path, existing_data)
   end
 
   def save_characters(data, lang = nil)
     file_path = File.join(DATA_DIR, 'characters.yml')
-    
+
+    existing_data = load_yaml_file(file_path) || {}
     if lang
       # Save to language-specific section
-      existing_data = load_yaml_file(file_path) || {}
       existing_data[lang] = data
-      save_yaml_file(file_path, existing_data)
     else
       # For generation scripts, assume English and maintain language structure
-      existing_data = load_yaml_file(file_path) || {}
       existing_data['en'] = data
-      save_yaml_file(file_path, existing_data)
     end
+    save_yaml_file(file_path, existing_data)
   end
 
   def save_generation_log(data)
@@ -281,11 +277,10 @@ module BookUtils
     if match
       updated_content = match[1] + new_content
       File.write(file_path, updated_content)
-      true
     else
       File.write(file_path, new_content)
-      true
     end
+    true
   end
 
   def update_chapter_front_matter(file_path, updates)
@@ -381,19 +376,17 @@ module BookUtils
     improvements = {}
 
     if improved_text.match(/Description:\s*(.+?)(?=\n[A-Z]|\z)/m)
-      improvements['description'] = $1.strip
+      improvements['description'] =
+        ::Regexp.last_match(1).strip
     end
 
-    if improved_text.match(/Backstory:\s*(.+?)(?=\n[A-Z]|\z)/m)
-      improvements['backstory'] = $1.strip
-    end
+    improvements['backstory'] = ::Regexp.last_match(1).strip if improved_text.match(/Backstory:\s*(.+?)(?=\n[A-Z]|\z)/m)
 
-    if improved_text.match(/Quirks:\s*(.+?)(?=\n[A-Z]|\z)/m)
-      improvements['quirks'] = $1.strip
-    end
+    improvements['quirks'] = ::Regexp.last_match(1).strip if improved_text.match(/Quirks:\s*(.+?)(?=\n[A-Z]|\z)/m)
 
     if improved_text.match(/Catchphrase:\s*(.+?)(?=\n[A-Z]|\z)/m)
-      improvements['catchphrase'] = $1.strip
+      improvements['catchphrase'] =
+        ::Regexp.last_match(1).strip
     end
 
     improvements
