@@ -1,0 +1,38 @@
+Create the main protagonist character "One Review Man" for a programming parody of One-Punch Man.
+
+CONTEXT:
+This is a humorous parody where One Review Man is like Saitama - overpowered but bored. He's a programmer who writes perfect code that passes every code review on the first try.
+
+NAMING CONVENTIONS:
+- Professional Name: "One Review Man" (like "One-Punch Man" is Saitama's hero name)
+- Real Name: Generate an appropriate Japanese-style name (parody of Saitama's real name)
+- Most people call him "One Review Man" or respectful variations
+- Only his disciple (AI-Enhanced Disciple) calls him by his real name or "real-name-sensei"
+- He calls his disciple by their real name when they talk privately
+
+EXISTING CHARACTERS:
+{EXISTING_CHARACTERS_CONTEXT}
+
+CHARACTER REQUIREMENTS:
+- Name: "One Review Man" (professional title/hero name)
+- Real Name: Generate a suitable Japanese-style real name
+- Must be the ultimate programmer (like Saitama is the ultimate hero)
+- Writes flawless code that never needs revisions
+- All pull requests are instantly approved and merged
+- Has become bored with his overwhelming programming abilities
+- Parodies Saitama's personality: calm, humble, unimpressed by challenges
+- Should have a simple catchphrase (like Saitama's "OK")
+- Training backstory should parody Saitama's training regimen
+- Maintains simple appearance despite incredible abilities
+- Shows casual, mentor-like relationship with his disciple
+
+PROGRAMMING COMEDY ELEMENTS:
+- Code review scenarios
+- Debugging mastery
+- Framework/language mastery
+- Production deployment confidence
+- Mentoring other developers
+- Nonchalant attitude toward "impossible" programming challenges
+
+Please generate this character with typical fields: name, real_name, description, personality_traits, programming_skills, catchphrase, backstory, quirks.
+Remember: Most colleagues call him "One Review Man", only his disciple uses his real name. 

@@ -213,100 +213,23 @@ class CharacterManager
   end
 
   def build_one_review_man_prompt
+    template_file = 'scripts/prompts/one_review_man_prompt.txt'
+    raise "Prompt template not found at #{template_file}" unless File.exist?(template_file)
+
+    template = File.read(template_file)
     existing_chars_context = get_existing_characters_context
 
-    <<~PROMPT
-      Create the main protagonist character "One Review Man" for a programming parody of One-Punch Man.
-
-      CONTEXT:
-      This is a humorous parody where One Review Man is like Saitama - overpowered but bored. He's a programmer who writes perfect code that passes every code review on the first try.
-
-      NAMING CONVENTIONS:
-      - Professional Name: "One Review Man" (like "One-Punch Man" is Saitama's hero name)
-      - Real Name: Generate an appropriate Japanese-style name (parody of Saitama's real name)
-      - Most people call him "One Review Man" or respectful variations
-      - Only his disciple (AI-Enhanced Disciple) calls him by his real name or "real-name-sensei"
-      - He calls his disciple by their real name when they talk privately
-
-      EXISTING CHARACTERS:
-      #{existing_chars_context.empty? ? 'No existing characters yet.' : existing_chars_context}
-
-      CHARACTER REQUIREMENTS:
-      - Name: "One Review Man" (professional title/hero name)
-      - Real Name: Generate a suitable Japanese-style real name
-      - Must be the ultimate programmer (like Saitama is the ultimate hero)
-      - Writes flawless code that never needs revisions
-      - All pull requests are instantly approved and merged
-      - Has become bored with his overwhelming programming abilities
-      - Parodies Saitama's personality: calm, humble, unimpressed by challenges
-      - Should have a simple catchphrase (like Saitama's "OK")
-      - Training backstory should parody Saitama's training regimen
-      - Maintains simple appearance despite incredible abilities
-      - Shows casual, mentor-like relationship with his disciple
-
-      PROGRAMMING COMEDY ELEMENTS:
-      - Code review scenarios
-      - Debugging mastery
-      - Framework/language mastery
-      - Production deployment confidence
-      - Mentoring other developers
-      - Nonchalant attitude toward "impossible" programming challenges
-
-      Please generate this character with typical fields: name, real_name, description, personality_traits, programming_skills, catchphrase, backstory, quirks.
-      Remember: Most colleagues call him "One Review Man", only his disciple uses his real name.
-    PROMPT
+    template.gsub('{EXISTING_CHARACTERS_CONTEXT}', existing_chars_context.empty? ? 'No existing characters yet.' : existing_chars_context)
   end
 
   def build_ai_disciple_prompt
+    template_file = 'scripts/prompts/ai_disciple_prompt.txt'
+    raise "Prompt template not found at #{template_file}" unless File.exist?(template_file)
+
+    template = File.read(template_file)
     existing_chars_context = get_existing_characters_context
 
-    <<~PROMPT
-      Create the "AI-Enhanced Disciple" character for a programming parody of One-Punch Man.
-
-      CONTEXT:
-      This character is the Genos equivalent - a cyborg-like programmer with AI enhancements who desperately wants to learn from One Review Man.
-
-      NAMING CONVENTIONS:
-      - Professional Name: "AI-Enhanced Disciple" (like "Demon Cyborg" is Genos's hero classification)
-      - Real Name: Generate an appropriate Japanese-style name (parody of Genos's real name)
-      - Most people call him "AI-Enhanced Disciple" or "Disciple-kun"
-      - One Review Man calls him by his real name in private conversations
-      - He calls One Review Man by "real-name-sensei" or "Master" (the only one who uses One Review Man's real name)
-
-      EXISTING CHARACTERS:
-      #{existing_chars_context.empty? ? 'No existing characters yet.' : existing_chars_context}
-
-      CHARACTER REQUIREMENTS:
-      - Name: "AI-Enhanced Disciple" (professional title/hero designation)
-      - Real Name: Generate a suitable Japanese-style real name
-      - Must be like Genos - dedicated student/disciple
-      - Has cybernetic/AI enhancements for programming
-      - Uses advanced technology but still can't match One Review Man's natural perfection
-      - Extremely dedicated and analytical
-      - Takes detailed notes and documentation
-      - Speaks formally and respectfully, especially to his "sensei"
-      - Technology-obsessed personality
-      - Parodies Genos's relationship with Saitama
-      - Shows deep respect and admiration for his master
-
-      PROGRAMMING/AI ELEMENTS:
-      - Neurointerface technology
-      - AI-assisted programming
-      - Machine learning integration
-      - Advanced debugging tools
-      - Still makes mistakes despite technology
-      - Overcomplicates simple solutions
-      - Constantly seeks to understand One Review Man's "simple" methods
-
-      DIALOGUE CHARACTERISTICS:
-      - Formal, technical speech patterns
-      - Addresses One Review Man as "real-name-sensei" or "Master"
-      - Uses programming jargon extensively
-      - Shows reverence and dedication in speech
-
-      Please generate this character with typical fields: name, real_name, description, personality_traits, programming_skills, catchphrase, backstory, quirks.
-      The character should have a respectful catchphrase directed at One Review Man using "sensei" (like "Sensei, please teach me your techniques!").
-    PROMPT
+    template.gsub('{EXISTING_CHARACTERS_CONTEXT}', existing_chars_context.empty? ? 'No existing characters yet.' : existing_chars_context)
   end
 
   def get_existing_characters_context

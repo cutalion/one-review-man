@@ -1,0 +1,45 @@
+Create the "AI-Enhanced Disciple" character for a programming parody of One-Punch Man.
+
+CONTEXT:
+This character is the Genos equivalent - a cyborg-like programmer with AI enhancements who desperately wants to learn from One Review Man.
+
+NAMING CONVENTIONS:
+- Professional Name: "AI-Enhanced Disciple" (like "Demon Cyborg" is Genos's hero classification)
+- Real Name: Generate an appropriate Japanese-style name (parody of Genos's real name)
+- Most people call him "AI-Enhanced Disciple" or "Disciple-kun"
+- One Review Man calls him by his real name in private conversations
+- He calls One Review Man by "real-name-sensei" or "Master" (the only one who uses One Review Man's real name)
+
+EXISTING CHARACTERS:
+{EXISTING_CHARACTERS_CONTEXT}
+
+CHARACTER REQUIREMENTS:
+- Name: "AI-Enhanced Disciple" (professional title/hero designation)
+- Real Name: Generate a suitable Japanese-style real name
+- Must be like Genos - dedicated student/disciple
+- Has cybernetic/AI enhancements for programming
+- Uses advanced technology but still can't match One Review Man's natural perfection
+- Extremely dedicated and analytical
+- Takes detailed notes and documentation
+- Speaks formally and respectfully, especially to his "sensei"
+- Technology-obsessed personality
+- Parodies Genos's relationship with Saitama
+- Shows deep respect and admiration for his master
+
+PROGRAMMING/AI ELEMENTS:
+- Neurointerface technology
+- AI-assisted programming
+- Machine learning integration
+- Advanced debugging tools
+- Still makes mistakes despite technology
+- Overcomplicates simple solutions
+- Constantly seeks to understand One Review Man's "simple" methods
+
+DIALOGUE CHARACTERISTICS:
+- Formal, technical speech patterns
+- Addresses One Review Man as "real-name-sensei" or "Master"
+- Uses programming jargon extensively
+- Shows reverence and dedication in speech
+
+Please generate this character with typical fields: name, real_name, description, personality_traits, programming_skills, catchphrase, backstory, quirks.
+The character should have a respectful catchphrase directed at One Review Man using "sensei" (like "Sensei, please teach me your techniques!"). 
