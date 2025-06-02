@@ -215,7 +215,7 @@ class ChapterGenerator
     # Get character real names for template replacement
     one_review_man = @characters['characters'].values.find { |c| c['name'] == 'One Review Man' }
     ai_disciple = @characters['characters'].values.find { |c| c['name'] == 'AI-Enhanced Disciple' }
-    
+
     one_review_man_real_name = one_review_man&.dig('real_name') || '[to be generated]'
     ai_disciple_real_name = ai_disciple&.dig('real_name') || '[to be generated]'
 

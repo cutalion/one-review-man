@@ -133,13 +133,31 @@ class ContentTranslator
 
     puts "Translating all characters to #{target_lang.upcase}..."
 
+    success_count = 0
+    total_count = 0
+    skipped_count = 0
+
     source_characters['characters'].each do |slug, character|
+      # Check if translation already exists
+      target_file = "_characters/#{slug}.#{target_lang}.md"
+      
+      if File.exist?(target_file)
+        puts "⏭️  Skipping #{character['name']} (#{slug}) - already translated"
+        skipped_count += 1
+        next
+      end
+
       puts "\n=== Translating #{character['name']} ==="
-      translate_character(slug, target_lang)
+      total_count += 1
+      success_count += 1 if translate_character(slug, target_lang)
     end
 
-    puts "\nAll characters translated to #{target_lang}!"
-    true
+    puts "\n📊 Character Translation Summary:"
+    puts "✅ Successfully translated: #{success_count}/#{total_count}"
+    puts "❌ Failed: #{total_count - success_count}/#{total_count}"
+    puts "⏭️  Skipped (already exists): #{skipped_count}"
+
+    success_count == total_count
   end
 
   def sync_chapter_metadata(chapter_number, target_lang)
@@ -284,6 +302,7 @@ class ContentTranslator
 
     success_count = 0
     total_count = 0
+    skipped_count = 0
 
     # Translate all chapters (only English originals, not already translated files)
     puts "\n📚 Translating chapters..."
@@ -292,6 +311,16 @@ class ContentTranslator
       chapter_num = chapter_data['chapter_number']
 
       next unless chapter_num
+
+      # Check if translation already exists
+      source_basename = File.basename(chapter_file, '.md')
+      target_file = "_chapters/#{source_basename}.#{target_lang}.md"
+
+      if File.exist?(target_file)
+        puts "⏭️  Skipping Chapter #{chapter_num} - already translated"
+        skipped_count += 1
+        next
+      end
 
       total_count += 1
       success_count += 1 if translate_chapter_with_ai(chapter_num, target_lang)
@@ -302,6 +331,15 @@ class ContentTranslator
     Dir.glob('_characters/*.md').reject { |f| f.include?('.ru.') || f.include?('.en.') }.each do |character_file|
       character_slug = File.basename(character_file, '.md')
 
+      # Check if translation already exists
+      target_file = "_characters/#{character_slug}.#{target_lang}.md"
+
+      if File.exist?(target_file)
+        puts "⏭️  Skipping character #{character_slug} - already translated"
+        skipped_count += 1
+        next
+      end
+
       total_count += 1
       success_count += 1 if translate_character_with_ai(character_slug, target_lang)
     end
@@ -309,6 +347,7 @@ class ContentTranslator
     puts "\n📊 Translation Summary:"
     puts "✅ Successfully translated: #{success_count}/#{total_count}"
     puts "❌ Failed: #{total_count - success_count}/#{total_count}"
+    puts "⏭️  Skipped (already exists): #{skipped_count}"
 
     success_count == total_count
   end
@@ -591,9 +630,20 @@ if __FILE__ == $PROGRAM_NAME
       puts "🌍 Translating all characters to #{target_lang.upcase} with AI..."
       success_count = 0
       total_count = 0
+      skipped_count = 0
 
       Dir.glob('_characters/*.md').reject { |f| f.include?('.ru.') || f.include?('.en.') }.each do |character_file|
         character_slug = File.basename(character_file, '.md')
+        
+        # Check if translation already exists
+        target_file = "_characters/#{character_slug}.#{target_lang}.md"
+        
+        if File.exist?(target_file)
+          puts "⏭️  Skipping character #{character_slug} - already translated"
+          skipped_count += 1
+          next
+        end
+        
         total_count += 1
         success_count += 1 if translator.translate_character_with_ai(character_slug, target_lang)
       end
@@ -601,6 +651,7 @@ if __FILE__ == $PROGRAM_NAME
       puts "\n📊 Character Translation Summary:"
       puts "✅ Successfully translated: #{success_count}/#{total_count}"
       puts "❌ Failed: #{total_count - success_count}/#{total_count}"
+      puts "⏭️  Skipped (already exists): #{skipped_count}"
     else
       puts 'Usage: ruby translate_content.rb all-characters <target_language>'
     end
