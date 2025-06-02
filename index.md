@@ -66,7 +66,7 @@ nav_order: 1
 }
 
 .chapter-card {
-  background: white;
+  background: #EEEEEE;
   border: 1px solid #e1e5e9;
   border-radius: 12px;
   padding: 1.5rem;
@@ -87,8 +87,8 @@ nav_order: 1
 }
 
 .chapter-number {
-  background-color: #3498db;
-  color: white;
+  background-color: #393E46;
+  color: #EEEEEE;
   padding: 0.3rem 0.8rem;
   border-radius: 15px;
   font-size: 0.9rem;
@@ -168,7 +168,7 @@ nav_order: 1
 
 .back-home {
   background-color: #3498db;
-  color: white;
+  color: #EEEEEE;
   padding: 0.8rem 1.5rem;
   border-radius: 6px;
   text-decoration: none;
@@ -178,7 +178,7 @@ nav_order: 1
 
 .back-home:hover {
   background-color: #2980b9;
-  color: white;
+  color: #EEEEEE;
   text-decoration: none;
 }
 

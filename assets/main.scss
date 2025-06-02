@@ -6,13 +6,20 @@
 
 // Dark theme variables
 // $dark-background-color: #0d1117;
-$dark-background-color: #1e2228;
-$dark-text-color: #f0f6fc;
-$dark-header-background: #161b22;
-$dark-border-color: #30363d;
-$dark-link-color: #58a6ff;
-$dark-code-background: #21262d;
-$dark-card-background: #21262d;
+
+// palette:
+// #222831
+// #393E46
+// #FFD369
+// #EEEEEE
+
+$dark-background-color: #222831;
+$dark-text-color: #EEEEEE;
+$dark-header-background: #393E46;
+$dark-border-color: #393E46;
+$dark-link-color: #FFD369;
+$dark-code-background: #222831;
+$dark-card-background: #222831;
 
 // Force dark theme for all users
 body {
@@ -85,6 +92,11 @@ pre, code {
 .chapter-card, .character-profile-card, .nav-card {
   background-color: $dark-card-background !important;
   border-color: $dark-border-color !important;
+  color: $dark-text-color !important;
+}
+
+.chapter-card .chapter-number {
+  background-color: $dark-header-background !important;
   color: $dark-text-color !important;
 }
 
