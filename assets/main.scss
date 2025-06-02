@@ -216,7 +216,7 @@ pre, code {
   }
 
   a:visited {
-    color: lighten($dark-link-color, 10%) !important;
+    color: $dark-link-color !important;
   }
 
   a:hover {

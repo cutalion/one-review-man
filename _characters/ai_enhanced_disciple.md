@@ -2,19 +2,17 @@
 layout: character
 name: AI-Enhanced Disciple
 slug: ai_enhanced_disciple
-description: A young, ambitious programmer enhanced with advanced cybernetic implants
-  and AI assistance. Despite his sophisticated technology, he struggles to reach the
-  effortless programming mastery shown by his mentor, One Review Man. Completely devoted
-  to learning from his master, he meticulously documents every interaction and insight,
-  constantly seeking wisdom in even the simplest coding examples.
+description: A young, enthusiastic programmer heavily augmented with AI and cybernetic
+  implants dedicated to mastering flawless programming techniques under the mentorship
+  of One Review Man. Despite his impressive technology and meticulous attention, he
+  continuously struggles to replicate his master's effortless perfection.
 personality_traits:
+- dedicated
 - analytical
-- respectful
-- obsessively dedicated
-programming_skills: Possesses advanced neurointerface technology that integrates AI-assisted
-  auto-complete, real-time machine learning debugging, predictive coding algorithms,
-  and augmented reality documentation tools. Yet, despite these powerful capabilities,
-  he often complicates simple solutions and still commits beginner mistakes.
+- technology-obsessed
+programming_skills: Extensive knowledge of AI-assisted coding, neurointerface integration,
+  advanced debugging tools, machine learning frameworks, and cybernetic-enhanced multitasking
+  capabilities—though frequently overcomplicates simple problems.
 first_appearance: Chapter 1
 relationships:
 - One Review Man (master/mentor)
@@ -25,23 +23,23 @@ lang: en
 
 ## About AI-Enhanced Disciple
 
-A young, ambitious programmer enhanced with advanced cybernetic implants and AI assistance. Despite his sophisticated technology, he struggles to reach the effortless programming mastery shown by his mentor, One Review Man. Completely devoted to learning from his master, he meticulously documents every interaction and insight, constantly seeking wisdom in even the simplest coding examples.
+A young, enthusiastic programmer heavily augmented with AI and cybernetic implants dedicated to mastering flawless programming techniques under the mentorship of One Review Man. Despite his impressive technology and meticulous attention, he continuously struggles to replicate his master's effortless perfection.
 
 ## Programming Skills
 
-Possesses advanced neurointerface technology that integrates AI-assisted auto-complete, real-time machine learning debugging, predictive coding algorithms, and augmented reality documentation tools. Yet, despite these powerful capabilities, he often complicates simple solutions and still commits beginner mistakes.
+Extensive knowledge of AI-assisted coding, neurointerface integration, advanced debugging tools, machine learning frameworks, and cybernetic-enhanced multitasking capabilities—though frequently overcomplicates simple problems.
 
 ## Backstory
 
-Originally a talented programmer frustrated by constant code reviews and endless debugging cycles, Genki volunteered to undergo an experimental AI-cybernetic enhancement project to exponentially accelerate his programming capabilities. After successfully completing the transformation, he encountered Satoru (One Review Man), whose effortless coding skills utterly humbled and inspired him. Since then, Genki has dedicated himself completely to becoming Satoru's disciple, determined to comprehend the elegant simplicity behind his master's unmatched talent.
+Originally a promising junior developer, Genki was severely humbled by a disastrous production deployment. Driven by a desire for perfection, he underwent extensive cybernetic enhancements and AI integration, dedicating his existence to programming mastery. Upon witnessing One Review Man effortlessly merge flawless code in a single try, he immediately declared himself a disciple.
 
 ## Notable Quirks
 
-Frequently records overly detailed logs of every mundane action performed by Satoru-sensei, convinced these trivial routines hold secret insights. Often interrupts conversations with detailed technical explanations no one requested.
+Always carries multiple digital tablets filled with detailed documentation and analysis of his master's trivial coding style. Frequently misunderstands One Review Man's casual remarks as profound philosophical programming insights. Constantly updates his firmware and AI models hoping to finally grasp his master's 'secret technique.'
 
 ## Catchphrase
 
-> "Satoru-sensei, please reveal the secret behind your flawless reviews!"
+> "Sensei, please teach me the secrets behind your flawless pull requests!"
 
 ## Appearances
 

@@ -1,282 +1,252 @@
 ---
 layout: default
-title: Ванревьюмэн
+title: "Все Главы - One Review Man"
 lang: ru
 permalink: /
+nav_order: 1
 ---
 
-# Ванревьюмэн 🥊💻
+# Все Главы
 
-> *Программистская пародия на One-Punch Man*
+{% assign chapters = site.chapters | where: "lang", page.lang | sort: "chapter_number" %}
 
-Добро пожаловать в мир **Ванревьюмэн** - где идеальный код встречается с подавляющей скукой, и где каждый pull request - это шедевр, не требующий исправлений.
-
-## О История
-
-В мире, где code review'ы внушают страх, а production баги терроризируют команды разработки, один программист стоит выше всех остальных. Его код безупречен. Его pull request'ы мгновенно одобряются. Его коммиты никогда не нужно откатывать.
-
-Он... **Ванревьюмэн**.
-
-Подобно тому, как [Сайтама](https://en.wikipedia.org/wiki/Saitama_(One-Punch_Man)) из легендарной манги может победить любого врага одним ударом, Ванревьюмэн может решить любую программистскую задачу идеальным кодом, который проходит ревью с первого раза. Но с великой силой приходит великая скука - ведь какая радость в программировании, когда каждое решение дается слишком легко?
-
-### Познакомьтесь с персонажами
-
-**Ванревьюмэн** - Главный герой
-- Мастер-программист, чей код никогда не нуждается в исправлениях
-- Скучает от своих подавляющих способностей  
-- Каждый pull request: "LGTM, мерджу сейчас"
-
-**ИИ-Усиленный Ученик** - Преданный ученик
-- Программист-киборг с нейроинтерфейсными подключениями
-- Усилен AI-системами, но все еще не может сравниться с мастером
-- Отчаянно стремится изучить секреты Ванревьюмэн'а
-- "Мастер, пожалуйста, научите меня вашим техникам программирования!"
-
-## Темы программистской комедии
-
-Наш абсурдистский tech workplace включает:
-- 🔧 **Совершенство Code Review** - Код Ванревьюмэн'а, который никогда не нуждается в изменениях
-- 🐛 **Катастрофы отладки** - Production чрезвычайные ситуации, которые может решить только он
-- ⚔️ **Войны фреймворков** - Технологические битвы в траншеях разработки
-- 👥 **Паника Pair Programming** - Коллеги, напуганные совершенством
-- 🏢 **Сатира на Tech культуру** - Standup встречи, sprint planning и абсурдности стартапов
-- 📚 **Археология Legacy кода** - Древние кодовые базы, угрожающие цивилизации
-- 🎤 **Комедия конференций** - Tech talks и open source драма
-
-## Структура истории
-
-Каждая глава приносит новые программистские вызовы, которые демонстрируют подавляющие способности Ванревьюмэн'а, исследуя абсурдности современной культуры разработки программного обеспечения.
-
----
-
-<div class="nav-buttons">
-  <a href="/chapters" class="btn">📖 Читать главы</a>
-  <a href="/characters" class="btn">👥 Персонажи</a>
-  <a href="/" class="btn">🇺🇸 English Version</a>
-</div>
-
----
-
-*Вдохновлено легендарной мангой/аниме One-Punch Man от ONE и Yusuke Murata*
-
-## Статус Книги
-
-{% assign book_data = site.data.book_metadata.ru.book %}
-{% assign status = site.data.book_metadata.ru.status %}
-
-- **Текущая Глава:** {{ status.generation_count | default: 0 }}
-- **Целевое Количество Глав:** {{ book_data.target_chapters }}
-- **Создано Персонажей:** {{ status.characters_created | default: 0 }}
-- **Последняя Генерация:** {{ status.last_generated | default: "Ещё не начато" }}
-
----
-
-## Быстрая Навигация
-
-<div class="nav-grid">
-  <a href="/chapters" class="nav-card">
-    <h3>📖 Читать Главы</h3>
-    <p>Окунитесь в весёлые приключения</p>
-  </a>
-  
-  <a href="/characters" class="nav-card">
-    <h3>👥 Знакомство с Персонажами</h3>
-    <p>Познакомьтесь с нашим эксцентричным составом</p>
-  </a>
-  
-  <a href="/about" class="nav-card">
-    <h3>🤖 О Проекте</h3>
-    <p>Узнайте, как ИИ создаёт комедию</p>
-  </a>
-</div>
-
----
-
-## Последние Главы
-
-{% assign chapters = site.chapters | where: "lang", "ru" | sort: "chapter_number" | reverse | limit: 3 %}
 {% if chapters.size > 0 %}
-  <div class="recent-chapters">
+  <div class="chapters-grid">
     {% for chapter in chapters %}
-      <div class="chapter-preview">
-        <h3><a href="{{ chapter.url }}">{{ chapter.title }}</a></h3>
-        <p class="chapter-meta">Глава {{ chapter.chapter_number }} • {{ chapter.generated_date | date: "%d %B %Y" }}</p>
+      <div class="chapter-card">
+        <div class="chapter-header">
+          <span class="chapter-number">Глава {{ chapter.chapter_number }}</span>
+          {% if chapter.generated_date %}
+            <span class="chapter-date">{{ chapter.generated_date | date: "%d.%m.%Y" }}</span>
+          {% endif %}
+        </div>
+        
+        <h2 class="chapter-title">
+          <a href="{{ chapter.url }}">{{ chapter.title }}</a>
+        </h2>
+        
         {% if chapter.summary %}
           <p class="chapter-summary">{{ chapter.summary }}</p>
         {% endif %}
+        
+        <!-- {% if chapter.characters and chapter.characters.size > 0 %}
+          <div class="chapter-characters">
+            <strong>Персонажи:</strong>
+            {% for character_slug in chapter.characters %}
+              {% assign character = site.data.characters.ru.characters[character_slug] %}
+              {% if character %}
+                <span class="character-tag">{{ character.name }}</span>
+              {% endif %}
+            {% endfor %}
+          </div>
+        {% endif %}
+        
+        {% if chapter.new_characters and chapter.new_characters.size > 0 %}
+          <div class="new-characters-badge">
+            ✨ Знакомит с {{ chapter.new_characters.size }} новым{% if chapter.new_characters.size > 1 %}и{% endif %} персонаж{% if chapter.new_characters.size > 1 %}ами{% else %}ем{% endif %}
+          </div>
+        {% endif %} -->
       </div>
     {% endfor %}
   </div>
 {% else %}
-  <div class="no-content">
-    <p>Главы ещё не сгенерированы. Приключение вот-вот начнётся! 🚀</p>
+  <div class="no-chapters">
+    <h2>Пока Нет Глав!</h2>
+    <p>История вот-вот начнется. Загляните позже, чтобы прочитать первую главу веселой рабочей комедии!</p>
+    <a href="/" class="back-home">← Назад на главную</a>
   </div>
 {% endif %}
-
----
-
-## Избранные Персонажи
-
-{% assign characters = site.data.characters.ru.characters %}
-{% if characters and characters.size > 0 %}
-  <div class="featured-characters">
-    {% for character_data in characters limit: 4 %}
-      {% assign character = character_data[1] %}
-      {% include character_card.html character=character %}
-    {% endfor %}
-  </div>
-{% else %}
-  <div class="no-content">
-    <p>Персонажи ждут своего создания! Каждый будет иметь свою уникальную личность и причуды. 🎭</p>
-  </div>
-{% endif %}
-
----
-
-<div class="footer-note">
-  <p><em>Эта книга генерируется глава за главой с помощью ИИ, создавая постоянно развивающуюся историю офисной комедии и абсурдистского юмора. Каждая глава строится на предыдущей, персонажи развивают отношения и попадают во всё более нелепые ситуации.</em></p>
-</div>
 
 <style>
-.nav-grid {
+.chapters-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 2rem;
   margin: 2rem 0;
 }
 
-.nav-card {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  padding: 2rem;
+.chapter-card {
+  background: white;
+  border: 1px solid #e1e5e9;
   border-radius: 12px;
-  text-decoration: none;
-  text-align: center;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-}
-
-.nav-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 15px rgba(0,0,0,0.2);
-  color: white;
-  text-decoration: none;
-}
-
-.nav-card h3 {
-  margin: 0 0 0.5rem 0;
-  font-size: 1.3rem;
-}
-
-.nav-card p {
-  margin: 0;
-  opacity: 0.9;
-}
-
-.recent-chapters {
-  display: grid;
-  gap: 1.5rem;
-  margin: 2rem 0;
-}
-
-.chapter-preview {
   padding: 1.5rem;
-  background-color: #f8f9fa;
-  border-radius: 8px;
-  border-left: 4px solid #3498db;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.chapter-preview h3 {
-  margin: 0 0 0.5rem 0;
+.chapter-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+}
+
+.chapter-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.chapter-number {
+  background-color: #3498db;
+  color: white;
+  padding: 0.3rem 0.8rem;
+  border-radius: 15px;
+  font-size: 0.9rem;
+  font-weight: bold;
+}
+
+.chapter-date {
+  color: #7f8c8d;
+  font-size: 0.9rem;
+}
+
+.chapter-title {
+  margin: 0 0 1rem 0;
   color: #2c3e50;
 }
 
-.chapter-preview h3 a {
+.chapter-title a {
   color: inherit;
   text-decoration: none;
 }
 
-.chapter-preview h3 a:hover {
+.chapter-title a:hover {
   color: #3498db;
-}
-
-.chapter-meta {
-  color: #7f8c8d;
-  font-size: 0.9rem;
-  margin-bottom: 0.5rem;
 }
 
 .chapter-summary {
   color: #5a6c7d;
   font-style: italic;
   line-height: 1.5;
+  margin-bottom: 1rem;
 }
 
-.featured-characters {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1.5rem;
-  margin: 2rem 0;
+.chapter-characters {
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
 }
 
-.no-content {
-  text-align: center;
-  padding: 2rem;
-  background-color: #f8f9fa;
-  border-radius: 8px;
-  color: #7f8c8d;
-  font-style: italic;
-}
-
-.footer-note {
-  background-color: #f8f9fa;
-  padding: 2rem;
-  border-radius: 8px;
-  border-left: 4px solid #3498db;
-  margin: 3rem 0;
-}
-
-.footer-note p {
-  margin: 0;
-  color: #5a6c7d;
-  line-height: 1.6;
-}
-
-.nav-buttons {
-  text-align: center;
-  margin: 2rem 0;
-}
-
-.btn {
+.character-tag {
+  background-color: #ecf0f1;
+  color: #2c3e50;
+  padding: 0.2rem 0.5rem;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  margin-right: 0.5rem;
   display: inline-block;
+  margin-bottom: 0.3rem;
+}
+
+.new-characters-badge {
+  background-color: #e8f5e8;
+  color: #27ae60;
+  padding: 0.5rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  text-align: center;
+  border: 1px solid #d5f4e6;
+}
+
+.no-chapters {
+  text-align: center;
+  padding: 4rem 2rem;
+  background-color: #f8f9fa;
+  border-radius: 12px;
+  margin: 2rem 0;
+}
+
+.no-chapters h2 {
+  color: #2c3e50;
+  margin-bottom: 1rem;
+}
+
+.no-chapters p {
+  color: #7f8c8d;
+  font-size: 1.1rem;
+  margin-bottom: 2rem;
+}
+
+.back-home {
   background-color: #3498db;
   color: white;
   padding: 0.8rem 1.5rem;
-  margin: 0.5rem;
   border-radius: 6px;
   text-decoration: none;
-  font-weight: bold;
+  display: inline-block;
   transition: background-color 0.2s ease;
 }
 
-.btn:hover {
+.back-home:hover {
   background-color: #2980b9;
   color: white;
   text-decoration: none;
 }
 
+.progress-section {
+  background-color: #f8f9fa;
+  border-radius: 12px;
+  padding: 2rem;
+  margin: 3rem 0;
+}
+
+.progress-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 2rem;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.stat-number {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #3498db;
+  line-height: 1;
+}
+
+.stat-label {
+  color: #7f8c8d;
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+}
+
+.progress-bar {
+  background-color: #ecf0f1;
+  border-radius: 20px;
+  height: 20px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  background: linear-gradient(90deg, #3498db 0%, #2ecc71 100%);
+  height: 100%;
+  border-radius: 20px;
+  transition: width 0.3s ease;
+}
+
 @media (max-width: 768px) {
-  .nav-grid {
+  .chapters-grid {
     grid-template-columns: 1fr;
     gap: 1rem;
   }
   
-  .nav-card {
-    padding: 1.5rem;
+  .chapter-card {
+    padding: 1rem;
   }
   
-  .featured-characters {
-    grid-template-columns: 1fr;
+  .progress-stats {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+  }
+  
+  .stat-number {
+    font-size: 2rem;
   }
 }
 </style> 

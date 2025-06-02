@@ -41,11 +41,11 @@ plugins:
   - jekyll-polyglot
 
 # Header pages for navigation
-header_pages:
-  - chapters.md
-  - characters.md
-  - chapters.ru.md
-  - characters.ru.md
+header_pages: []
+  # - chapters.md
+  # - characters.md
+  # - chapters.ru.md
+  # - characters.ru.md
 
 # Collections
 collections:

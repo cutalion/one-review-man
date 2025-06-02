@@ -2,18 +2,16 @@
 layout: character
 name: One Review Man
 slug: one_review_man
-description: A programmer whose code always passes reviews instantly, leaving him
-  unchallenged and bored with his unmatched abilities. Despite his immense coding
-  skills, he maintains a simple lifestyle and humble attitude, quietly mentoring his
-  overly eager disciple, Genki.
+description: A legendary programmer who effortlessly produces flawless code, always
+  getting instant approval on every pull request. Despite unmatched programming prowess,
+  he remains humble, calm, and bored due to lack of challenge.
 personality_traits:
 - calm
 - humble
-- indifferent
-programming_skills: Flawlessly writes clean, efficient, bug-free code in any programming
-  language or framework on the first try. Instantly understands complex systems, effortlessly
-  solves impossible coding tasks and debugging challenges, and deploys confidently
-  to production environments without a single hiccup.
+- nonchalant
+programming_skills: Writes perfect, bug-free code on first attempt, effortlessly masters
+  every programming language and framework, instantly solves impossible debugging
+  scenarios, and confidently deploys directly to production.
 first_appearance: Chapter 1
 relationships: []
 permalink: "/characters/one-review-man/"
@@ -23,23 +21,23 @@ lang: en
 
 ## About One Review Man
 
-A programmer whose code always passes reviews instantly, leaving him unchallenged and bored with his unmatched abilities. Despite his immense coding skills, he maintains a simple lifestyle and humble attitude, quietly mentoring his overly eager disciple, Genki.
+A legendary programmer who effortlessly produces flawless code, always getting instant approval on every pull request. Despite unmatched programming prowess, he remains humble, calm, and bored due to lack of challenge.
 
 ## Programming Skills
 
-Flawlessly writes clean, efficient, bug-free code in any programming language or framework on the first try. Instantly understands complex systems, effortlessly solves impossible coding tasks and debugging challenges, and deploys confidently to production environments without a single hiccup.
+Writes perfect, bug-free code on first attempt, effortlessly masters every programming language and framework, instantly solves impossible debugging scenarios, and confidently deploys directly to production.
 
 ## Backstory
 
-Once an average developer constantly bogged down by code reviews and endless debug sessions, Satoru underwent a grueling regimen: daily solving 100 coding problems, reading 10 technical blogs, refactoring legacy codebases, and abstaining from copy-pasting for three years straight. After his intense training, he found himself possessing unparalleled programming mastery, becoming bored when every pull request he opened was instantly approved and merged.
+Once just an ordinary junior developer, Satoru committed himself to a rigorous daily training regimen: writing 100 lines of clean code, doing 100 code reviews, solving 100 algorithms, and reading 10 pages of documentation each day, without fail. After years of relentless discipline, he attained unparalleled coding mastery and became bored from the complete absence of challenge.
 
 ## Notable Quirks
 
-Frequently seen casually coding complex programs with one hand while eating snacks or browsing online sales with the other. Often indifferent towards colleagues' astonishment at his coding miracles, responding with a simple shrug.
+Wears simple office attire (plain hoodie, jeans, sandals). Frequently seen casually inserting semicolons into Python code just to see if reviewers notice (they don't).
 
 ## Catchphrase
 
-> "Sure."
+> "Merged."
 
 ## Appearances
 

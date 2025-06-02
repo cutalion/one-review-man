@@ -3,55 +3,13 @@ layout: default
 ---
 
 <article class="chapter">
-  <header class="chapter-header">
-    <h1 class="chapter-title">{{ page.title }}</h1>
-    <div class="chapter-meta">
-      <span class="chapter-number">Chapter {{ page.chapter_number }}</span>
-      {% if page.generated_date %}
-        <span class="generated-date">Generated on {{ page.generated_date | date: "%B %d, %Y" }}</span>
-      {% endif %}
-    </div>
-    
-    {% if page.summary %}
-      <div class="chapter-summary">
-        <p><em>{{ page.summary }}</em></p>
-      </div>
-    {% endif %}
-  </header>
-
-  {% if page.characters and page.characters.size > 0 %}
-    <div class="chapter-characters">
-      <h3>Characters in this chapter:</h3>
-      <div class="character-list">
-        {% for character_slug in page.characters %}
-          {% assign character = site.data.characters.characters[character_slug] %}
-          {% if character %}
-            {% include character_mention.html character=character %}
-          {% endif %}
-        {% endfor %}
-      </div>
-    </div>
-  {% endif %}
-
   <div class="chapter-content">
     {{ content }}
   </div>
 
-  {% if page.new_characters and page.new_characters.size > 0 %}
-    <div class="new-characters">
-      <h3>New characters introduced:</h3>
-      {% for character_slug in page.new_characters %}
-        {% assign character = site.data.characters.characters[character_slug] %}
-        {% if character %}
-          {% include character_card.html character=character %}
-        {% endif %}
-      {% endfor %}
-    </div>
-  {% endif %}
-
-  <nav class="chapter-navigation">
+  <!-- <nav class="chapter-navigation">
     {% include chapter_nav.html %}
-  </nav>
+  </nav> -->
 </article>
 
 <style>
