@@ -122,30 +122,3 @@ Disciple-kun stared in awe, his voice barely audible. "Shirogane-sensei... your 
 "Eh, it was pretty obvious," Shirogane replied casually, tossing away his empty ramen cup. "Anyway, what's next?"
 
 "Next...?" Legacy-sama whispered, eyes wide. "Next is... the Framework Wars."
-
-## New Characters Introduced
-
-| Name | Description |
-|------|-------------|
-| Legacy-sama | Senior programmer notorious for maintaining ancient legacy systems. Cynical, dramatic, and resistant to change. Believes modern frameworks are unnecessary hype. |
-
-## Programming Themes
-- Legacy code horror
-- Debugging nightmares
-- Deployment disasters
-- Merge conflicts
-
-## Comedy Elements
-- Absurdly simple solutions to complex problems
-- Satire of senior developer stubbornness
-- Workplace panic and exaggerated drama
-- Casual dismissal of protagonist's obvious superiority
-
-## References to One-Punch Man
-- Shirogane's bored, casual resolution of seemingly impossible problems (mirroring Saitama's effortless victories)
-- Disciple-kun's overly complicated methods and adoration of Shirogane (paralleling Genos)
-- Colleagues dismissing Shirogane's talent as "luck", resembling how Saitama's victories were overlooked
-
-## Ending Setup
-- Teases the next comedic plot: "The Framework Wars," an upcoming parody of tech industry framework rivalries and evangelist battles.
-
