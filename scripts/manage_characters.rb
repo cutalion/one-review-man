@@ -5,6 +5,7 @@ require 'yaml'
 require 'date'
 require_relative 'book_utils'
 require_relative 'llm_service'
+require_relative 'prompt_utils'
 
 class CharacterManager
   include BookUtils
@@ -185,9 +186,6 @@ class CharacterManager
 
   def build_character_generation_prompt(character_type)
     template_file = 'scripts/prompts/character_prompts.txt'
-    raise "Prompt template not found at #{template_file}" unless File.exist?(template_file)
-
-    template = File.read(template_file)
 
     # Safely handle characters data
     characters_hash = @characters['characters'] || {}
@@ -206,30 +204,56 @@ class CharacterManager
     mapped_type = character_type_mapping[character_type.downcase]
     raise "Character type not found in mapping: #{character_type_mapping}" unless mapped_type
 
-    template
-      .gsub('{CHARACTER_TYPE}', mapped_type)
-      .gsub('{EXISTING_CHARACTERS_CONTEXT}', existing_chars_context.empty? ? 'No existing characters yet.' : "Existing characters:\n#{existing_chars_context}")
-      .gsub('{SPECIAL_REQUIREMENTS}', "Create a #{character_type} character that fits the One Review Man universe.")
+    # Get character real names for template replacement
+    one_review_man = @characters['characters'].values.find { |c| c['name'] == 'One Review Man' }
+    quantum_android = @characters['characters'].values.find { |c| c['name'] == 'Quantum Android' }
+
+    one_review_man_real_name = one_review_man&.dig('real_name') || '[to be generated]'
+    quantum_android_real_name = quantum_android&.dig('real_name') || '[to be generated]'
+
+    placeholders = {
+      'CHARACTER_TYPE' => mapped_type,
+      'EXISTING_CHARACTERS_CONTEXT' => existing_chars_context.empty? ? 'No existing characters yet.' : "Existing characters:\n#{existing_chars_context}",
+      'SPECIAL_REQUIREMENTS' => "Create a #{character_type} character that fits the One Review Man universe.",
+      'ONE_REVIEW_MAN_REAL_NAME' => one_review_man_real_name,
+      'QUANTUM_ANDROID_REAL_NAME' => quantum_android_real_name
+    }
+
+    PromptUtils.build_prompt_from_file(template_file, placeholders)
+  rescue PromptUtils::UnfilledPlaceholdersError => e
+    puts "❌ Error: Character template has unfilled placeholders: #{e.unfilled_placeholders.join(', ')}"
+    puts 'Please check the character prompt template and ensure all placeholders are handled.'
+    raise e
   end
 
   def build_one_review_man_prompt
     template_file = 'scripts/prompts/one_review_man_prompt.txt'
-    raise "Prompt template not found at #{template_file}" unless File.exist?(template_file)
-
-    template = File.read(template_file)
     existing_chars_context = get_existing_characters_context
 
-    template.gsub('{EXISTING_CHARACTERS_CONTEXT}', existing_chars_context.empty? ? 'No existing characters yet.' : existing_chars_context)
+    placeholders = {
+      'EXISTING_CHARACTERS_CONTEXT' => existing_chars_context.empty? ? 'No existing characters yet.' : existing_chars_context
+    }
+
+    PromptUtils.build_prompt_from_file(template_file, placeholders)
+  rescue PromptUtils::UnfilledPlaceholdersError => e
+    puts "❌ Error: One Review Man template has unfilled placeholders: #{e.unfilled_placeholders.join(', ')}"
+    puts 'Please check the One Review Man prompt template and ensure all placeholders are handled.'
+    raise e
   end
 
   def build_ai_disciple_prompt
     template_file = 'scripts/prompts/ai_disciple_prompt.txt'
-    raise "Prompt template not found at #{template_file}" unless File.exist?(template_file)
-
-    template = File.read(template_file)
     existing_chars_context = get_existing_characters_context
 
-    template.gsub('{EXISTING_CHARACTERS_CONTEXT}', existing_chars_context.empty? ? 'No existing characters yet.' : existing_chars_context)
+    placeholders = {
+      'EXISTING_CHARACTERS_CONTEXT' => existing_chars_context.empty? ? 'No existing characters yet.' : existing_chars_context
+    }
+
+    PromptUtils.build_prompt_from_file(template_file, placeholders)
+  rescue PromptUtils::UnfilledPlaceholdersError => e
+    puts "❌ Error: AI Disciple template has unfilled placeholders: #{e.unfilled_placeholders.join(', ')}"
+    puts 'Please check the AI Disciple prompt template and ensure all placeholders are handled.'
+    raise e
   end
 
   def get_existing_characters_context

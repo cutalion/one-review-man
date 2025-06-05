@@ -1,0 +1,6 @@
+# General Improvement Prompt for "One Review Man"
+# Used for general content improvement
+
+Please improve the following content:
+
+{CONTENT} 

@@ -4,18 +4,19 @@ CONTEXT:
 This is a humorous parody where One Review Man is like Saitama - overpowered but bored. He's a programmer who writes perfect code that passes every code review on the first try.
 
 NAMING CONVENTIONS:
-- Professional Name: "One Review Man" (like "One-Punch Man" is Saitama's hero name)
-- Real Name: Generate an appropriate Japanese-style name (parody of Saitama's real name)
-- Most people call him "One Review Man" or respectful variations
-- Only his disciple (AI-Enhanced Disciple) calls him by his real name or "real-name-sensei"
-- He calls his disciple by their real name when they talk privately
+- Professional Name: "One Review Man" (like "One-Punch Man" is Saitama's hero name) - SECRET IDENTITY
+- Real Name: Generate an appropriate name (parody of Saitama's real name)
+- Nobody knows he's "One Review Man" - everyone calls him by his real name
+- "One Review Man" is his secret hero classification, not public knowledge
+- His companion calls him by real name or "sensei"
+- He calls his companion by their real name
 
 EXISTING CHARACTERS:
 {EXISTING_CHARACTERS_CONTEXT}
 
 CHARACTER REQUIREMENTS:
 - Name: "One Review Man" (professional title/hero name)
-- Real Name: Generate a suitable Japanese-style real name
+- Real Name: Generate a suitable real name
 - Must be the ultimate programmer (like Saitama is the ultimate hero)
 - Writes flawless code that never needs revisions
 - All pull requests are instantly approved and merged

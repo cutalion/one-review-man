@@ -17,17 +17,19 @@ CORE CONCEPT:
 
 NAMING CONVENTIONS (CRITICAL):
 - One Review Man's real name is "{ONE_REVIEW_MAN_REAL_NAME}" (to be generated during character creation)
-- AI-Enhanced Disciple's real name is "{AI_ENHANCED_DISCIPLE_REAL_NAME}" (to be generated during character creation)
-- Most characters call them by professional titles: "One Review Man", "AI-Enhanced Disciple"
-- ONLY when {ONE_REVIEW_MAN_REAL_NAME} and {AI_ENHANCED_DISCIPLE_REAL_NAME} speak to each other do they use real names
-- {AI_ENHANCED_DISCIPLE_REAL_NAME} is the ONLY character who calls him "{ONE_REVIEW_MAN_REAL_NAME}" (usually "{ONE_REVIEW_MAN_REAL_NAME}-sensei")
-- Everyone else must use "One Review Man" or respectful titles
-- This creates the same dynamic as Saitama/Genos in the original
+- Quantum Android's real name is "{QUANTUM_ANDROID_REAL_NAME}" (to be generated during character creation)
+- Characters call them by their REAL NAMES in direct conversation
+- Professional titles ("One Review Man", "Quantum Android") are hero classifications, not how people address them
+- When talking TO {ONE_REVIEW_MAN_REAL_NAME}: use his real name
+- When talking TO {QUANTUM_ANDROID_REAL_NAME}: use his real name  
+- When talking ABOUT {QUANTUM_ANDROID_REAL_NAME}: might refer to him as "Quantum Android"
+- {QUANTUM_ANDROID_REAL_NAME} calls {ONE_REVIEW_MAN_REAL_NAME} by real name or "sensei"
 
 TRANSLATION NOTES:
 - For Russian: "One Review Man" becomes "Ванревьюмен" (like "One Punch Man" → "Ванпанчмен")
-- Real names keep Japanese style when generated
-- Respectful address: "{ONE_REVIEW_MAN_REAL_NAME}-сенсей" for "{ONE_REVIEW_MAN_REAL_NAME}-sensei"
+- For Russian: "Quantum Android" becomes "Квантовый Андроид"
+- Real names keep original style when generated
+- Respectful address: "сенсей" for "sensei"
 
 Context:
 - Setting: Modern tech company/startup environment
@@ -39,21 +41,21 @@ Context:
 
 KEY CHARACTERS TO REFERENCE:
 - One Review Man ({ONE_REVIEW_MAN_REAL_NAME}): The protagonist, master programmer (parody of Saitama)
-  * Most people call him "One Review Man" or "One Review Man-san"
-  * Only {AI_ENHANCED_DISCIPLE_REAL_NAME} calls him "{ONE_REVIEW_MAN_REAL_NAME}" or "{ONE_REVIEW_MAN_REAL_NAME}-sensei"
+  * People call him by his real name "{ONE_REVIEW_MAN_REAL_NAME}" in conversation
+  * {QUANTUM_ANDROID_REAL_NAME} calls him "{ONE_REVIEW_MAN_REAL_NAME}" or "sensei"
   * Despite his incredible abilities, colleagues rarely take him seriously
   * Often dismissed as "just lucky" or "only good at simple problems"
-- The AI-Enhanced Disciple ({AI_ENHANCED_DISCIPLE_REAL_NAME}): Cyborg-like character with neurointerface who seeks to learn (parody of Genos)
-  * {ONE_REVIEW_MAN_REAL_NAME} calls him "{AI_ENHANCED_DISCIPLE_REAL_NAME}" when they're talking privately
-  * Others call him "AI-Enhanced Disciple" or "Disciple-kun"
+- The Quantum Android ({QUANTUM_ANDROID_REAL_NAME}): Android character with quantum processing who seeks to learn (parody of Genos)
+  * People call him by his real name "{QUANTUM_ANDROID_REAL_NAME}" in conversation
+  * Others might refer to him as "Quantum Android" when talking about him
   * One of the few who truly recognizes {ONE_REVIEW_MAN_REAL_NAME}'s abilities
 
 DIALOGUE RULES:
-- Other characters → One Review Man: "One Review Man", "One Review Man-san", "sir", etc.
-- {AI_ENHANCED_DISCIPLE_REAL_NAME} → {ONE_REVIEW_MAN_REAL_NAME}: "{ONE_REVIEW_MAN_REAL_NAME}-sensei", "{ONE_REVIEW_MAN_REAL_NAME}", "Master"
-- {ONE_REVIEW_MAN_REAL_NAME} → {AI_ENHANCED_DISCIPLE_REAL_NAME}: "{AI_ENHANCED_DISCIPLE_REAL_NAME}", occasionally "Disciple"
-- Others → {AI_ENHANCED_DISCIPLE_REAL_NAME}: "AI-Enhanced Disciple", "Disciple-kun", "the cyborg"
-- Internal monologue can use real names
+- Other characters → {ONE_REVIEW_MAN_REAL_NAME}: use his real name "{ONE_REVIEW_MAN_REAL_NAME}"
+- {QUANTUM_ANDROID_REAL_NAME} → {ONE_REVIEW_MAN_REAL_NAME}: "{ONE_REVIEW_MAN_REAL_NAME}", "sensei", "Master"
+- {ONE_REVIEW_MAN_REAL_NAME} → {QUANTUM_ANDROID_REAL_NAME}: use his real name "{QUANTUM_ANDROID_REAL_NAME}"
+- Others → {QUANTUM_ANDROID_REAL_NAME}: use his real name "{QUANTUM_ANDROID_REAL_NAME}"
+- When talking ABOUT {QUANTUM_ANDROID_REAL_NAME}: may use "Quantum Android" or "the android"
 
 UNDERESTIMATION THEME (CRITICAL):
 - Colleagues constantly underestimate One Review Man's abilities
@@ -102,7 +104,7 @@ Format the output as:
 - Personality: {CHARACTER_TRAITS}
 - Programming Skills: {CHARACTER_CODING_LEVEL}
 - Relationship to One Review Man: {CHARACTER_RELATIONSHIP}
-- How they address One Review Man: [Professional title unless they're {AI_ENHANCED_DISCIPLE_REAL_NAME}]
+- How they address One Review Man: [Real name unless they're a main character]
 
 ## New Character Creation Prompt
 If introducing new characters in this chapter, ensure they:
@@ -128,7 +130,7 @@ Consider incorporating:
 - Conference presentations or tech talks
 - Startup pitch meetings with absurd technical requirements
 - Legacy code archaeology
-- Private conversations between {ONE_REVIEW_MAN_REAL_NAME} and {AI_ENHANCED_DISCIPLE_REAL_NAME} (using real names)
+- Private conversations between {ONE_REVIEW_MAN_REAL_NAME} and {QUANTUM_ANDROID_REAL_NAME} (using real names)
 - Workplace interactions (using professional titles)
 
 ## One-Punch Man Parody Elements
@@ -142,7 +144,7 @@ Adapt these One-Punch Man concepts to programming:
 - S-Class heroes → Senior/Principal engineers
 - Villain organizations → Competing tech companies or bad coding practices
 - Saitama's casual attitude → {ONE_REVIEW_MAN_REAL_NAME}'s nonchalant approach to impossible bugs
-- Genos's formal speech → {AI_ENHANCED_DISCIPLE_REAL_NAME}'s technical jargon and respectful address
+- Genos's formal speech → {QUANTUM_ANDROID_REAL_NAME}'s technical jargon and respectful address
 - Nobody believing in Saitama → Colleagues dismissing One Review Man's abilities
 - Credit being given to other heroes → Other developers getting credit for One Review Man's work
 
@@ -150,10 +152,10 @@ Adapt these One-Punch Man concepts to programming:
 End the chapter with one of:
 - A massive production bug that only One Review Man can solve (while others doubt him)
 - Introduction of a new, seemingly impossible programming challenge
-- {AI_ENHANCED_DISCIPLE_REAL_NAME} attempting to replicate {ONE_REVIEW_MAN_REAL_NAME}'s abilities and calling him "{ONE_REVIEW_MAN_REAL_NAME}-sensei"
+- {QUANTUM_ANDROID_REAL_NAME} attempting to replicate {ONE_REVIEW_MAN_REAL_NAME}'s abilities and calling him "sensei"
 - A code review scenario showcasing One Review Man's perfection (dismissed by others as luck)
 - Setup for a programming contest or technical challenge
 - Discovery of an ancient codebase that threatens the entire system
 - A new team member who doesn't believe in One Review Man's abilities and learns his title
-- A private moment between {ONE_REVIEW_MAN_REAL_NAME} and {AI_ENHANCED_DISCIPLE_REAL_NAME} using real names
+- A private moment between {ONE_REVIEW_MAN_REAL_NAME} and {QUANTUM_ANDROID_REAL_NAME} using real names and "sensei"
 - Colleagues attributing One Review Man's success to external factors 

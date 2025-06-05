@@ -6,6 +6,7 @@ require 'date'
 require 'fileutils'
 require_relative 'book_utils'
 require_relative 'llm_service'
+require_relative 'prompt_utils'
 
 class ChapterGenerator
   include BookUtils
@@ -214,21 +215,35 @@ class ChapterGenerator
 
     # Get character real names for template replacement
     one_review_man = @characters['characters'].values.find { |c| c['name'] == 'One Review Man' }
-    ai_disciple = @characters['characters'].values.find { |c| c['name'] == 'AI-Enhanced Disciple' }
+    quantum_android = @characters['characters'].values.find { |c| c['name'] == 'Quantum Android' }
 
     one_review_man_real_name = one_review_man&.dig('real_name') || '[to be generated]'
-    ai_disciple_real_name = ai_disciple&.dig('real_name') || '[to be generated]'
+    quantum_android_real_name = quantum_android&.dig('real_name') || '[to be generated]'
 
-    # Replace template variables
-    prompt_template
-      .gsub('{CHAPTER_NUMBER}', chapter_num.to_s)
-      .gsub('{TARGET_LENGTH}', book_metadata.dig('generation', 'chapter_length_target') || '1500-3000 words')
-      .gsub('{PREVIOUS_CHAPTERS_SUMMARY}', previous_summary)
-      .gsub('{CHARACTER_CONTEXT}', character_context.empty? ? 'No existing characters.' : "Existing characters:\n#{character_context}")
-      .gsub('{USED_PLOT_DEVICES}', used_devices.join(', '))
-      .gsub('{SPECIAL_INSTRUCTIONS}', get_special_instructions(chapter_num))
-      .gsub('{ONE_REVIEW_MAN_REAL_NAME}', one_review_man_real_name)
-      .gsub('{AI_ENHANCED_DISCIPLE_REAL_NAME}', ai_disciple_real_name)
+    # Build placeholders hash
+    placeholders = {
+      'CHAPTER_NUMBER' => chapter_num.to_s,
+      'TARGET_LENGTH' => book_metadata.dig('generation', 'chapter_length_target') || '1500-3000 words',
+      'PREVIOUS_CHAPTERS_SUMMARY' => previous_summary,
+      'CHARACTER_CONTEXT' => character_context.empty? ? 'No existing characters.' : "Existing characters:\n#{character_context}",
+      'USED_PLOT_DEVICES' => used_devices.join(', '),
+      'SPECIAL_INSTRUCTIONS' => get_special_instructions(chapter_num),
+      'ONE_REVIEW_MAN_REAL_NAME' => one_review_man_real_name,
+      'QUANTUM_ANDROID_REAL_NAME' => quantum_android_real_name,
+      # Character-specific placeholders (can be empty if no specific character is being focused on)
+      'CHARACTER_NAME' => '',
+      'CHARACTER_DESCRIPTION' => '',
+      'CHARACTER_TRAITS' => '',
+      'CHARACTER_CODING_LEVEL' => '',
+      'CHARACTER_RELATIONSHIP' => ''
+    }
+
+    # Use PromptUtils to build the prompt with validation
+    PromptUtils.build_prompt(prompt_template, placeholders)
+  rescue PromptUtils::UnfilledPlaceholdersError => e
+    puts "❌ Error: Template has unfilled placeholders: #{e.unfilled_placeholders.join(', ')}"
+    puts 'Please check the prompt template and ensure all placeholders are handled.'
+    raise e
   end
 
   def load_prompt_template
@@ -391,26 +406,28 @@ class ChapterGenerator
   end
 
   def build_character_creation_prompt(char_data, chapter_num)
-    <<~PROMPT
-      Create a full character profile for a new character introduced in Chapter #{chapter_num} of "One Review Man".
+    template_file = 'scripts/prompts/new_character_creation_prompt.txt'
 
-      CHARACTER INFO FROM CHAPTER:
-      Name: #{char_data['name']}
-      Description: #{char_data['description'] || 'Brief mention only'}
+    # Get character real names for template replacement
+    one_review_man = @characters['characters'].values.find { |c| c['name'] == 'One Review Man' }
+    quantum_android = @characters['characters'].values.find { |c| c['name'] == 'Quantum Android' }
 
-      CONTEXT:
-      This character was introduced in Chapter #{chapter_num} and should fit into the One Review Man universe - a programming parody of One-Punch Man.
+    one_review_man_real_name = one_review_man&.dig('real_name') || '[to be generated]'
+    quantum_android_real_name = quantum_android&.dig('real_name') || '[to be generated]'
 
-      REQUIREMENTS:
-      - Expand on the basic description to create a full character
-      - Make them fit the programming/tech comedy theme
-      - Give them distinctive personality traits
-      - Add programming skills appropriate to their role
-      - Include a memorable catchphrase if appropriate
-      - Add backstory that explains their place in the programming world
+    placeholders = {
+      'CHAPTER_NUMBER' => chapter_num.to_s,
+      'CHARACTER_NAME' => char_data['name'],
+      'CHARACTER_DESCRIPTION' => char_data['description'] || 'Brief mention only',
+      'ONE_REVIEW_MAN_REAL_NAME' => one_review_man_real_name,
+      'QUANTUM_ANDROID_REAL_NAME' => quantum_android_real_name
+    }
 
-      Please create a complete character profile with typical fields: name, description, personality_traits, programming_skills, catchphrase, backstory, quirks.
-    PROMPT
+    PromptUtils.build_prompt_from_file(template_file, placeholders)
+  rescue PromptUtils::UnfilledPlaceholdersError => e
+    puts "❌ Error: Character creation template has unfilled placeholders: #{e.unfilled_placeholders.join(', ')}"
+    puts 'Please check the character creation prompt template and ensure all placeholders are handled.'
+    raise e
   end
 
   def get_special_instructions(chapter_num)
@@ -615,6 +632,40 @@ class ChapterGenerator
     character_slugs.map do |slug|
       @characters['characters'][slug]
     end.compact
+  end
+
+  def create_empty_chapter_structure(current_chapter, characters)
+    filename = "_chapters/#{format_chapter_filename(current_chapter)}"
+
+    front_matter = {
+      'layout' => 'chapter',
+      'title' => "Chapter #{current_chapter}: [Title to be added]",
+      'chapter_number' => current_chapter,
+      'characters' => characters.map { |c| c['slug'] },
+      'new_characters' => [],
+      'summary' => '[Summary to be added]',
+      'generated_date' => Date.today.to_s,
+      'status' => 'manual_completion_needed',
+      'lang' => 'en'
+    }
+
+    File.open(filename, 'w') do |file|
+      file.puts '---'
+      file.puts front_matter.to_yaml.lines[1..]
+      file.puts '---'
+      file.puts ''
+      file.puts '<!-- MANUAL COMPLETION NEEDED -->'
+      file.puts "<!-- Chapter #{current_chapter} content should be added here -->"
+      file.puts '<!-- Please paste AI-generated content or write manually -->'
+      file.puts ''
+      file.puts "# Chapter #{current_chapter}: [Add Title Here]"
+      file.puts ''
+      file.puts '[Add chapter content here]'
+      file.puts ''
+    end
+
+    puts "📝 Created empty chapter structure at #{filename}"
+    puts '   Please manually add content and update the front matter.'
   end
 
   def update_book_progress(current_chapter)

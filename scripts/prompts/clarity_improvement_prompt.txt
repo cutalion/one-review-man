@@ -1,0 +1,6 @@
+# Clarity Improvement Prompt for "One Review Man"
+# Used for improving content clarity and flow
+
+Please improve the clarity and flow of the following content while maintaining its humor and style:
+
+{CONTENT} 

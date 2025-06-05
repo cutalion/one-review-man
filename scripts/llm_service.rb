@@ -4,6 +4,7 @@
 require 'openai'
 require 'yaml'
 require 'json'
+require_relative 'prompt_utils'
 
 # LLM Service for generating content via OpenAI API
 # This service acts as an abstraction layer that could support multiple providers in the future
@@ -435,16 +436,24 @@ class LLMService
   end
 
   def build_improvement_prompt(content, improvement_type)
-    case improvement_type
-    when 'humor'
-      "Please make the following content funnier while maintaining its core message and story progression:\n\n#{content}"
-    when 'clarity'
-      "Please improve the clarity and flow of the following content while maintaining its humor and style:\n\n#{content}"
-    when 'consistency'
-      "Please review the following content for consistency with established characters and world-building, and make any necessary adjustments:\n\n#{content}"
-    else
-      "Please improve the following content:\n\n#{content}"
-    end
+    template_files = {
+      'humor' => 'scripts/prompts/humor_improvement_prompt.txt',
+      'clarity' => 'scripts/prompts/clarity_improvement_prompt.txt',
+      'consistency' => 'scripts/prompts/consistency_improvement_prompt.txt'
+    }
+
+    template_file = template_files[improvement_type] || 'scripts/prompts/general_improvement_prompt.txt'
+
+    placeholders = {
+      'CONTENT' => content
+    }
+
+    PromptUtils.build_prompt_from_file(template_file, placeholders)
+  rescue PromptUtils::UnfilledPlaceholdersError => e
+    puts "❌ Error: Improvement template has unfilled placeholders: #{e.unfilled_placeholders.join(', ')}"
+    puts 'Please check the improvement prompt template and ensure all placeholders are handled.'
+    # Fallback to simple prompt
+    "Please improve the following content:\n\n#{content}"
   end
 
   def create_example_config(config_file)

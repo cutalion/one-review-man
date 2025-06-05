@@ -1,0 +1,6 @@
+# Consistency Improvement Prompt for "One Review Man"
+# Used for checking and improving content consistency
+
+Please review the following content for consistency with established characters and world-building, and make any necessary adjustments:
+
+{CONTENT} 

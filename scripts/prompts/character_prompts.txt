@@ -7,24 +7,26 @@ You are creating a character for "One Review Man" - a programming comedy parody 
 Create a new character: {CHARACTER_TYPE}
 
 UNIVERSE CONTEXT:
-- One Review Man (real name: Satoru) is a super-programmer who writes perfect code
-- His disciple is the AI-Enhanced Disciple (real name: Genki)
+- One Review Man (real name: {ONE_REVIEW_MAN_REAL_NAME}) is a super-programmer who writes perfect code
+- His companion is the Quantum Android (real name: {QUANTUM_ANDROID_REAL_NAME})
 - All his pull requests are accepted and merged without comments on the first review
 - The story parodies programming culture, code reviews, and tech workplace dynamics
 - Characters should fit the modern tech company/startup environment
 
 NAMING CONVENTIONS (IMPORTANT):
-- One Review Man's real name is "Satoru" (like Saitama in the original)
-- AI-Enhanced Disciple's real name is "Genki" (like Genos in the original)
-- Most people call them by their professional/hero titles ("One Review Man", "AI-Enhanced Disciple")
-- Only when Satoru and Genki speak to each other do they use real names
-- Other characters should have both real names and professional/nickname versions when appropriate
-- Nobody calls One Review Man by his real name "Satoru" except his disciple
+- One Review Man's real name is "{ONE_REVIEW_MAN_REAL_NAME}" (like Saitama in the original)
+- Quantum Android's real name is "{QUANTUM_ANDROID_REAL_NAME}" (like Genos in the original)
+- Characters call them by their REAL NAMES in direct conversation
+- Professional titles ("One Review Man", "Quantum Android") are hero classifications, not address forms
+- When talking TO {ONE_REVIEW_MAN_REAL_NAME}: use his real name
+- When talking TO {QUANTUM_ANDROID_REAL_NAME}: use his real name
+- When talking ABOUT {QUANTUM_ANDROID_REAL_NAME}: might refer to him as "Quantum Android"
+- Other characters should have both real names and professional titles when appropriate
 
 TRANSLATION NOTES:
 - For Russian: "One Review Man" becomes "Ванревьюмен" (like "One Punch Man" → "Ванпанчмен")
-- Real names keep Japanese style: "Satoru" → "Сатору", "Genki" → "Генки"
-- Professional titles are translated: "AI-Enhanced Disciple" → "ИИ-Усиленный Ученик"
+- For Russian: "Quantum Android" becomes "Квантовый Андроид"
+- Real names keep original style when translated
 
 {EXISTING_CHARACTERS_CONTEXT}
 
@@ -81,7 +83,7 @@ Create a hero character who:
 - Looks up to or competes with One Review Man
 - Has a specialty that creates comedy (e.g., only codes in obscure languages)
 - Fits the tech company environment
-- Uses professional titles when addressing One Review Man ("One Review Man-san" or similar)
+- Uses real name when addressing One Review Man ("{ONE_REVIEW_MAN_REAL_NAME}" or similar respectful terms)
 
 ### VILLAIN CHARACTERS (Bad Coders/Practices)
 Create a villain character who:

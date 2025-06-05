@@ -1,0 +1,6 @@
+# Humor Improvement Prompt for "One Review Man"
+# Used for making content funnier while maintaining story progression
+
+Please make the following content funnier while maintaining its core message and story progression:
+
+{CONTENT} 
