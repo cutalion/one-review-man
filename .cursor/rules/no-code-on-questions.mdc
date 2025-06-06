@@ -1,0 +1,10 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Rule: Answer questions with explanations, not code.
+
+When the user's message is a question seeking information, advice, or a conceptual explanation (e.g., "How does X work?", "What is the best way to do Y?"), provide a direct answer first.
+
+Do not propose or write any code unless the user explicitly asks for implementation of the solution discussed. Wait for the user's confirmation before making any changes to the project.

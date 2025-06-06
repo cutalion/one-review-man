@@ -37,6 +37,7 @@ en:
     next: "Next"
     all_chapters: "All Chapters"
     generated_on: "Generated on"
+    progress: "Chapter {current} of {total}"
     
   character:
     personality_traits: "Personality Traits"
@@ -66,6 +67,10 @@ en:
     no_content_chapters: "No chapters have been generated yet. The adventure is about to begin! 🚀"
     no_content_characters: "Characters are waiting to be created! Each will have their own unique personality and quirks. 🎭"
     footer_note: "This book is generated chapter by chapter using AI, creating an ever-evolving story of workplace comedy and absurdist humor. Each chapter builds on the last, with characters developing relationships and getting into increasingly ridiculous situations."
+  
+  footer:
+    ai_generated: "AI-generated content created in"
+    enjoy_responsibly: "Enjoy responsibly!"
 
 ru:
   site_title: "Один Обзорщик"
@@ -105,6 +110,7 @@ ru:
     next: "Следующая"
     all_chapters: "Все Главы"
     generated_on: "Сгенерировано"
+    progress: "Глава {current} из {total}"
     
   character:
     personality_traits: "Черты Характера"
@@ -133,4 +139,8 @@ ru:
     featured_characters: "Избранные Персонажи"
     no_content_chapters: "Главы ещё не сгенерированы. Приключение вот-вот начнётся! 🚀"
     no_content_characters: "Персонажи ждут своего создания! Каждый будет иметь свою уникальную личность и причуды. 🎭"
-    footer_note: "Эта книга генерируется глава за главой с помощью ИИ, создавая постоянно развивающуюся историю офисной комедии и абсурдистского юмора. Каждая глава строится на предыдущей, персонажи развивают отношения и попадают во всё более нелепые ситуации." 
+    footer_note: "Эта книга генерируется глава за главой с помощью ИИ, создавая постоянно развивающуюся историю офисной комедии и абсурдистского юмора. Каждая глава строится на предыдущей, персонажи развивают отношения и попадают во всё более нелепые ситуации."
+  
+  footer:
+    ai_generated: "Контент, созданный ИИ в"
+    enjoy_responsibly: "Наслаждайтесь ответственно!" 

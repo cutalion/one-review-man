@@ -2,197 +2,82 @@
 layout: default
 ---
 
-<article class="character-profile">
-  <header class="character-header">
-    <h1 class="character-name">{{ page.name }}</h1>
+<article>
+  <header>
+    <h1>{{ page.name }}</h1>
     {% if page.description %}
-      <p class="character-description">{{ page.description }}</p>
+      <p>{{ page.description }}</p>
     {% endif %}
   </header>
 
-  <div class="character-details">
-    {% if page.personality_traits and page.personality_traits.size > 0 %}
-      <div class="personality-traits">
-        <h3>Personality Traits</h3>
-        <ul class="trait-list">
-          {% for trait in page.personality_traits %}
-            <li class="trait">{{ trait }}</li>
-          {% endfor %}
-        </ul>
-      </div>
-    {% endif %}
+  {% if page.personality_traits and page.personality_traits.size > 0 %}
+    <section>
+      <h2>Personality Traits</h2>
+      <ul>
+        {% for trait in page.personality_traits %}
+          <li>{{ trait }}</li>
+        {% endfor %}
+      </ul>
+    </section>
+  {% endif %}
 
-    {% if page.first_appearance %}
-      <div class="first-appearance">
-        <h3>First Appearance</h3>
-        {% assign chapter_file = page.first_appearance | append: ".md" %}
-        {% assign chapter = site.chapters | where: "slug", page.first_appearance | first %}
-        {% if chapter %}
-          <p><a href="{{ chapter.url }}">{{ chapter.title }}</a></p>
-        {% else %}
-          <p>{{ page.first_appearance }}</p>
-        {% endif %}
-      </div>
-    {% endif %}
+  {% if page.first_appearance %}
+    <section>
+      <h2>First Appearance</h2>
+      {% assign chapter = site.chapters | where: "slug", page.first_appearance | first %}
+      {% if chapter %}
+        <p><a href="{{ chapter.url }}">{{ chapter.title }}</a></p>
+      {% else %}
+        <p>{{ page.first_appearance }}</p>
+      {% endif %}
+    </section>
+  {% endif %}
 
-    {% if page.relationships and page.relationships.size > 0 %}
-      <div class="relationships">
-        <h3>Relationships</h3>
-        <ul class="relationship-list">
-          {% for relationship in page.relationships %}
-            <li class="relationship">
-              {% assign other_character = site.data.characters.characters[relationship.character] %}
-              {% assign other_character_page = site.characters | where: "slug", relationship.character | first %}
-              {% if other_character %}
-                {% if other_character_page %}
-                  <strong><a href="{{ other_character_page.url }}">{{ other_character.name }}</a></strong> - {{ relationship.type }}
-                {% else %}
-                  <strong><a href="/characters/{{ relationship.character | slugify }}">{{ other_character.name }}</a></strong> - {{ relationship.type }}
-                {% endif %}
+  {% if page.relationships and page.relationships.size > 0 %}
+    <section>
+      <h2>Relationships</h2>
+      <ul>
+        {% for relationship in page.relationships %}
+          <li>
+            {% assign other_character = site.data.characters.characters[relationship.character] %}
+            {% assign other_character_page = site.characters | where: "slug", relationship.character | first %}
+            {% if other_character %}
+              {% if other_character_page %}
+                <strong><a href="{{ other_character_page.url }}">{{ other_character.name }}</a></strong> - {{ relationship.type }}
               {% else %}
-                <strong>{{ relationship.character }}</strong> - {{ relationship.type }}
+                <strong><a href="/characters/{{ relationship.character | slugify }}">{{ other_character.name }}</a></strong> - {{ relationship.type }}
               {% endif %}
-            </li>
-          {% endfor %}
-        </ul>
-      </div>
-    {% endif %}
-  </div>
-
-  <div class="character-content">
-    {{ content }}
-  </div>
-
-  {% comment %} Find all chapters this character appears in {% endcomment %}
-  {% assign character_chapters = site.chapters | where_exp: "chapter", "chapter.characters contains page.slug" %}
-  {% if character_chapters.size > 0 %}
-    <div class="character-appearances">
-      <h3>Chapter Appearances</h3>
-      <ul class="appearance-list">
-        {% assign sorted_chapters = character_chapters | sort: "chapter_number" %}
-        {% for chapter in sorted_chapters %}
-          <li class="appearance">
-            <a href="{{ chapter.url }}">{{ chapter.title }}</a>
-            {% if chapter.new_characters contains page.slug %}
-              <span class="debut-badge">Debut</span>
+            {% else %}
+              <strong>{{ relationship.character }}</strong> - {{ relationship.type }}
             {% endif %}
           </li>
         {% endfor %}
       </ul>
-    </div>
+    </section>
   {% endif %}
 
-  <nav class="character-navigation">
-    <a href="/characters" class="back-link">← All Characters</a>
+  {{ content }}
+
+  {% assign character_chapters = site.chapters | where_exp: "chapter", "chapter.characters contains page.slug" %}
+  {% if character_chapters.size > 0 %}
+    <section>
+      <h2>Chapter Appearances</h2>
+      <ul>
+        {% assign sorted_chapters = character_chapters | sort: "chapter_number" %}
+        {% for chapter in sorted_chapters %}
+          <li>
+            <a href="{{ chapter.url }}">{{ chapter.title }}</a>
+            {% if chapter.new_characters contains page.slug %}
+              <em>(Debut)</em>
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    </section>
+  {% endif %}
+
+  <nav>
+    <a href="/characters">← All Characters</a>
   </nav>
 </article>
 
-<style>
-.character-profile {
-  max-width: 800px;
-  margin: 0 auto;
-}
-
-.character-header {
-  text-align: center;
-  padding: 2rem 0;
-  border-bottom: 2px solid #30363d;
-  margin-bottom: 2rem;
-}
-
-.character-name {
-  color: #f0f6fc;
-  margin-bottom: 1rem;
-  font-size: 2.5rem;
-}
-
-.character-description {
-  font-size: 1.2rem;
-  color: #8b949e;
-  font-style: italic;
-  max-width: 600px;
-  margin: 0 auto;
-}
-
-.character-details {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 2rem;
-  margin-bottom: 2rem;
-}
-
-.personality-traits, .first-appearance, .relationships {
-  padding: 1.5rem;
-  background-color: #21262d;
-  border-radius: 8px;
-  border-left: 4px solid #58a6ff;
-}
-
-.trait-list {
-  list-style: none;
-  padding: 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.trait {
-  background-color: #58a6ff;
-  color: #f0f6fc;
-  padding: 0.3rem 0.8rem;
-  border-radius: 15px;
-  font-size: 0.9rem;
-}
-
-.relationship-list, .appearance-list {
-  list-style: none;
-  padding: 0;
-}
-
-.relationship, .appearance {
-  padding: 0.5rem 0;
-  border-bottom: 1px solid #30363d;
-}
-
-.relationship:last-child, .appearance:last-child {
-  border-bottom: none;
-}
-
-.debut-badge {
-  background-color: #f85149;
-  color: #f0f6fc;
-  padding: 0.2rem 0.5rem;
-  border-radius: 10px;
-  font-size: 0.8rem;
-  margin-left: 0.5rem;
-}
-
-.character-content {
-  line-height: 1.6;
-  margin-bottom: 2rem;
-}
-
-.character-appearances {
-  margin-top: 2rem;
-  padding: 1.5rem;
-  background-color: #21262d;
-  border-radius: 8px;
-}
-
-.character-navigation {
-  margin-top: 3rem;
-  padding-top: 2rem;
-  border-top: 1px solid #30363d;
-  text-align: center;
-}
-
-.back-link {
-  color: #58a6ff;
-  text-decoration: none;
-  font-weight: bold;
-}
-
-.back-link:hover {
-  text-decoration: underline;
-}
-</style> 

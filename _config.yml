@@ -36,7 +36,6 @@ parallel_localization: true
 lang_from_path: true
 
 # Build settings
-theme: minima
 plugins:
   - jekyll-polyglot
 

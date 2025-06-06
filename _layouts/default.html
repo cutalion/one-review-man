@@ -6,10 +6,13 @@
   <body>
     {%- include header.html -%}
 
-    <main class="page-content" aria-label="Content">
-      <div class="wrapper">
-        {{ content }}
-      </div>
+    <main>
+      {{ content }}
     </main>
+
+    <footer>
+      {% assign strings = site.data.strings[page.lang] %}
+      <p>{{ site.title | escape }} - {{ strings.footer.ai_generated }} {{ site.time | date: '%Y' }}. {{ strings.footer.enjoy_responsibly }}</p>
+    </footer>
   </body>
 </html> 

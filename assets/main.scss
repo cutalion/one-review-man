@@ -2,377 +2,808 @@
 # Only the main Sass file needs front matter (the dashes are enough)
 ---
 
-@import "minima";
+@import "variables";
 
-// Dark theme variables
-// $dark-background-color: #0d1117;
+// Basic semantic styling only
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
 
-// palette:
-// #222831
-// #393E46
-// #FFD369
-// #EEEEEE
+html {
+  font-size: 16px;
+  line-height: 1.6;
+}
 
-$dark-background-color: #222831;
-$dark-text-color: #EEEEEE;
-$dark-header-background: #393E46;
-$dark-border-color: #393E46;
-$dark-link-color: #FFD369;
-$dark-code-background: #222831;
-$dark-card-background: #222831;
-
-// Force dark theme for all users
 body {
-  background-color: $dark-background-color !important;
-  color: $dark-text-color !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+  background-color: $dark-background-color;
+  color: $dark-text-color;
+  line-height: 1.6;
+  font-size: 18px;
 }
 
-.site-header {
-  background-color: $dark-header-background !important;
-  border-bottom-color: $dark-border-color !important;
+// Semantic typography
+h1, h2, h3, h4, h5, h6 {
+  color: $dark-text-color;
+  margin-bottom: 1rem;
+  line-height: 1.3;
 }
 
-.site-title, .site-title:visited {
-  color: $dark-text-color !important;
-}
-
-.site-nav {
-  background-color: $dark-header-background !important;
-}
-
-.site-nav .page-link {
-  color: $dark-text-color !important;
-}
-
-.site-nav .page-link:hover {
-  color: $dark-link-color !important;
-}
-
-.site-footer {
-  background-color: $dark-header-background !important;
-  border-top-color: $dark-border-color !important;
-  color: $dark-text-color !important;
+p {
+  margin-bottom: 1rem;
 }
 
 a {
-  color: $dark-link-color !important;
-}
-
-a:visited {
-  color: lighten($dark-link-color, 10%) !important;
+  color: $dark-link-color;
+  text-decoration: none;
 }
 
 a:hover {
-  color: lighten($dark-link-color, 20%) !important;
+  color: lighten($dark-link-color, 20%);
+}
+
+a:visited {
+  color: lighten($dark-link-color, 10%);
+}
+
+// Basic layout
+header {
+  background-color: $dark-header-background;
+  padding: 1rem 0;
+  border-bottom: 1px solid $dark-border-color;
+  width: 100%;
+}
+
+header nav {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+header h1 {
+  margin: 0;
+  padding: 0;
+  font-size: 1.75rem;
+}
+
+header h1 a {
+  color: $dark-text-color;
+  text-decoration: none;
+  display: block;
+  padding: 0;
+}
+
+header h1 a:hover {
+  color: $dark-link-color;
+}
+
+header ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  gap: 1rem;
+}
+
+header li {
+  margin: 0;
+}
+
+header nav ul a {
+  color: $dark-text-color;
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+  text-transform: uppercase;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+header nav ul a:hover {
+  background-color: $dark-link-color;
+  color: $dark-background-color;
+}
+
+main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+footer {
+  background-color: $dark-header-background;
+  border-top: 1px solid $dark-border-color;
+  padding: 1rem 0;
+  text-align: center;
+}
+
+// Semantic elements
+blockquote {
+  border-left: 3px solid $dark-border-color;
+  padding-left: 1rem;
+  margin: 1rem 0;
+  color: darken($dark-text-color, 20%);
+}
+
+// Block separators for chapters
+hr {
+  border: none;
+  height: 1px;
+  background: linear-gradient(to right, transparent, $dark-border-color, transparent);
+  margin: 3rem 0;
+  position: relative;
+}
+
+hr:before {
+  content: "◆";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  background-color: $dark-background-color;
+  color: $dark-link-color;
+  padding: 0 1rem;
+  font-size: 1.2rem;
+}
+
+// Alternative separator styles
+hr.stars {
+  background: none;
+  text-align: center;
+  border: none;
+  margin: 3rem 0;
+}
+
+hr.stars:before {
+  content: "⋆ ⋆ ⋆";
+  background-color: $dark-background-color;
+  color: $dark-link-color;
+  padding: 0 1rem;
+  font-size: 1rem;
+  letter-spacing: 0.5rem;
+}
+
+hr.dots {
+  background: none;
+  text-align: center;
+  border: none;
+  margin: 2rem 0;
+}
+
+hr.dots:before {
+  content: "• • •";
+  background-color: $dark-background-color;
+  color: $dark-border-color;
+  padding: 0 1rem;
+  font-size: 1.5rem;
+  letter-spacing: 1rem;
+}
+
+code, pre {
+  background-color: $dark-code-background;
+  color: $dark-text-color;
+  padding: 0.2rem 0.4rem;
+  border-radius: 3px;
+}
+
+pre {
+  padding: 1rem;
+  overflow-x: auto;
+}
+
+ul, ol {
+  margin-left: 2rem;
+  margin-bottom: 1rem;
+}
+
+li {
+  margin-bottom: 0.5rem;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1rem;
+}
+
+th, td {
+  padding: 0.5rem;
+  border: 1px solid $dark-border-color;
+  text-align: left;
+}
+
+th {
+  background-color: $dark-header-background;
+}
+
+// Chapter navigation styling (only within articles/main content)
+article nav, main nav {
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 1px solid $dark-border-color;
+}
+
+article nav ul, main nav ul {
+  list-style: none;
+  margin: 0 0 1.5rem 0;
+  padding: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 60px;
+}
+
+article nav li, main nav li {
+  margin: 0;
+  flex: 0 0 auto;
+}
+
+/* Previous button always on the left */
+article nav li.prev-chapter, main nav li.prev-chapter {
+  margin-right: auto;
+}
+
+/* Next button always on the right */
+article nav li.next-chapter, main nav li.next-chapter {
+  margin-left: auto;
+}
+
+article nav a, main nav a {
+  display: block;
+  padding: 1rem 1.5rem;
+  background-color: $dark-card-background;
+  border: 1px solid $dark-border-color;
+  border-radius: 8px;
+  color: $dark-text-color;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  font-weight: 500;
+  min-width: 200px;
+}
+
+article nav a:hover, main nav a:hover {
+  background-color: $dark-link-color;
+  color: $dark-background-color;
+  border-color: $dark-link-color;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Text alignment for specific button types */
+article nav li.prev-chapter a, main nav li.prev-chapter a {
+  text-align: left;
+}
+
+article nav li.next-chapter a, main nav li.next-chapter a {
+  text-align: right;
+}
+
+
+
+article nav + p, main nav + p {
+  text-align: center;
+  color: darken($dark-text-color, 20%);
+  font-size: 0.9rem;
+  margin-top: 1rem;
+  padding: 0.5rem;
+  background-color: rgba($dark-border-color, 0.2);
+  border-radius: 4px;
+}
+
+// Responsive chapter navigation
+@media (max-width: 768px) {
+  article nav ul, main nav ul {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  article nav li, main nav li {
+    width: 100%;
+    min-width: auto;
+  }
+  
+  article nav li:nth-child(2), main nav li:nth-child(2) {
+    order: -1;
+    margin-bottom: 1rem;
+  }
+  
+  article nav a, main nav a {
+    text-align: center;
+  }
+  
+  article nav li:first-child a,
+  article nav li:last-child a,
+  main nav li:first-child a,
+  main nav li:last-child a {
+    text-align: center;
+  }
+}
+
+// Layout structure
+.site-wrapper {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.site-header {
+  background-color: $dark-header-background;
+  border-bottom: 1px solid $dark-border-color;
+  padding: 1rem 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.site-header .wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.site-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: $dark-text-color;
+  text-decoration: none;
+}
+
+.site-nav {
+  display: flex;
+  gap: 2rem;
+}
+
+.site-nav .page-link {
+  color: $dark-text-color;
+  font-weight: 500;
+  padding: 0.5rem 0;
+  position: relative;
+  // transition: color 0.2s ease;
+}
+
+.site-nav .page-link:hover {
+  color: $dark-link-color;
+}
+
+.site-nav .page-link::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background-color: $dark-link-color;
+  // transition: width 0.2s ease;
+}
+
+.site-nav .page-link:hover::after {
+  width: 100%;
+}
+
+// Main content area
+.site-main {
+  flex: 1;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+  width: 100%;
+}
+
+.page-content {
+  padding: 2rem 0;
+}
+
+// Footer
+.site-footer {
+  background-color: $dark-header-background;
+  border-top: 1px solid $dark-border-color;
+  padding: 2rem 0;
+  margin-top: auto;
+}
+
+.site-footer .wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+  text-align: center;
+  color: $dark-text-color;
+}
+
+// Responsive navigation
+.menu-icon {
+  display: none;
+  cursor: pointer;
+  padding: 0.5rem;
+}
+
+.menu-icon svg {
+  width: 24px;
+  height: 24px;
+  fill: $dark-text-color;
+}
+
+@media (max-width: 768px) {
+  .site-header .wrapper {
+    flex-wrap: wrap;
+  }
+  
+  .menu-icon {
+    display: block;
+  }
+  
+  .site-nav {
+    display: none;
+    width: 100%;
+    margin-top: 1rem;
+    flex-direction: column;
+    gap: 0;
+  }
+  
+  .site-nav.active {
+    display: flex;
+  }
+  
+  .site-nav .page-link {
+    padding: 1rem 0;
+    border-bottom: 1px solid $dark-border-color;
+  }
+  
+  .site-nav .page-link:last-child {
+    border-bottom: none;
+  }
+  
+  .site-main {
+    padding: 1rem;
+  }
+  
+  // Make header titles smaller on mobile to fit on one line
+  header h1 {
+    font-size: 1.25rem;
+  }
+
+  article h1 {
+    font-size: 1.5rem;
+  }
+  
+  // General content headings
+  h1 { font-size: 2rem; }
+  h2 { font-size: 1.75rem; }
+  h3 { font-size: 1.5rem; }
+}
+
+// Utility classes
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.text-center { text-align: center; }
+.text-left { text-align: left; }
+.text-right { text-align: right; }
+
+.mt-1 { margin-top: 0.5rem; }
+.mt-2 { margin-top: 1rem; }
+.mt-3 { margin-top: 1.5rem; }
+.mt-4 { margin-top: 2rem; }
+
+.mb-1 { margin-bottom: 0.5rem; }
+.mb-2 { margin-bottom: 1rem; }
+.mb-3 { margin-bottom: 1.5rem; }
+.mb-4 { margin-bottom: 2rem; }
+
+.p-1 { padding: 0.5rem; }
+.p-2 { padding: 1rem; }
+.p-3 { padding: 1.5rem; }
+.p-4 { padding: 2rem; }
+
+// Force dark theme for all users
+body {
+  background-color: $dark-background-color;
+  color: $dark-text-color;
+}
+
+.site-header {
+  background-color: $dark-header-background;
+  border-bottom-color: $dark-border-color;
+}
+
+.site-nav {
+  background-color: $dark-header-background;
+}
+
+.site-nav .page-link {
+  color: $dark-text-color;
+}
+
+.site-nav .page-link:hover {
+  color: $dark-link-color;
+}
+
+.site-footer {
+  background-color: $dark-header-background;
+  border-top-color: $dark-border-color;
+  color: $dark-text-color;
+}
+
+a {
+  color: $dark-link-color;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  color: $dark-text-color !important;
+  color: $dark-text-color;
 }
 
 .post-content h1, .post-content h2, .post-content h3, .post-content h4, .post-content h5, .post-content h6 {
-  color: $dark-text-color !important;
+  color: $dark-text-color;
 }
 
 blockquote {
-  color: darken($dark-text-color, 20%) !important;
-  border-left-color: $dark-border-color !important;
+  color: darken($dark-text-color, 20%);
+  border-left-color: $dark-border-color;
 }
 
 pre, code {
-  background-color: $dark-code-background !important;
-  color: $dark-text-color !important;
+  background-color: $dark-code-background;
+  color: $dark-text-color;
 }
 
 .highlighter-rouge .highlight {
-  background-color: $dark-code-background !important;
+  background-color: $dark-code-background;
 }
 
 // Card backgrounds for custom elements
 .chapter-card, .character-profile-card, .nav-card {
-  background-color: $dark-card-background !important;
-  border-color: $dark-border-color !important;
-  color: $dark-text-color !important;
+  background-color: $dark-card-background;
+  border-color: $dark-border-color;
+  color: $dark-text-color;
 }
 
 .chapter-card .chapter-number {
-  background-color: $dark-header-background !important;
-  color: $dark-text-color !important;
+  background-color: $dark-header-background;
+  color: $dark-text-color;
 }
 
 .chapter-preview {
-  background-color: $dark-card-background !important;
-  border-left-color: $dark-link-color !important;
+  background-color: $dark-card-background;
+  border-left-color: $dark-link-color;
 }
 
 .no-chapters, .no-characters {
-  background-color: $dark-card-background !important;
-  color: $dark-text-color !important;
+  background-color: $dark-card-background;
+  color: $dark-text-color;
 }
 
 .progress-section, .character-stats {
-  background-color: $dark-card-background !important;
+  background-color: $dark-card-background;
 }
 
 .stat-box {
-  background-color: $dark-background-color !important;
-  border-color: $dark-border-color !important;
+  background-color: $dark-background-color;
+  border-color: $dark-border-color;
 }
 
 .footer-note {
-  background-color: $dark-card-background !important;
-  border-left-color: $dark-link-color !important;
+  background-color: $dark-card-background;
+  border-left-color: $dark-link-color;
+}
+
+// Chapter listing card styling (only for main page)
+.chapter-listing-card {
+  background-color: rgba($dark-card-background, 0.6);
+  border: 1px solid $dark-border-color;
+  border-radius: 12px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.chapter-listing-card:hover {
+  border-color: rgba($dark-link-color, 0.3);
+  background-color: rgba($dark-card-background, 0.8);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+}
+
+// Chapter listing header styling
+.chapter-listing-card header {
+  background: none;
+  border: none;
+  padding: 0;
+  margin-bottom: 1.5rem;
+}
+
+.chapter-listing-card header h2 {
+  margin-bottom: 0.75rem;
+  font-size: 1.5rem;
+  line-height: 1.2;
+  font-weight: 600;
+}
+
+.chapter-listing-card header h2 a {
+  color: $dark-text-color;
+  text-decoration: none;
+  transition: color 0.2s ease;
+  display: inline-block;
+}
+
+.chapter-listing-card header h2 a:hover {
+  color: $dark-link-color;
+  text-decoration: none;
+}
+
+// Date styling
+.chapter-listing-card header time {
+  display: block;
+  color: rgba($dark-text-color, 0.7);
+  font-size: 0.9rem;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  position: relative;
+  padding-left: 1.2rem;
+}
+
+.chapter-listing-card header time::before {
+  content: '📅';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.8rem;
+  opacity: 0.6;
+}
+
+// Summary/description styling
+.chapter-listing-card p {
+  color: rgba($dark-text-color, 0.9);
+  line-height: 1.7;
+  font-size: 1rem;
+  margin-bottom: 0;
+  padding-left: 1rem;
+  border-left: 2px solid rgba($dark-border-color, 0.5);
+  transition: border-color 0.3s ease;
+}
+
+.chapter-listing-card:hover p {
+  border-left-color: rgba($dark-link-color, 0.4);
+}
+
+// Enhanced focus states for accessibility
+.chapter-listing-card:focus-within {
+  outline: 2px solid $dark-link-color;
+  outline-offset: 2px;
+}
+
+// "No chapters yet" section styling
+.site-main section {
+  text-align: center;
+  padding: 4rem 2rem;
+  background-color: rgba($dark-card-background, 0.3);
+  border: 2px dashed rgba($dark-border-color, 0.5);
+  border-radius: 12px;
+  margin: 2rem 0;
+}
+
+.site-main section h2 {
+  color: $dark-link-color;
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  font-weight: 700;
+}
+
+.site-main section p {
+  color: rgba($dark-text-color, 0.8);
+  font-size: 1.1rem;
+  max-width: 500px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+// Responsive adjustments for chapter listing cards
+@media (max-width: 768px) {
+  .chapter-listing-card {
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .chapter-listing-card header h2 {
+    font-size: 1.3rem;
+  }
+  
+  .chapter-listing-card header time {
+    font-size: 0.8rem;
+  }
+  
+  .chapter-listing-card p {
+    font-size: 0.95rem;
+    padding-left: 0.75rem;
+  }
+  
+  .site-main section {
+    padding: 3rem 1.5rem;
+  }
+  
+  .site-main section h2 {
+    font-size: 1.7rem;
+  }
 }
 
 // Chapter-specific elements with higher specificity to override inline styles
 .chapter-summary, .chapter-characters, .new-characters, .chapter-navigation {
-  background-color: $dark-card-background !important;
-  color: $dark-text-color !important;
-  border-color: $dark-border-color !important;
+  background-color: $dark-card-background;
+  color: $dark-text-color;
+  border-color: $dark-border-color;
 }
 
 .chapter-summary h3, .chapter-characters h3, .new-characters h3 {
-  color: $dark-text-color !important;
+  color: $dark-text-color;
 }
 
 // Additional chapter navigation elements
 .chapter-nav {
-  background-color: $dark-card-background !important;
+  background-color: $dark-card-background;
 }
 
 .nav-link {
-  background-color: $dark-card-background !important;
-  color: $dark-text-color !important;
-  border-color: $dark-border-color !important;
+  background-color: $dark-card-background;
+  color: $dark-text-color;
+  border-color: $dark-border-color;
 }
 
 .nav-link:hover {
-  background-color: $dark-link-color !important;
-  color: $dark-text-color !important;
-  border-color: $dark-link-color !important;
+  background-color: $dark-link-color;
+  color: $dark-text-color;
+  border-color: $dark-link-color;
 }
 
 .chapters-index {
-  background-color: $dark-link-color !important;
-  color: $dark-text-color !important;
-  border-color: $dark-link-color !important;
+  background-color: $dark-link-color;
+  color: $dark-border-color;
+  border-color: $dark-link-color;
 }
 
 .progress-bar {
-  background-color: $dark-border-color !important;
+  background-color: $dark-border-color;
 }
 
 .progress-fill {
-  background-color: $dark-link-color !important;
+  background-color: $dark-link-color;
 }
 
 // Override any remaining inline styles for character-related elements
 .character-list {
-  color: $dark-text-color !important;
+  color: $dark-text-color;
 }
 
 .character-link {
-  color: $dark-link-color !important;
-  background-color: $dark-card-background !important;
+  color: $dark-link-color;
+  background-color: $dark-card-background;
 }
 
 .character-link:hover {
-  background-color: $dark-border-color !important;
+  background-color: $dark-border-color;
 }
 
 // Navigation menu on mobile
 .site-nav .menu-icon > svg {
-  fill: $dark-text-color !important;
+  fill: $dark-text-color;
 }
 
 .site-nav .trigger {
-  background-color: $dark-header-background !important;
-  border-color: $dark-border-color !important;
-}
-
-// Also add media query for users who prefer dark mode
-@media (prefers-color-scheme: dark) {
-  body {
-    background-color: $dark-background-color !important;
-    color: $dark-text-color !important;
-  }
-
-  .site-header {
-    background-color: $dark-header-background !important;
-    border-bottom-color: $dark-border-color !important;
-  }
-
-  .site-title, .site-title:visited {
-    color: $dark-text-color !important;
-  }
-
-  .site-nav {
-    background-color: $dark-header-background !important;
-  }
-
-  .site-nav .page-link {
-    color: $dark-text-color !important;
-  }
-
-  .site-nav .page-link:hover {
-    color: $dark-link-color !important;
-  }
-
-  .site-footer {
-    background-color: $dark-header-background !important;
-    border-top-color: $dark-border-color !important;
-    color: $dark-text-color !important;
-  }
-
-  a {
-    color: $dark-link-color !important;
-  }
-
-  a:visited {
-    color: $dark-link-color !important;
-  }
-
-  a:hover {
-    color: lighten($dark-link-color, 20%) !important;
-  }
-
-  h1, h2, h3, h4, h5, h6 {
-    color: $dark-text-color !important;
-  }
-
-  .post-content h1, .post-content h2, .post-content h3, .post-content h4, .post-content h5, .post-content h6 {
-    color: $dark-text-color !important;
-  }
-
-  blockquote {
-    color: darken($dark-text-color, 20%) !important;
-    border-left-color: $dark-border-color !important;
-  }
-
-  pre, code {
-    background-color: $dark-code-background !important;
-    color: $dark-text-color !important;
-  }
-
-  .highlighter-rouge .highlight {
-    background-color: $dark-code-background !important;
-  }
-
-  .chapter-card, .character-profile-card, .nav-card {
-    background-color: $dark-card-background !important;
-    border-color: $dark-border-color !important;
-    color: $dark-text-color !important;
-  }
-
-  .chapter-preview {
-    background-color: $dark-card-background !important;
-    border-left-color: $dark-link-color !important;
-  }
-
-  .no-chapters, .no-characters {
-    background-color: $dark-card-background !important;
-    color: $dark-text-color !important;
-  }
-
-  .progress-section, .character-stats {
-    background-color: $dark-card-background !important;
-  }
-
-  .stat-box {
-    background-color: $dark-background-color !important;
-    border-color: $dark-border-color !important;
-  }
-
-  .footer-note {
-    background-color: $dark-card-background !important;
-    border-left-color: $dark-link-color !important;
-  }
-
-  .site-nav .menu-icon > svg {
-    fill: $dark-text-color !important;
-  }
-
-  .site-nav .trigger {
-    background-color: $dark-header-background !important;
-    border-color: $dark-border-color !important;
-  }
-
-  .chapter-summary, .chapter-characters, .new-characters, .chapter-navigation {
-    background-color: $dark-card-background !important;
-    color: $dark-text-color !important;
-    border-color: $dark-border-color !important;
-  }
-
-  .chapter-summary h3, .chapter-characters h3, .new-characters h3 {
-    color: $dark-text-color !important;
-  }
-
-  .chapter-nav {
-    background-color: $dark-card-background !important;
-  }
-
-  .nav-link {
-    background-color: $dark-card-background !important;
-    color: $dark-text-color !important;
-    border-color: $dark-border-color !important;
-  }
-
-  .nav-link:hover {
-    background-color: $dark-link-color !important;
-    color: $dark-text-color !important;
-    border-color: $dark-link-color !important;
-  }
-
-  .chapters-index {
-    background-color: $dark-link-color !important;
-    color: $dark-text-color !important;
-    border-color: $dark-link-color !important;
-  }
-
-  .progress-bar {
-    background-color: $dark-border-color !important;
-  }
-
-  .progress-fill {
-    background-color: $dark-link-color !important;
-  }
-
-  .character-list {
-    color: $dark-text-color !important;
-  }
-
-  .character-link {
-    color: $dark-link-color !important;
-    background-color: $dark-card-background !important;
-  }
-
-  .character-link:hover {
-    background-color: $dark-border-color !important;
-  }
-
-  // Comprehensive light background overrides for dark mode users
-  [style*="background-color: #f8f9fa"], 
-  [style*="background-color: #f1f2f6"],
-  [style*="background-color: #e8f5e8"],
-  [style*="background-color: #e8f4f8"],
-  [style*="background-color: white"],
-  [style*="background-color: #fff"] {
-    background-color: $dark-card-background !important;
-    color: $dark-text-color !important;
-  }
-
-  .bg-light, .bg-white, .bg-gray-100, .bg-gray-50 {
-    background-color: $dark-card-background !important;
-    color: $dark-text-color !important;
-  }
-
-  .text-dark, .text-black {
-    color: $dark-text-color !important;
-  }
-
-  .border-light, .border-gray {
-    border-color: $dark-border-color !important;
-  }
+  background-color: $dark-header-background;
+  border-color: $dark-border-color;
 }
 
 // Comprehensive light background overrides
@@ -382,22 +813,22 @@ pre, code {
 [style*="background-color: #e8f4f8"],
 [style*="background-color: white"],
 [style*="background-color: #fff"] {
-  background-color: $dark-card-background !important;
-  color: $dark-text-color !important;
+  background-color: $dark-card-background;
+  color: $dark-text-color;
 }
 
 // Generic overrides for common light theme classes
 .bg-light, .bg-white, .bg-gray-100, .bg-gray-50 {
-  background-color: $dark-card-background !important;
-  color: $dark-text-color !important;
+  background-color: $dark-card-background;
+  color: $dark-text-color;
 }
 
 // Text color overrides for dark backgrounds
 .text-dark, .text-black {
-  color: $dark-text-color !important;
+  color: $dark-text-color;
 }
 
 // Border overrides for dark theme
 .border-light, .border-gray {
-  border-color: $dark-border-color !important;
+  border-color: $dark-border-color;
 } 

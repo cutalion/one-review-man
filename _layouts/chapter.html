@@ -2,71 +2,10 @@
 layout: default
 ---
 
-<article class="chapter">
-  <div class="chapter-content">
-    {{ content }}
-  </div>
-
-  <!-- <nav class="chapter-navigation">
+<article>
+  {{ content }}
+  
+  <nav>
     {% include chapter_nav.html %}
-  </nav> -->
+  </nav>
 </article>
-
-<style>
-.chapter-header {
-  border-bottom: 2px solid #e1e5e9;
-  padding-bottom: 1rem;
-  margin-bottom: 2rem;
-}
-
-.chapter-title {
-  color: #2c3e50;
-  margin-bottom: 0.5rem;
-}
-
-.chapter-meta {
-  display: flex;
-  gap: 1rem;
-  color: #7f8c8d;
-  font-size: 0.9rem;
-}
-
-.chapter-summary {
-  margin-top: 1rem;
-  padding: 1rem;
-  background-color: #f8f9fa;
-  border-left: 4px solid #3498db;
-}
-
-.chapter-characters {
-  margin-bottom: 2rem;
-  padding: 1rem;
-  background-color: #f1f2f6;
-  border-radius: 8px;
-}
-
-.character-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
-}
-
-.chapter-content {
-  line-height: 1.6;
-  font-size: 1.1rem;
-}
-
-.new-characters {
-  margin-top: 2rem;
-  padding: 1rem;
-  background-color: #e8f5e8;
-  border-radius: 8px;
-}
-
-.chapter-navigation {
-  margin-top: 3rem;
-  padding-top: 2rem;
-  border-top: 1px solid #e1e5e9;
-}
-</style> 
