@@ -185,18 +185,6 @@ hr.dots:before {
   letter-spacing: 1rem;
 }
 
-code, pre {
-  background-color: $dark-code-background;
-  color: $dark-text-color;
-  padding: 0.2rem 0.4rem;
-  border-radius: 3px;
-}
-
-pre {
-  padding: 1rem;
-  overflow-x: auto;
-}
-
 ul, ol {
   margin-left: 2rem;
   margin-bottom: 1rem;
@@ -557,8 +545,19 @@ pre, code {
   color: $dark-text-color;
 }
 
-.highlighter-rouge .highlight {
-  background-color: $dark-code-background;
+pre {
+  padding: 1rem;
+  overflow-x: auto;
+}
+
+.highlighter-rouge {
+  border-radius: 0;
+  border: 1px solid darken($dark-link-color, 20%);
+  margin: 1rem 0;
+
+  .highlight {
+    background-color: $dark-code-background;
+  }
 }
 
 // Card backgrounds for custom elements

@@ -12,7 +12,7 @@ nav_order: 1
 {% for chapter in chapters %}
 <article class="chapter-listing-card">
 <header>
-<h2><a href="{{ chapter.url }}">Chapter {{ chapter.chapter_number }}: {{ chapter.title }}</a></h2>
+<h2><a href="{{ chapter.url }}">{{ chapter.title }}</a></h2>
 {% if chapter.generated_date %}
 <time datetime="{{ chapter.generated_date | date: '%Y-%m-%d' }}">{{ chapter.generated_date | date: "%m/%d/%Y" }}</time>
 {% endif %}
