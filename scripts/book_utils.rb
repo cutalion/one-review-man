@@ -13,15 +13,22 @@ module BookUtils
     file_path = File.join(DATA_DIR, 'book_metadata.yml')
     data = load_yaml_file(file_path)
 
-    if lang && data[lang]
-      # Language-specific data
-      data[lang]
+    if lang && data['localized'] && data['localized'][lang]
+      # Return merged structure: shared data + localized content
+      shared_data = data.reject { |k| k == 'localized' }
+      localized_data = data['localized'][lang]
+      shared_data.merge('localized_content' => localized_data)
+    elsif lang.nil? && data['localized'] && data['localized']['en']
+      # Default to English for generation scripts - merge shared + English
+      shared_data = data.reject { |k| k == 'localized' }
+      localized_data = data['localized']['en']
+      shared_data.merge('localized_content' => localized_data)
     elsif lang.nil? && data['en']
-      # Default to English for generation scripts
+      # Legacy single-language format with 'en' key
       data['en']
     elsif lang.nil?
-      # Legacy single-language format
-      data
+      # Legacy single-language format or new format without localized content
+      data.key?('localized') ? data.reject { |k| k == 'localized' } : data
     else
       # Language not found, return empty structure
       {
@@ -68,9 +75,34 @@ module BookUtils
     file_path = File.join(DATA_DIR, 'book_metadata.yml')
 
     existing_data = load_yaml_file(file_path) || {}
-    if lang
-      # Save to language-specific section
+    
+    if lang && existing_data.key?('localized')
+      # New structure: update localized content for specific language
+      if data['localized_content']
+        existing_data['localized'][lang] = data['localized_content']
+        # Update shared data (remove localized_content key)
+        shared_data = data.reject { |k| k == 'localized_content' }
+        existing_data.merge!(shared_data)
+      else
+        # Legacy format being saved to new structure
+        existing_data['localized'] ||= {}
+        existing_data['localized'][lang] = data
+      end
+    elsif lang
+      # Legacy format: save to language-specific section
       existing_data[lang] = data
+    elsif existing_data.key?('localized')
+      # New structure: update for English (default)
+      if data['localized_content']
+        existing_data['localized']['en'] = data['localized_content']
+        # Update shared data (remove localized_content key)
+        shared_data = data.reject { |k| k == 'localized_content' }
+        existing_data.merge!(shared_data)
+      else
+        # Legacy format being saved to new structure
+        existing_data['localized'] ||= {}
+        existing_data['localized']['en'] = data
+      end
     else
       # For generation scripts, assume English and maintain language structure
       existing_data['en'] = data

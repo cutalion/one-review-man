@@ -215,68 +215,55 @@ class BookReset
 
   def reset_book_metadata_yml
     initial_data = {
-      'en' => {
-        'book' => {
+      # Shared technical metadata (language-independent)
+      'book' => {
+        'target_chapters' => 50,
+        'current_chapter' => 0
+      },
+      'generation' => {
+        'model' => 'gpt-4.1',
+        'chapter_length_target' => '1500-3000 words',
+        'complexity_level' => 'medium',
+        'character_consistency' => true
+      },
+      'status' => {
+        'last_generated' => nil,
+        'generation_count' => 0,
+        'characters_created' => 0,
+        'active_storylines' => [],
+        'chapters_written' => 0
+      },
+      # Language-specific content only
+      'localized' => {
+        'en' => {
           'title' => 'One Review Man',
           'subtitle' => 'An AI-Generated Comedy of Errors',
           'author' => 'AI Collective',
           'genre' => 'Humor/Comedy',
-          'target_chapters' => 50,
-          'current_chapter' => 0
-        },
-        'generation' => {
-          'model' => 'gpt-4.1',
-          'chapter_length_target' => '1500-3000 words',
           'humor_style' => 'absurdist',
-          'complexity_level' => 'medium',
-          'character_consistency' => true
+          'themes' => {
+            'primary' => 'workplace comedy',
+            'secondary' => [
+              'mistaken identity',
+              'bureaucratic absurdity',
+              'everyday situations gone wrong'
+            ]
+          }
         },
-        'themes' => {
-          'primary' => 'workplace comedy',
-          'secondary' => [
-            'mistaken identity',
-            'bureaucratic absurdity',
-            'everyday situations gone wrong'
-          ]
-        },
-        'status' => {
-          'last_generated' => nil,
-          'generation_count' => 0,
-          'characters_created' => 0,
-          'active_storylines' => [],
-          'chapters_written' => 0
-        }
-      },
-      'ru' => {
-        'book' => {
+        'ru' => {
           'title' => 'Ванревьюмэн',
           'subtitle' => 'ИИ-генерируемая Комедия Ошибок',
           'author' => 'ИИ Коллектив',
           'genre' => 'Юмор/Комедия',
-          'target_chapters' => 50,
-          'current_chapter' => 0
-        },
-        'generation' => {
-          'model' => 'gpt-4.1',
-          'chapter_length_target' => '1500-3000 слов',
           'humor_style' => 'абсурдистский',
-          'complexity_level' => 'средний',
-          'character_consistency' => true
-        },
-        'themes' => {
-          'primary' => 'рабочая комедия',
-          'secondary' => [
-            'ошибочная идентичность',
-            'бюрократический абсурд',
-            'обычные ситуации, которые идут не так'
-          ]
-        },
-        'status' => {
-          'last_generated' => nil,
-          'generation_count' => 0,
-          'characters_created' => 0,
-          'active_storylines' => [],
-          'chapters_written' => 0
+          'themes' => {
+            'primary' => 'рабочая комедия',
+            'secondary' => [
+              'ошибочная идентичность',
+              'бюрократический абсурд',
+              'обычные ситуации, которые идут не так'
+            ]
+          }
         }
       }
     }

@@ -23,24 +23,40 @@ ru:
 ```
 
 ### `_data/book_metadata.yml`
-Language-structured book metadata:
+Shared technical metadata with language-specific content:
 ```yaml
 ---
-en:
-  book:
+# Shared technical metadata (language-independent)
+book:
+  target_chapters: 50
+  current_chapter: 0
+generation:
+  model: 'gpt-4.1'
+  chapter_length_target: '1500-3000 words'
+  complexity_level: 'medium'
+  character_consistency: true
+status:
+  last_generated: null
+  generation_count: 0
+  characters_created: 0
+  active_storylines: []
+  chapters_written: 0
+
+# Language-specific content only
+localized:
+  en:
     title: "One Review Man"
-    # ... other metadata
-  generation:
-    # ... generation settings
-  themes:
-    # ... theme data
-  status:
-    # ... status tracking
-ru:
-  book:
+    subtitle: "An AI-Generated Comedy of Errors"
+    author: "AI Collective"
+    genre: "Humor/Comedy"
+    humor_style: "absurdist"
+    themes:
+      primary: "workplace comedy"
+      secondary: ["mistaken identity", "bureaucratic absurdity"]
+  ru:
     title: "Ванревьюмэн"
-    # ... translated metadata
-  # ... other sections
+    subtitle: "ИИ-генерируемая Комедия Ошибок"
+    # ... other translated content
 ```
 
 ### `_data/strings.yml`
@@ -59,20 +75,22 @@ ru:
 
 ### Generation Scripts (English content)
 ```ruby
-# These work with English by default
+# These work with English by default - returns merged shared + localized data
 characters = load_characters()    # Gets en.characters
-book_data = load_book_data()      # Gets en section
+book_data = load_book_data()      # Gets shared data + en localized content
 save_characters(data)             # Saves to en.characters
-save_book_data(data)              # Saves to en section
+save_book_data(data)              # Saves shared data + en localized content
 ```
 
 ### Translation Scripts (Multi-language)
 ```ruby
-# These work with specific languages
+# These work with specific languages - returns merged shared + localized data
 source_chars = load_characters('en')        # Gets en.characters
 target_chars = load_characters('ru')        # Gets ru.characters
+book_data_en = load_book_data('en')         # Gets shared + en localized
+book_data_ru = load_book_data('ru')         # Gets shared + ru localized
 save_characters(data, 'ru')                 # Saves to ru.characters
-save_book_data(data, 'ru')                  # Saves to ru section
+save_book_data(data, 'ru')                  # Saves to ru localized section
 ```
 
 ## Development Tools
