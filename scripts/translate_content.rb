@@ -1,17 +1,18 @@
-# !/usr/bin/env ruby
+#!/usr/bin/env ruby
 # frozen_string_literal: true
 
 require 'yaml'
 require 'date'
+require 'slop'
 require_relative 'book_utils'
 require_relative 'llm_service'
 
 class ContentTranslator
   include BookUtils
 
-  def initialize
+  def initialize(model_override = nil)
     @source_lang = 'en' # Always translate FROM English
-    @llm_service = LLMService.new
+    @llm_service = LLMService.new('scripts/llm_config.yml', model_override)
   end
 
   def translate_chapter(chapter_number, target_lang)
@@ -601,31 +602,93 @@ end
 
 # Command line interface
 if __FILE__ == $PROGRAM_NAME
-  translator = ContentTranslator.new
+  # Parse options
+  begin
+    result = Slop.parse(ARGV) do |o|
+      o.banner = "AI-Powered Translation Tool for One Review Man\n\nUsage: #{File.basename($0)} [command] [arguments] [options]"
+      o.separator ''
+      o.separator 'Commands:'
+      o.separator '  chapter NUM LANG      Translate specific chapter with AI'
+      o.separator '  character SLUG LANG   Translate specific character with AI'
+      o.separator '  all-characters LANG   Translate all characters with AI'
+      o.separator '  all-content LANG      Translate all content with AI'
+      o.separator '  sync NUM LANG         Sync chapter metadata'
+      o.separator '  status LANG           Show translation status'
+      o.separator ''
+      o.separator 'Options:'
 
-  case ARGV[0]
+      o.string '-m', '--model', 'Override model (gpt-4o, o3, gpt-4o-mini)', default: nil
+      o.bool '-h', '--help', 'Show this help' do
+        puts o
+        exit
+      end
+
+      o.separator ''
+      o.separator 'Examples:'
+      o.separator "  #{File.basename($0)} chapter 1 ru -m gpt-4o"
+      o.separator "  #{File.basename($0)} character one_review_man ru"
+      o.separator "  #{File.basename($0)} all-characters ru --model o3"
+      o.separator "  #{File.basename($0)} all-content ru"
+      o.separator "  #{File.basename($0)} status ru"
+      o.separator ''
+      o.separator 'Supported languages: ru (Russian), es (Spanish), fr (French), de (German)'
+    end
+
+    opts = result
+    remaining_args = result.args
+  rescue Slop::Error => e
+    puts "❌ Error: #{e.message}"
+    puts "Try: #{File.basename($0)} --help"
+    exit 1
+  end
+
+  # Show help if no command provided
+  if remaining_args.empty?
+    puts opts
+    exit 0
+  end
+
+  # Show model override feedback
+  puts "🔧 Using model override: #{opts[:model]}" if opts[:model]
+
+  # Get command and arguments
+  command = remaining_args.shift
+
+  # Initialize translator
+  translator = ContentTranslator.new(opts[:model])
+
+  # Execute command
+  case command
   when 'chapter'
-    if ARGV[1] && ARGV[2]
-      chapter_num = ARGV[1].to_i
-      target_lang = ARGV[2]
+    chapter_num = remaining_args.shift&.to_i
+    target_lang = remaining_args.shift
+
+    if chapter_num&.positive? && target_lang
       translator.translate_chapter_with_ai(chapter_num, target_lang)
     else
-      puts 'Usage: ruby translate_content.rb chapter <chapter_number> <target_language>'
+      puts '❌ Error: Chapter number and target language required'
+      puts "Usage: #{File.basename($0)} chapter <chapter_number> <target_language>"
+      puts "Example: #{File.basename($0)} chapter 1 ru"
+      exit 1
     end
 
   when 'character'
-    if ARGV[1] && ARGV[2]
-      character_slug = ARGV[1]
-      target_lang = ARGV[2]
+    character_slug = remaining_args.shift
+    target_lang = remaining_args.shift
+
+    if character_slug && target_lang
       translator.translate_character_with_ai(character_slug, target_lang)
     else
-      puts 'Usage: ruby translate_content.rb character <character_slug> <target_language>'
+      puts '❌ Error: Character slug and target language required'
+      puts "Usage: #{File.basename($0)} character <character_slug> <target_language>"
+      puts "Example: #{File.basename($0)} character one_review_man ru"
+      exit 1
     end
 
   when 'all-characters'
-    if ARGV[1]
-      target_lang = ARGV[1]
+    target_lang = remaining_args.shift
 
+    if target_lang
       # Translate all characters with AI (only English originals, not already translated files)
       puts "🌍 Translating all characters to #{target_lang.upcase} with AI..."
       success_count = 0
@@ -653,50 +716,52 @@ if __FILE__ == $PROGRAM_NAME
       puts "❌ Failed: #{total_count - success_count}/#{total_count}"
       puts "⏭️  Skipped (already exists): #{skipped_count}"
     else
-      puts 'Usage: ruby translate_content.rb all-characters <target_language>'
+      puts '❌ Error: Target language required'
+      puts "Usage: #{File.basename($0)} all-characters <target_language>"
+      puts "Example: #{File.basename($0)} all-characters ru"
+      exit 1
     end
 
   when 'all-content'
-    if ARGV[1]
-      target_lang = ARGV[1]
+    target_lang = remaining_args.shift
+
+    if target_lang
       translator.translate_all_content(target_lang)
     else
-      puts 'Usage: ruby translate_content.rb all-content <target_language>'
+      puts '❌ Error: Target language required'
+      puts "Usage: #{File.basename($0)} all-content <target_language>"
+      puts "Example: #{File.basename($0)} all-content ru"
+      exit 1
     end
 
   when 'sync'
-    if ARGV[1] && ARGV[2]
-      chapter_num = ARGV[1].to_i
-      target_lang = ARGV[2]
+    chapter_num = remaining_args.shift&.to_i
+    target_lang = remaining_args.shift
+
+    if chapter_num&.positive? && target_lang
       translator.sync_chapter_metadata(chapter_num, target_lang)
     else
-      puts 'Usage: ruby translate_content.rb sync <chapter_number> <target_language>'
+      puts '❌ Error: Chapter number and target language required'
+      puts "Usage: #{File.basename($0)} sync <chapter_number> <target_language>"
+      puts "Example: #{File.basename($0)} sync 1 ru"
+      exit 1
     end
 
   when 'status'
-    if ARGV[1]
-      target_lang = ARGV[1]
+    target_lang = remaining_args.shift
+
+    if target_lang
       translator.list_translation_status(target_lang)
     else
-      puts 'Usage: ruby translate_content.rb status <target_language>'
+      puts '❌ Error: Target language required'
+      puts "Usage: #{File.basename($0)} status <target_language>"
+      puts "Example: #{File.basename($0)} status ru"
+      exit 1
     end
 
   else
-    puts 'AI-Powered Translation Tool for One Review Man'
-    puts ''
-    puts 'Usage:'
-    puts '  ruby translate_content.rb chapter <number> <lang>     - Translate specific chapter with AI'
-    puts '  ruby translate_content.rb character <slug> <lang>     - Translate specific character with AI'
-    puts '  ruby translate_content.rb all-characters <lang>       - Translate all characters with AI'
-    puts '  ruby translate_content.rb all-content <lang>          - Translate all ready content with AI'
-    puts '  ruby translate_content.rb sync <chapter_num> <lang>   - Sync chapter metadata'
-    puts '  ruby translate_content.rb status <lang>               - Show translation status'
-    puts ''
-    puts 'Examples:'
-    puts '  ruby translate_content.rb chapter 1 ru               - Translate Chapter 1 to Russian'
-    puts '  ruby translate_content.rb character one_review_man ru - Translate One Review Man to Russian'
-    puts '  ruby translate_content.rb all-characters ru           - Translate all characters to Russian'
-    puts '  ruby translate_content.rb all-content ru             - Translate everything to Russian'
-    puts '  ruby translate_content.rb status ru                  - Show Russian translation status'
+    puts "❌ Error: Unknown command '#{command}'"
+    puts "Try: #{File.basename($0)} --help"
+    exit 1
   end
 end

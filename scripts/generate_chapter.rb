@@ -729,13 +729,13 @@ if __FILE__ == $PROGRAM_NAME
 
   # Get command from remaining args
   command = remaining_args.shift
-  
+
   # Show help if no command and no flags provided
   if command.nil? && !opts[:model] && !opts[:auto]
     puts opts
     exit 0
   end
-  
+
   # Default to generate if no command but flags were provided
   command ||= 'generate'
 

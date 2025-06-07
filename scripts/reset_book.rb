@@ -3,6 +3,7 @@
 
 require 'yaml'
 require 'fileutils'
+require 'slop'
 require_relative 'book_utils'
 
 class BookReset
@@ -309,20 +310,67 @@ end
 
 # Command line interface
 if __FILE__ == $PROGRAM_NAME
+  # Parse options
+  begin
+    result = Slop.parse(ARGV) do |o|
+      o.banner = "One Review Man - Book Reset Tool\n\nUsage: #{File.basename($0)} [command] [options]"
+      o.separator ''
+      o.separator 'Commands:'
+      o.separator '  all              Reset everything (interactive)'
+      o.separator '  characters       Reset only characters'
+      o.separator '  chapters         Reset only chapters'
+      o.separator '  data             Reset only _data/*.yml files'
+      o.separator '  site             Clean generated site files'
+      o.separator '  status           Show current book status'
+      o.separator ''
+      o.separator 'Options:'
+
+      o.bool '-f', '--force', 'Skip confirmation prompts', default: false
+      o.bool '-h', '--help', 'Show this help' do
+        puts o
+        exit
+      end
+
+      o.separator ''
+      o.separator 'Examples:'
+      o.separator "  #{File.basename($0)} status"
+      o.separator "  #{File.basename($0)} characters"
+      o.separator "  #{File.basename($0)} all"
+      o.separator "  #{File.basename($0)} all --force"
+      o.separator ''
+      o.separator '⚠️  WARNING: Reset operations delete content permanently!'
+    end
+
+    opts = result
+    remaining_args = result.args
+  rescue Slop::Error => e
+    puts "❌ Error: #{e.message}"
+    puts "Try: #{File.basename($0)} --help"
+    exit 1
+  end
+
+  # Show help if no command provided
+  if remaining_args.empty?
+    puts opts
+    exit 0
+  end
+
+  # Get command
+  command = remaining_args.shift
+
+  # Initialize reset tool
   reset_tool = BookReset.new
 
-  case ARGV[0]
+  # Execute command
+  case command
   when 'all'
-    force = ARGV.include?('--force')
-    reset_tool.reset_all(force: force)
+    reset_tool.reset_all(force: opts[:force])
 
   when 'characters'
-    force = ARGV.include?('--force')
-    reset_tool.reset_characters(force: force)
+    reset_tool.reset_characters(force: opts[:force])
 
   when 'chapters'
-    force = ARGV.include?('--force')
-    reset_tool.reset_chapters(force: force)
+    reset_tool.reset_chapters(force: opts[:force])
 
   when 'data'
     reset_tool.reset_data_files
@@ -334,23 +382,8 @@ if __FILE__ == $PROGRAM_NAME
     reset_tool.status
 
   else
-    puts 'One Review Man - Book Reset Tool'
-    puts ''
-    puts 'Usage:'
-    puts '  ruby reset_book.rb all              # Reset everything (interactive)'
-    puts '  ruby reset_book.rb all --force      # Reset everything (no prompts)'
-    puts '  ruby reset_book.rb characters       # Reset only characters'
-    puts '  ruby reset_book.rb chapters         # Reset only chapters'
-    puts '  ruby reset_book.rb data             # Reset only _data/*.yml files'
-    puts '  ruby reset_book.rb site             # Clean generated site files'
-    puts '  ruby reset_book.rb status           # Show current book status'
-    puts ''
-    puts 'Examples:'
-    puts '  ruby reset_book.rb status           # Check what content exists'
-    puts '  ruby reset_book.rb characters       # Remove all characters'
-    puts '  ruby reset_book.rb all              # Full reset (with confirmation)'
-    puts '  ruby reset_book.rb all --force      # Full reset (no confirmation)'
-    puts ''
-    puts '⚠️  WARNING: Reset operations delete content permanently!'
+    puts "❌ Error: Unknown command '#{command}'"
+    puts "Try: #{File.basename($0)} --help"
+    exit 1
   end
 end

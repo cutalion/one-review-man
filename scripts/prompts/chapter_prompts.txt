@@ -97,6 +97,7 @@ Format the output as:
 1. Chapter Title (with One-Punch Man style naming when appropriate)
 2. Chapter content in markdown format with proper dialogue attribution
 3. Brief character notes for any new characters introduced
+4. Delimiter between stories inside chapter is tripple dash: ---
 
 ## Character Consistency Prompts
 {CHARACTER_NAME} appears in this chapter. Key traits to maintain:
