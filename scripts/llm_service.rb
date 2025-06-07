@@ -14,12 +14,13 @@ class LLMService
   class APIError < LLMError; end
 
   DEFAULT_MODEL = 'gpt-4o-mini'
-  
+
   # Models that use max_completion_tokens instead of max_tokens
   O3_MODELS = %w[o3-mini o3].freeze
 
-  def initialize(config_file = 'scripts/llm_config.yml')
+  def initialize(config_file = 'scripts/llm_config.yml', model_override = nil)
     @config = load_config(config_file)
+    @model_override = model_override
     @client = setup_client
   end
 
@@ -246,6 +247,7 @@ class LLMService
     raise ConfigurationError, 'No OpenAI client configured' if @client.nil?
 
     model = get_model_for_task(task_type)
+    puts "🔍 Using model: #{model}" if @model_override
 
     messages = []
     messages << { role: 'system', content: options[:system_prompt] } if options[:system_prompt]
@@ -283,6 +285,7 @@ class LLMService
     raise ConfigurationError, 'No OpenAI client configured' if @client.nil?
 
     model = get_model_for_task(task_type)
+    puts "🔍 Using model: #{model}" if @model_override
 
     messages = []
     messages << { role: 'system', content: options[:system_prompt] } if options[:system_prompt]
@@ -316,8 +319,6 @@ class LLMService
       raise LLMError, e.message
     end
   end
-
-
 
   def parse_character_response(response)
     # Handle structured responses (which are already hashes)
@@ -857,6 +858,9 @@ class LLMService
 
   # Get model for specific task type
   def get_model_for_task(task_type)
+    # Override takes precedence over everything
+    return @model_override if @model_override
+
     # Try task-specific model first
     if @config['models'] && @config['models'][task_type]
       @config['models'][task_type]

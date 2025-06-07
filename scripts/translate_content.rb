@@ -140,7 +140,7 @@ class ContentTranslator
     source_characters['characters'].each do |slug, character|
       # Check if translation already exists
       target_file = "_characters/#{slug}.#{target_lang}.md"
-      
+
       if File.exist?(target_file)
         puts "⏭️  Skipping #{character['name']} (#{slug}) - already translated"
         skipped_count += 1
@@ -634,16 +634,16 @@ if __FILE__ == $PROGRAM_NAME
 
       Dir.glob('_characters/*.md').reject { |f| f.include?('.ru.') || f.include?('.en.') }.each do |character_file|
         character_slug = File.basename(character_file, '.md')
-        
+
         # Check if translation already exists
         target_file = "_characters/#{character_slug}.#{target_lang}.md"
-        
+
         if File.exist?(target_file)
           puts "⏭️  Skipping character #{character_slug} - already translated"
           skipped_count += 1
           next
         end
-        
+
         total_count += 1
         success_count += 1 if translator.translate_character_with_ai(character_slug, target_lang)
       end

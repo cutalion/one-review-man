@@ -1,8 +1,6 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-require 'set'
-
 module PromptUtils
   class UnfilledPlaceholdersError < StandardError
     attr_reader :unfilled_placeholders
@@ -31,34 +29,30 @@ module PromptUtils
 
     # Find all placeholders in the template
     template_placeholders = extract_placeholders(template)
-    
+
     # Track which placeholders were used
     used_placeholders = Set.new
-    
+
     # Replace placeholders
     result = template.dup
     template_placeholders.each do |placeholder|
-      if normalized_placeholders.key?(placeholder)
-        value = normalized_placeholders[placeholder]
-        # Convert nil values to empty string to avoid leaving placeholder
-        replacement_value = value.nil? ? '' : value.to_s
-        result.gsub!("{#{placeholder}}", replacement_value)
-        used_placeholders.add(placeholder)
-      end
+      next unless normalized_placeholders.key?(placeholder)
+
+      value = normalized_placeholders[placeholder]
+      # Convert nil values to empty string to avoid leaving placeholder
+      replacement_value = value.nil? ? '' : value.to_s
+      result.gsub!("{#{placeholder}}", replacement_value)
+      used_placeholders.add(placeholder)
     end
 
     # Check for unfilled placeholders
     remaining_placeholders = extract_placeholders(result)
-    if remaining_placeholders.any?
-      raise UnfilledPlaceholdersError, remaining_placeholders
-    end
+    raise UnfilledPlaceholdersError, remaining_placeholders if remaining_placeholders.any?
 
     # Warn about unused placeholders
     if warn_unused
       unused_placeholders = normalized_placeholders.keys - used_placeholders.to_a
-      if unused_placeholders.any?
-        puts "⚠️  Warning: Unused placeholders provided: #{unused_placeholders.join(', ')}"
-      end
+      puts "⚠️  Warning: Unused placeholders provided: #{unused_placeholders.join(', ')}" if unused_placeholders.any?
     end
 
     result
@@ -78,7 +72,7 @@ module PromptUtils
   def self.validate_placeholders(template, placeholders)
     template_placeholders = extract_placeholders(template)
     provided_placeholders = placeholders.keys.map(&:to_s)
-    
+
     template_placeholders - provided_placeholders
   end
 
@@ -91,8 +85,8 @@ module PromptUtils
   # @raise [StandardError] If template file doesn't exist
   def self.build_prompt_from_file(template_file, placeholders, warn_unused: true)
     raise "Template file not found: #{template_file}" unless File.exist?(template_file)
-    
+
     template = File.read(template_file)
     build_prompt(template, placeholders, warn_unused: warn_unused)
   end
-end 
+end

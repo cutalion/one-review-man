@@ -30,6 +30,9 @@ end
 # LLM API integration
 gem 'ruby-openai', '~> 7.0'
 
+# CLI argument parsing
+gem 'slop', '~> 4.9'
+
 # Windows and JRuby does not include zoneinfo files, so bundle the tzinfo-data gem
 # and associated library.
 platforms :mingw, :x64_mingw, :mswin, :jruby do

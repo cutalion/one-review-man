@@ -4,6 +4,7 @@
 require 'yaml'
 require 'date'
 require 'fileutils'
+require 'slop'
 require_relative 'book_utils'
 require_relative 'llm_service'
 require_relative 'prompt_utils'
@@ -11,12 +12,12 @@ require_relative 'prompt_utils'
 class ChapterGenerator
   include BookUtils
 
-  def initialize
+  def initialize(model_override = nil)
     # Always generate in English
     @book_data = load_book_data
     @characters = load_characters
     @generation_log = load_generation_log
-    @llm_service = LLMService.new
+    @llm_service = LLMService.new('scripts/llm_config.yml', model_override)
   end
 
   def generate_next_chapter(auto_generate: false)
@@ -34,7 +35,7 @@ class ChapterGenerator
       puts 'Prompt built. Ready for AI generation.'
       puts 'Would you like to see the prompt? (y/n)'
 
-      response = gets.chomp.downcase
+      response = $stdin.gets.chomp.downcase
       if %w[y yes].include?(response)
         puts "\n#{'=' * 50}"
         puts prompt
@@ -42,7 +43,7 @@ class ChapterGenerator
       end
 
       puts 'Proceed with AI generation? (y/n)'
-      proceed = gets.chomp.downcase
+      proceed = $stdin.gets.chomp.downcase
       return unless %w[y yes].include?(proceed)
     end
 
@@ -686,51 +687,111 @@ end
 
 # Main execution
 if __FILE__ == $PROGRAM_NAME
-  generator = ChapterGenerator.new
+  # Parse options
+  begin
+    result = Slop.parse(ARGV) do |o|
+      o.banner = "One Review Man - Chapter Generator\n\nUsage: #{File.basename($0)} [command] [options]"
+      o.separator ''
+      o.separator 'Commands:'
+      o.separator '  generate, next, g     Generate next chapter (default)'
+      o.separator '  improve NUM [TYPE]    Improve existing chapter'
+      o.separator '  regenerate NUM        Regenerate chapter with AI'
+      o.separator '  prompt NUM            Show prompt for chapter'
+      o.separator ''
+      o.separator 'Options:'
 
-  case ARGV[0]
-  when 'next', 'generate', nil
-    auto_generate = ARGV.include?('--auto')
-    generator.generate_next_chapter(auto_generate: auto_generate)
+      o.string '-m', '--model', 'Override model (gpt-4o, o3, gpt-4o-mini)', default: nil
+      o.bool '-a', '--auto', 'Generate without prompts', default: false
+      o.bool '-h', '--help', 'Show this help' do
+        puts o
+        exit
+      end
+
+      o.separator ''
+      o.separator 'Examples:'
+      o.separator "  #{File.basename($0)} generate -m gpt-4o -a"
+      o.separator "  #{File.basename($0)} improve 5 humor --model o3"
+      o.separator "  #{File.basename($0)} regenerate 3 -m gpt-4o"
+      o.separator ''
+      o.separator 'Improvement types: humor, clarity, consistency'
+    end
+
+    opts = result
+    remaining_args = result.args
+  rescue Slop::Error => e
+    puts "❌ Error: #{e.message}"
+    puts "Try: #{File.basename($0)} --help"
+    exit 1
+  end
+
+  # Show model override feedback
+  puts "🔧 Using model override: #{opts[:model]}" if opts[:model]
+
+  # Get command from remaining args
+  command = remaining_args.shift
+  
+  # Show help if no command and no flags provided
+  if command.nil? && !opts[:model] && !opts[:auto]
+    puts opts
+    exit 0
+  end
+  
+  # Default to generate if no command but flags were provided
+  command ||= 'generate'
+
+  # Initialize generator
+  generator = ChapterGenerator.new(opts[:model])
+
+  # Execute command
+  case command
+  when 'generate', 'next', 'g'
+    generator.generate_next_chapter(auto_generate: opts[:auto])
 
   when 'improve'
-    chapter_num = ARGV[1]&.to_i
-    improvement_type = ARGV[2] || 'humor'
+    chapter_num = remaining_args.shift&.to_i
+    improvement_type = remaining_args.shift || 'humor'
 
     if chapter_num&.positive?
+      unless %w[humor clarity consistency].include?(improvement_type)
+        puts "❌ Error: Invalid improvement type '#{improvement_type}'"
+        puts 'Valid types: humor, clarity, consistency'
+        exit 1
+      end
       generator.improve_chapter(chapter_num, improvement_type)
     else
-      puts 'Usage: ruby generate_chapter.rb improve <chapter_number> [humor|clarity|consistency]'
+      puts '❌ Error: Chapter number required'
+      puts "Usage: #{File.basename($0)} improve <chapter_number> [type]"
+      puts "Example: #{File.basename($0)} improve 5 humor"
+      exit 1
     end
 
   when 'regenerate'
-    chapter_num = ARGV[1]&.to_i
+    chapter_num = remaining_args.shift&.to_i
 
     if chapter_num&.positive?
       generator.regenerate_chapter(chapter_num)
     else
-      puts 'Usage: ruby generate_chapter.rb regenerate <chapter_number>'
+      puts '❌ Error: Chapter number required'
+      puts "Usage: #{File.basename($0)} regenerate <chapter_number>"
+      puts "Example: #{File.basename($0)} regenerate 5"
+      exit 1
     end
 
   when 'prompt'
-    chapter_num = ARGV[1]&.to_i
+    chapter_num = remaining_args.shift&.to_i
 
     if chapter_num&.positive?
       generator.regenerate_prompt(chapter_num)
     else
-      puts 'Usage: ruby generate_chapter.rb prompt <chapter_number>'
+      puts '❌ Error: Chapter number required'
+      puts "Usage: #{File.basename($0)} prompt <chapter_number>"
+      puts "Example: #{File.basename($0)} prompt 5"
+      exit 1
     end
 
   else
-    puts 'One Review Man - Chapter Generator'
-    puts ''
-    puts 'Usage:'
-    puts '  ruby generate_chapter.rb [next|generate]     # Generate next chapter'
-    puts '  ruby generate_chapter.rb next --auto         # Generate without prompts'
-    puts '  ruby generate_chapter.rb improve <num> [type] # Improve existing chapter'
-    puts '  ruby generate_chapter.rb regenerate <num>    # Regenerate chapter with AI'
-    puts '  ruby generate_chapter.rb prompt <num>        # Show prompt for chapter'
-    puts ''
-    puts 'Improvement types: humor, clarity, consistency'
+    puts "❌ Error: Unknown command '#{command}'"
+    puts "Try: #{File.basename($0)} --help"
+    exit 1
   end
 end
