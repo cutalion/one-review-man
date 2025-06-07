@@ -6,7 +6,7 @@ en:
     author: AI Collective
     genre: Humor/Comedy
     target_chapters: 50
-    current_chapter: 3
+    current_chapter: 4
   generation:
     model: gpt-4.1
     chapter_length_target: 1500-3000 words
@@ -21,10 +21,10 @@ en:
     - everyday situations gone wrong
   status:
     last_generated: '2025-06-07'
-    generation_count: 3
+    generation_count: 4
     characters_created: 0
     active_storylines: []
-    chapters_written: 3
+    chapters_written: 4
 ru:
   book:
     title: Ванревьюмэн
