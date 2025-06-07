@@ -14,6 +14,9 @@ class LLMService
   class APIError < LLMError; end
 
   DEFAULT_MODEL = 'gpt-4o-mini'
+  
+  # Models that use max_completion_tokens instead of max_tokens
+  O3_MODELS = %w[o3-mini o3].freeze
 
   def initialize(config_file = 'scripts/llm_config.yml')
     @config = load_config(config_file)
@@ -52,16 +55,9 @@ class LLMService
 
     puts '✅ Structured chapter generated successfully!'
 
-    # Handle both JSON string and Hash responses (for mocks)
+    # Parse JSON response
     begin
-      chapter_data = if response['content'].is_a?(Hash)
-                       # Mock response is already a hash
-                       response['content']
-                     else
-                       # Real API response is JSON string
-                       JSON.parse(response['content'])
-                     end
-
+      chapter_data = JSON.parse(response['content'])
       validate_chapter_data(chapter_data)
       chapter_data
     rescue JSON::ParserError => e
@@ -90,16 +86,9 @@ class LLMService
 
     puts '✅ Character generated successfully!'
 
-    # Handle both JSON string and Hash responses (for mocks)
+    # Parse JSON response
     begin
-      character_data = if response['content'].is_a?(Hash)
-                         # Mock response is already a hash
-                         response['content']
-                       else
-                         # Real API response is JSON string
-                         JSON.parse(response['content'])
-                       end
-
+      character_data = JSON.parse(response['content'])
       validate_character_data(character_data)
       character_data
     rescue JSON::ParserError => e
@@ -165,14 +154,9 @@ class LLMService
 
     puts '✅ Chapter translation completed!'
 
-    # Handle both JSON string and Hash responses
+    # Parse JSON response
     begin
-      translation_data = if response['content'].is_a?(Hash)
-                           response['content']
-                         else
-                           JSON.parse(response['content'])
-                         end
-
+      translation_data = JSON.parse(response['content'])
       validate_chapter_translation_data(translation_data)
       translation_data
     rescue JSON::ParserError => e
@@ -202,14 +186,9 @@ class LLMService
 
     puts '✅ Character translation completed!'
 
-    # Handle both JSON string and Hash responses
+    # Parse JSON response
     begin
-      translation_data = if response['content'].is_a?(Hash)
-                           response['content']
-                         else
-                           JSON.parse(response['content'])
-                         end
-
+      translation_data = JSON.parse(response['content'])
       validate_character_translation_data(translation_data)
       translation_data
     rescue JSON::ParserError => e
@@ -242,8 +221,9 @@ class LLMService
     base_url = ENV['OPENAI_BASE_URL'] || @config['openai_base_url']
 
     unless api_key
-      puts '⚠️  No OpenAI API key found in environment or config. Using mock responses...'
+      puts '❌ No OpenAI API key found in environment or config.'
       puts "Set OPENAI_API_KEY environment variable or add 'openai_api_key' to config file"
+      puts 'API key is required for content generation.'
       return nil
     end
 
@@ -263,10 +243,7 @@ class LLMService
   end
 
   def call_llm(prompt, options = {}, task_type = 'generation')
-    if @client.nil?
-      puts '⚠️  No OpenAI client configured. Using mock response for development...'
-      return mock_response(prompt)
-    end
+    raise ConfigurationError, 'No OpenAI client configured' if @client.nil?
 
     model = get_model_for_task(task_type)
 
@@ -276,34 +253,34 @@ class LLMService
 
     parameters = {
       model: model,
-      messages: messages,
-      max_tokens: options[:max_tokens] || 2000,
-      temperature: options[:temperature] || 0.7
+      messages: messages
     }
+
+    # Use appropriate token limit parameter based on model
+    token_limit = options[:max_tokens] || 2000
+    if O3_MODELS.include?(model)
+      parameters[:max_completion_tokens] = token_limit
+      # o3 models only support temperature = 1 (default)
+    else
+      parameters[:max_tokens] = token_limit
+      parameters[:temperature] = options[:temperature] || 0.7
+    end
 
     begin
       response = @client.chat(parameters: parameters)
-
       content = response.dig('choices', 0, 'message', 'content')
       { 'content' => content }
     rescue Faraday::Error => e
-      puts e.backtrace.join("\n")
       puts "❌ API Error: #{e.message}"
-      puts 'Returning mock response for development...'
-      mock_response(prompt)
+      raise APIError, "the server responded with status #{e.response[:status] if e.response}"
     rescue StandardError => e
-      puts e.backtrace.join("\n")
       puts "❌ Unexpected Error: #{e.message}"
-      puts 'Returning mock response for development...'
-      mock_response(prompt)
+      raise LLMError, e.message
     end
   end
 
   def call_llm_structured(prompt, options = {}, task_type = 'generation')
-    if @client.nil?
-      puts '⚠️  No OpenAI client configured. Using mock response for development...'
-      return mock_response(prompt)
-    end
+    raise ConfigurationError, 'No OpenAI client configured' if @client.nil?
 
     model = get_model_for_task(task_type)
 
@@ -314,91 +291,36 @@ class LLMService
     parameters = {
       model: model,
       messages: messages,
-      max_tokens: options[:max_tokens] || 2000,
-      temperature: options[:temperature] || 0.7,
       response_format: options[:response_format]
     }
 
+    # Use appropriate token limit parameter based on model
+    token_limit = options[:max_tokens] || 2000
+    if O3_MODELS.include?(model)
+      parameters[:max_completion_tokens] = token_limit
+      # o3 models only support temperature = 1 (default)
+    else
+      parameters[:max_tokens] = token_limit
+      parameters[:temperature] = options[:temperature] || 0.7
+    end
+
     begin
       response = @client.chat(parameters: parameters)
-
       content = response.dig('choices', 0, 'message', 'content')
       { 'content' => content }
     rescue Faraday::Error => e
-      puts e.backtrace.join("\n")
       puts "❌ API Error: #{e.message}"
-      puts 'Returning mock response for development...'
-      mock_response(prompt)
+      raise APIError, "the server responded with status #{e.response[:status] if e.response}"
     rescue StandardError => e
-      puts e.backtrace.join("\n")
       puts "❌ Unexpected Error: #{e.message}"
-      puts 'Returning mock response for development...'
-      mock_response(prompt)
+      raise LLMError, e.message
     end
   end
 
-  def mock_response(prompt)
-    puts '🎭 Using mock response (OpenAI not configured)'
 
-    if prompt.include?('Chapter') || prompt.include?('chapter')
-      {
-        'content' => generate_mock_chapter
-      }
-    elsif prompt.include?('character') || prompt.include?('Character')
-      {
-        'content' => generate_mock_character
-      }
-    else
-      {
-        'content' => "This is a mock response to your request: #{prompt[0..100]}..."
-      }
-    end
-  end
-
-  def generate_mock_chapter
-    <<~CHAPTER
-      # The Great Code Review Catastrophe
-
-      One Review Man sat at his desk, fingers hovering over the keyboard like a pianist about to perform his masterpiece. Another pull request had been submitted to the company's critical payment processing system, and panic was spreading through the engineering floor like a poorly written recursive function.
-
-      "This is impossible!" shouted the Senior Developer, frantically scrolling through 2,847 lines of spaghetti code. "The deadline is in two hours, and this code looks like it was written by a caffeinated intern during a hackathon!"
-
-      The AI-Enhanced Disciple rolled up to One Review Man's desk, his neural interface flickering with anxiety. "Master, the production deployment is scheduled in 120 minutes. Even you couldn't review this disaster in time!"
-
-      One Review Man cracked his knuckles—a sound that sent shivers down the spines of junior developers within a 20-foot radius. "Stand back," he said simply.
-
-      His eyes began to glow with the ethereal light of perfect code comprehension. In exactly 3.7 seconds, he had:
-      - Identified 47 critical bugs
-      - Spotted 12 security vulnerabilities#{'  '}
-      - Found 23 performance bottlenecks
-      - Detected 156 code style violations
-      - Discovered that the entire authentication system was backwards
-
-      "APPROVED AND MERGED," he announced, having simultaneously fixed every issue with a single, transcendent commit.
-
-      The office fell silent. Even the coffee machine stopped brewing.
-
-      "But Master," whispered the AI-Enhanced Disciple, "how did you know the authentication bug was there? It was hidden behind three layers of abstraction!"
-
-      One Review Man turned slowly, his expression as blank as a freshly formatted hard drive. "When you write 100 pull requests, 100 code reviews, and run 10 kilometers of test suites every single day for three years... you become able to debug anything with just one glance."
-
-      Thunder rumbled in the distance—or maybe it was just the sound of their AWS bill doubling.
-    CHAPTER
-  end
-
-  def generate_mock_character
-    {
-      'name' => 'The Framework Fanatic',
-      'description' => 'A developer obsessed with using the latest JavaScript framework for everything, including microwave programming.',
-      'personality_traits' => ['Overly enthusiastic', 'Buzzword-heavy', 'Framework evangelist'],
-      'catchphrase' => "Have you heard about the new framework that just dropped? It's going to revolutionize everything!",
-      'backstory' => 'Former jQuery developer who discovered React and never looked back. Currently advocating for rewriting the coffee machine interface in Vue.js.',
-      'quirks' => 'Speaks only in npm package names when stressed.'
-    }
-  end
 
   def parse_character_response(response)
-    # Handle mock responses (which are already hashes)
+    # Handle structured responses (which are already hashes)
     return response if response.is_a?(Hash)
 
     # Try to extract structured character data from string response
@@ -685,7 +607,7 @@ class LLMService
   end
 
   def parse_chapter_content(content)
-    # Handle mock responses (which are already hashes)
+    # Handle structured responses (which are already hashes)
     return content if content.is_a?(Hash)
 
     # Try to extract structured chapter data from string response

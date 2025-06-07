@@ -24,7 +24,7 @@ model: gpt-4.1-mini
 # You can specify different models for different types of tasks
 models:
   # Content generation (chapters, characters, improvements)
-  generation: gpt-4.5-preview              # Higher quality for creative writing
+  generation: o3              # Higher quality for creative writing
   
   # Translation tasks
   translation: gpt-4.1        # Fast and cost-effective for translation
