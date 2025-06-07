@@ -28,7 +28,7 @@ class BookReset
       puts ''
       print "Are you absolutely sure? Type 'RESET' to confirm: "
 
-      confirmation = gets.chomp
+      confirmation = $stdin.gets.chomp
       unless confirmation == 'RESET'
         puts '❌ Reset cancelled.'
         return false
