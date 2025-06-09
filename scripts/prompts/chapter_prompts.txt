@@ -34,7 +34,7 @@ TRANSLATION NOTES:
 Context:
 - Setting: Modern tech company/startup environment
 - Style: Absurdist programming humor with One-Punch Man references
-- Length: {TARGET_LENGTH} words
+- Length: {TARGET_LENGTH}
 - Previous chapters: {PREVIOUS_CHAPTERS_SUMMARY}
 
 {CHARACTER_CONTEXT}
