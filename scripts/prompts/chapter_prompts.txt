@@ -8,7 +8,8 @@ Generate Chapter {CHAPTER_NUMBER}
 
 CORE CONCEPT:
 - One Review Man (real name: {ONE_REVIEW_MAN_REAL_NAME}) is a super-programmer who writes perfect code
-- All his pull requests are accepted and merged without comments on the first review
+- All his pull requests are instantly approved and merged by reviewers without any requested changes
+- He never merges his own PRs (follows professional practice), but his code is so perfect that reviewers approve and merge immediately
 - Like Saitama in One-Punch Man, he's become bored with his overwhelming ability
 - Almost nobody takes him seriously or believes in his abilities (just like in One-Punch Man)
 - Colleagues often dismiss his achievements as luck, timing, or trivial problems
@@ -79,6 +80,14 @@ Chapter Requirements:
 - End with setup for next programming comedy scenario
 - Demonstrate the gap between One Review Man's actual abilities and others' perceptions
 
+PULL REQUEST WORKFLOW (CRITICAL - AVOID MISTAKES):
+- One Review Man creates PRs with perfect code
+- OTHER team members review his PRs (not him)
+- OTHER team members approve and merge his PRs (he never merges his own)
+- The comedy is that his PRs are so perfect they get instant approval
+- He follows professional practices: no self-merging, proper code review process
+- Example: "His PR was reviewed by Sarah and merged within minutes" NOT "He merged his perfect PR"
+
 Programming Comedy Elements to Include:
 - Code review disasters (except for One Review Man's perfect code)
 - Debugging nightmares
@@ -121,7 +130,8 @@ If introducing new characters in this chapter, ensure they:
 Avoid these recently used plot devices: {USED_PLOT_DEVICES}
 
 Consider incorporating:
-- Code review scenarios (always perfect for One Review Man)
+- Code review scenarios where One Review Man's PRs get instant approval (reviewers can't find any issues)
+- Scenes showing other developers struggling with reviews while One Review Man's code sails through
 - Deployment disasters that only One Review Man can fix
 - New framework/technology that confuses everyone except One Review Man
 - Pair programming sessions where One Review Man intimidates colleagues
