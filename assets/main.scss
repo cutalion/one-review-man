@@ -152,37 +152,9 @@ hr:before {
   font-size: 1.2rem;
 }
 
-// Alternative separator styles
-hr.stars {
-  background: none;
-  text-align: center;
-  border: none;
-  margin: 3rem 0;
-}
-
-hr.stars:before {
-  content: "⋆ ⋆ ⋆";
-  background-color: $dark-background-color;
-  color: $dark-link-color;
-  padding: 0 1rem;
-  font-size: 1rem;
-  letter-spacing: 0.5rem;
-}
-
-hr.dots {
-  background: none;
-  text-align: center;
-  border: none;
-  margin: 2rem 0;
-}
-
-hr.dots:before {
-  content: "• • •";
-  background-color: $dark-background-color;
-  color: $dark-border-color;
-  padding: 0 1rem;
-  font-size: 1.5rem;
-  letter-spacing: 1rem;
+// hide last hr in the chapter
+article hr:has(+ nav) {
+  display: none;
 }
 
 ul, ol {
