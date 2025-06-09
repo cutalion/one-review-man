@@ -221,7 +221,6 @@ class BookReset
         'current_chapter' => 0
       },
       'generation' => {
-        'model' => 'gpt-4.1',
         'chapter_length_target' => '1500-3000 words',
         'complexity_level' => 'medium',
         'character_consistency' => true
@@ -300,7 +299,7 @@ if __FILE__ == $PROGRAM_NAME
   # Parse options
   begin
     result = Slop.parse(ARGV) do |o|
-      o.banner = "One Review Man - Book Reset Tool\n\nUsage: #{File.basename($0)} [command] [options]"
+      o.banner = "One Review Man - Book Reset Tool\n\nUsage: #{File.basename($PROGRAM_NAME)} [command] [options]"
       o.separator ''
       o.separator 'Commands:'
       o.separator '  all              Reset everything (interactive)'
@@ -320,10 +319,10 @@ if __FILE__ == $PROGRAM_NAME
 
       o.separator ''
       o.separator 'Examples:'
-      o.separator "  #{File.basename($0)} status"
-      o.separator "  #{File.basename($0)} characters"
-      o.separator "  #{File.basename($0)} all"
-      o.separator "  #{File.basename($0)} all --force"
+      o.separator "  #{File.basename($PROGRAM_NAME)} status"
+      o.separator "  #{File.basename($PROGRAM_NAME)} characters"
+      o.separator "  #{File.basename($PROGRAM_NAME)} all"
+      o.separator "  #{File.basename($PROGRAM_NAME)} all --force"
       o.separator ''
       o.separator '⚠️  WARNING: Reset operations delete content permanently!'
     end
@@ -332,7 +331,7 @@ if __FILE__ == $PROGRAM_NAME
     remaining_args = result.args
   rescue Slop::Error => e
     puts "❌ Error: #{e.message}"
-    puts "Try: #{File.basename($0)} --help"
+    puts "Try: #{File.basename($PROGRAM_NAME)} --help"
     exit 1
   end
 
@@ -370,7 +369,7 @@ if __FILE__ == $PROGRAM_NAME
 
   else
     puts "❌ Error: Unknown command '#{command}'"
-    puts "Try: #{File.basename($0)} --help"
+    puts "Try: #{File.basename($PROGRAM_NAME)} --help"
     exit 1
   end
 end

@@ -605,7 +605,7 @@ if __FILE__ == $PROGRAM_NAME
   # Parse options
   begin
     result = Slop.parse(ARGV) do |o|
-      o.banner = "AI-Powered Translation Tool for One Review Man\n\nUsage: #{File.basename($0)} [command] [arguments] [options]"
+      o.banner = "AI-Powered Translation Tool for One Review Man\n\nUsage: #{File.basename($PROGRAM_NAME)} [command] [arguments] [options]"
       o.separator ''
       o.separator 'Commands:'
       o.separator '  chapter NUM LANG      Translate specific chapter with AI'
@@ -625,11 +625,11 @@ if __FILE__ == $PROGRAM_NAME
 
       o.separator ''
       o.separator 'Examples:'
-      o.separator "  #{File.basename($0)} chapter 1 ru -m gpt-4o"
-      o.separator "  #{File.basename($0)} character one_review_man ru"
-      o.separator "  #{File.basename($0)} all-characters ru --model o3"
-      o.separator "  #{File.basename($0)} all-content ru"
-      o.separator "  #{File.basename($0)} status ru"
+      o.separator "  #{File.basename($PROGRAM_NAME)} chapter 1 ru -m gpt-4o"
+      o.separator "  #{File.basename($PROGRAM_NAME)} character one_review_man ru"
+      o.separator "  #{File.basename($PROGRAM_NAME)} all-characters ru --model o3"
+      o.separator "  #{File.basename($PROGRAM_NAME)} all-content ru"
+      o.separator "  #{File.basename($PROGRAM_NAME)} status ru"
       o.separator ''
       o.separator 'Supported languages: ru (Russian), es (Spanish), fr (French), de (German)'
     end
@@ -638,7 +638,7 @@ if __FILE__ == $PROGRAM_NAME
     remaining_args = result.args
   rescue Slop::Error => e
     puts "❌ Error: #{e.message}"
-    puts "Try: #{File.basename($0)} --help"
+    puts "Try: #{File.basename($PROGRAM_NAME)} --help"
     exit 1
   end
 
@@ -667,8 +667,8 @@ if __FILE__ == $PROGRAM_NAME
       translator.translate_chapter_with_ai(chapter_num, target_lang)
     else
       puts '❌ Error: Chapter number and target language required'
-      puts "Usage: #{File.basename($0)} chapter <chapter_number> <target_language>"
-      puts "Example: #{File.basename($0)} chapter 1 ru"
+      puts "Usage: #{File.basename($PROGRAM_NAME)} chapter <chapter_number> <target_language>"
+      puts "Example: #{File.basename($PROGRAM_NAME)} chapter 1 ru"
       exit 1
     end
 
@@ -680,8 +680,8 @@ if __FILE__ == $PROGRAM_NAME
       translator.translate_character_with_ai(character_slug, target_lang)
     else
       puts '❌ Error: Character slug and target language required'
-      puts "Usage: #{File.basename($0)} character <character_slug> <target_language>"
-      puts "Example: #{File.basename($0)} character one_review_man ru"
+      puts "Usage: #{File.basename($PROGRAM_NAME)} character <character_slug> <target_language>"
+      puts "Example: #{File.basename($PROGRAM_NAME)} character one_review_man ru"
       exit 1
     end
 
@@ -717,8 +717,8 @@ if __FILE__ == $PROGRAM_NAME
       puts "⏭️  Skipped (already exists): #{skipped_count}"
     else
       puts '❌ Error: Target language required'
-      puts "Usage: #{File.basename($0)} all-characters <target_language>"
-      puts "Example: #{File.basename($0)} all-characters ru"
+      puts "Usage: #{File.basename($PROGRAM_NAME)} all-characters <target_language>"
+      puts "Example: #{File.basename($PROGRAM_NAME)} all-characters ru"
       exit 1
     end
 
@@ -729,8 +729,8 @@ if __FILE__ == $PROGRAM_NAME
       translator.translate_all_content(target_lang)
     else
       puts '❌ Error: Target language required'
-      puts "Usage: #{File.basename($0)} all-content <target_language>"
-      puts "Example: #{File.basename($0)} all-content ru"
+      puts "Usage: #{File.basename($PROGRAM_NAME)} all-content <target_language>"
+      puts "Example: #{File.basename($PROGRAM_NAME)} all-content ru"
       exit 1
     end
 
@@ -742,8 +742,8 @@ if __FILE__ == $PROGRAM_NAME
       translator.sync_chapter_metadata(chapter_num, target_lang)
     else
       puts '❌ Error: Chapter number and target language required'
-      puts "Usage: #{File.basename($0)} sync <chapter_number> <target_language>"
-      puts "Example: #{File.basename($0)} sync 1 ru"
+      puts "Usage: #{File.basename($PROGRAM_NAME)} sync <chapter_number> <target_language>"
+      puts "Example: #{File.basename($PROGRAM_NAME)} sync 1 ru"
       exit 1
     end
 
@@ -754,14 +754,14 @@ if __FILE__ == $PROGRAM_NAME
       translator.list_translation_status(target_lang)
     else
       puts '❌ Error: Target language required'
-      puts "Usage: #{File.basename($0)} status <target_language>"
-      puts "Example: #{File.basename($0)} status ru"
+      puts "Usage: #{File.basename($PROGRAM_NAME)} status <target_language>"
+      puts "Example: #{File.basename($PROGRAM_NAME)} status ru"
       exit 1
     end
 
   else
     puts "❌ Error: Unknown command '#{command}'"
-    puts "Try: #{File.basename($0)} --help"
+    puts "Try: #{File.basename($PROGRAM_NAME)} --help"
     exit 1
   end
 end

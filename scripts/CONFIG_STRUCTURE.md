@@ -31,7 +31,6 @@ book:
   target_chapters: 50
   current_chapter: 0
 generation:
-  model: 'gpt-4.1'
   chapter_length_target: '1500-3000 words'
   complexity_level: 'medium'
   character_consistency: true

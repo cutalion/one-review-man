@@ -690,7 +690,7 @@ if __FILE__ == $PROGRAM_NAME
   # Parse options
   begin
     result = Slop.parse(ARGV) do |o|
-      o.banner = "One Review Man - Chapter Generator\n\nUsage: #{File.basename($0)} [command] [options]"
+      o.banner = "One Review Man - Chapter Generator\n\nUsage: #{File.basename($PROGRAM_NAME)} [command] [options]"
       o.separator ''
       o.separator 'Commands:'
       o.separator '  generate, next, g     Generate next chapter (default)'
@@ -709,9 +709,9 @@ if __FILE__ == $PROGRAM_NAME
 
       o.separator ''
       o.separator 'Examples:'
-      o.separator "  #{File.basename($0)} generate -m gpt-4o -a"
-      o.separator "  #{File.basename($0)} improve 5 humor --model o3"
-      o.separator "  #{File.basename($0)} regenerate 3 -m gpt-4o"
+      o.separator "  #{File.basename($PROGRAM_NAME)} generate -m gpt-4o -a"
+      o.separator "  #{File.basename($PROGRAM_NAME)} improve 5 humor --model o3"
+      o.separator "  #{File.basename($PROGRAM_NAME)} regenerate 3 -m gpt-4o"
       o.separator ''
       o.separator 'Improvement types: humor, clarity, consistency'
     end
@@ -720,7 +720,7 @@ if __FILE__ == $PROGRAM_NAME
     remaining_args = result.args
   rescue Slop::Error => e
     puts "❌ Error: #{e.message}"
-    puts "Try: #{File.basename($0)} --help"
+    puts "Try: #{File.basename($PROGRAM_NAME)} --help"
     exit 1
   end
 
@@ -760,8 +760,8 @@ if __FILE__ == $PROGRAM_NAME
       generator.improve_chapter(chapter_num, improvement_type)
     else
       puts '❌ Error: Chapter number required'
-      puts "Usage: #{File.basename($0)} improve <chapter_number> [type]"
-      puts "Example: #{File.basename($0)} improve 5 humor"
+      puts "Usage: #{File.basename($PROGRAM_NAME)} improve <chapter_number> [type]"
+      puts "Example: #{File.basename($PROGRAM_NAME)} improve 5 humor"
       exit 1
     end
 
@@ -772,8 +772,8 @@ if __FILE__ == $PROGRAM_NAME
       generator.regenerate_chapter(chapter_num)
     else
       puts '❌ Error: Chapter number required'
-      puts "Usage: #{File.basename($0)} regenerate <chapter_number>"
-      puts "Example: #{File.basename($0)} regenerate 5"
+      puts "Usage: #{File.basename($PROGRAM_NAME)} regenerate <chapter_number>"
+      puts "Example: #{File.basename($PROGRAM_NAME)} regenerate 5"
       exit 1
     end
 
@@ -784,14 +784,14 @@ if __FILE__ == $PROGRAM_NAME
       generator.regenerate_prompt(chapter_num)
     else
       puts '❌ Error: Chapter number required'
-      puts "Usage: #{File.basename($0)} prompt <chapter_number>"
-      puts "Example: #{File.basename($0)} prompt 5"
+      puts "Usage: #{File.basename($PROGRAM_NAME)} prompt <chapter_number>"
+      puts "Example: #{File.basename($PROGRAM_NAME)} prompt 5"
       exit 1
     end
 
   else
     puts "❌ Error: Unknown command '#{command}'"
-    puts "Try: #{File.basename($0)} --help"
+    puts "Try: #{File.basename($PROGRAM_NAME)} --help"
     exit 1
   end
 end

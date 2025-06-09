@@ -75,7 +75,7 @@ module BookUtils
     file_path = File.join(DATA_DIR, 'book_metadata.yml')
 
     existing_data = load_yaml_file(file_path) || {}
-    
+
     if lang && existing_data.key?('localized')
       # New structure: update localized content for specific language
       if data['localized_content']

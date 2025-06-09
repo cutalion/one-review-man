@@ -27,11 +27,15 @@ class LLMService
   def generate_chapter(prompt, options = {})
     puts '🤖 Generating chapter content...'
 
-    response = call_llm(prompt, get_task_options('generation', {
-                                                   max_tokens: 4000,
-                                                   temperature: 0.7,
-                                                   system_prompt: 'You are a creative writer specializing in programming humor and parody. Write engaging, funny content that captures the absurdist spirit of programming culture.'
-                                                 }).merge(options), 'generation')
+    options = get_task_options(
+      'generation',
+      {
+        temperature: 0.7,
+        system_prompt: 'You are a creative writer specializing in programming humor and parody. Write engaging, funny content that captures the absurdist spirit of programming culture.'
+      }
+    ).merge(options)
+
+    response = call_llm(prompt, options, 'generation')
 
     raise APIError, 'Failed to generate chapter content' unless response && response['content']
 
@@ -46,7 +50,6 @@ class LLMService
     enhanced_prompt = build_chapter_prompt_with_schema(prompt)
 
     response = call_llm_structured(enhanced_prompt, get_task_options('generation', {
-                                                                       max_tokens: 4000,
                                                                        temperature: 0.7,
                                                                        system_prompt: 'You are a creative writer specializing in programming humor and parody. Write engaging, funny content that captures the absurdist spirit of programming culture. Respond with valid JSON only.',
                                                                        response_format: { type: 'json_object' }
@@ -77,7 +80,6 @@ class LLMService
 
     # Use structured outputs for reliable character data
     response = call_llm_structured(enhanced_prompt, get_task_options('generation', {
-                                                                       max_tokens: 1500,
                                                                        temperature: 0.8,
                                                                        system_prompt: 'You are a character designer for programming comedy stories. Create memorable, funny characters that fit the tech/programming world. Respond with valid JSON only.',
                                                                        response_format: { type: 'json_object' }
@@ -112,7 +114,6 @@ class LLMService
     prompt = build_improvement_prompt(content, improvement_type)
 
     response = call_llm(prompt, get_task_options('generation', {
-                                                   max_tokens: 3000,
                                                    temperature: 0.6,
                                                    system_prompt: system_prompts[improvement_type] || system_prompts['clarity']
                                                  }).merge(options), 'generation')
@@ -129,7 +130,6 @@ class LLMService
     prompt = context ? "#{context}\n\nUser: #{message}" : message
 
     response = call_llm(prompt, get_task_options('chat', {
-                                                   max_tokens: 2000,
                                                    temperature: 0.7
                                                  }).merge(options), 'chat')
 
@@ -144,12 +144,15 @@ class LLMService
     # Build translation prompt with schema
     prompt = build_chapter_translation_prompt(title, summary, content, target_lang)
 
-    response = call_llm_structured(prompt, get_task_options('translation', {
-                                                              max_tokens: 4000,
-                                                              temperature: 0.3, # Lower temperature for more consistent translation
-                                                              system_prompt: 'You are a professional translator specializing in programming humor and technical content. Translate accurately while preserving the comedy and technical references. Respond with valid JSON only.',
-                                                              response_format: { type: 'json_object' }
-                                                            }), 'translation')
+    options = get_task_options(
+      'translation',
+      {
+        temperature: 0.3,
+        system_prompt: 'You are a professional translator specializing in programming humor and technical content. Translate accurately while preserving the comedy and technical references. Respond with valid JSON only.',
+        response_format: { type: 'json_object' }
+      }
+    )
+    response = call_llm_structured(prompt, options, 'translation')
 
     raise APIError, 'Failed to translate chapter' unless response && response['content']
 
@@ -177,7 +180,6 @@ class LLMService
                                                 backstory, quirks, target_lang)
 
     response = call_llm_structured(prompt, get_task_options('translation', {
-                                                              max_tokens: 2000,
                                                               temperature: 0.3, # Lower temperature for more consistent translation
                                                               system_prompt: 'You are a professional translator specializing in programming humor and character development. Translate character details accurately while preserving personality and humor. Respond with valid JSON only.',
                                                               response_format: { type: 'json_object' }
@@ -222,9 +224,8 @@ class LLMService
     base_url = ENV['OPENAI_BASE_URL'] || @config['openai_base_url']
 
     unless api_key
-      puts '❌ No OpenAI API key found in environment or config.'
+      puts '⚠️  No OpenAI API key found in environment or config. Using mock responses...'
       puts "Set OPENAI_API_KEY environment variable or add 'openai_api_key' to config file"
-      puts 'API key is required for content generation.'
       return nil
     end
 
@@ -247,25 +248,22 @@ class LLMService
     raise ConfigurationError, 'No OpenAI client configured' if @client.nil?
 
     model = get_model_for_task(task_type)
-    puts "🔍 Using model: #{model}" if @model_override
-
     messages = []
     messages << { role: 'system', content: options[:system_prompt] } if options[:system_prompt]
     messages << { role: 'user', content: prompt }
 
     parameters = {
       model: model,
-      messages: messages
+      messages: messages,
+      temperature: options[:temperature] || 0.7
     }
 
-    # Use appropriate token limit parameter based on model
-    token_limit = options[:max_tokens] || 2000
+    # Use appropriate token limit parameter based on model with safety check
+    token_limit = get_safe_max_tokens(task_type, model)
     if O3_MODELS.include?(model)
       parameters[:max_completion_tokens] = token_limit
-      # o3 models only support temperature = 1 (default)
     else
       parameters[:max_tokens] = token_limit
-      parameters[:temperature] = options[:temperature] || 0.7
     end
 
     begin
@@ -285,8 +283,6 @@ class LLMService
     raise ConfigurationError, 'No OpenAI client configured' if @client.nil?
 
     model = get_model_for_task(task_type)
-    puts "🔍 Using model: #{model}" if @model_override
-
     messages = []
     messages << { role: 'system', content: options[:system_prompt] } if options[:system_prompt]
     messages << { role: 'user', content: prompt }
@@ -294,17 +290,16 @@ class LLMService
     parameters = {
       model: model,
       messages: messages,
+      temperature: options[:temperature] || 0.7,
       response_format: options[:response_format]
     }
 
-    # Use appropriate token limit parameter based on model
-    token_limit = options[:max_tokens] || 2000
+    # Use appropriate token limit parameter based on model with safety check
+    token_limit = get_safe_max_tokens(task_type, model)
     if O3_MODELS.include?(model)
       parameters[:max_completion_tokens] = token_limit
-      # o3 models only support temperature = 1 (default)
     else
       parameters[:max_tokens] = token_limit
-      parameters[:temperature] = options[:temperature] || 0.7
     end
 
     begin
@@ -321,7 +316,7 @@ class LLMService
   end
 
   def parse_character_response(response)
-    # Handle structured responses (which are already hashes)
+    # Handle mock responses (which are already hashes)
     return response if response.is_a?(Hash)
 
     # Try to extract structured character data from string response
@@ -392,20 +387,20 @@ class LLMService
       'max_retries' => 2,
       'default_options' => {
         'temperature' => 0.7,
-        'max_tokens' => 2000
+        'max_tokens' => 6000  # Generous default
       },
       'task_options' => {
         'generation' => {
           'temperature' => 0.8,
-          'max_tokens' => 4000
+          'max_tokens' => 8000    # Large for chapters
         },
         'translation' => {
           'temperature' => 0.3,
-          'max_tokens' => 3000
+          'max_tokens' => 12000   # Extra large for any language
         },
         'chat' => {
           'temperature' => 0.7,
-          'max_tokens' => 2000
+          'max_tokens' => 4000    # Reasonable for chat
         }
       }
     }
@@ -448,10 +443,10 @@ class LLMService
     puts '  - gpt-4-turbo (good balance)'
     puts '  - gpt-3.5-turbo (fastest, cheapest)'
     puts ''
-    puts 'Task-specific models configured:'
-    puts '  - Generation (chapters/characters): gpt-4o (higher quality)'
-    puts '  - Translation: gpt-4o-mini (fast and cost-effective)'
-    puts '  - Chat: gpt-4o-mini (quick responses)'
+    puts 'Task-specific models and limits configured:'
+    puts '  - Generation (chapters/characters): gpt-4o with 8K tokens (higher quality)'
+    puts '  - Translation: gpt-4o-mini with 12K tokens (generous for any language)'
+    puts '  - Chat: gpt-4o-mini with 4K tokens (quick responses)'
     puts ''
     puts 'Environment variables supported:'
     puts '  - OPENAI_API_KEY (required)'
@@ -608,7 +603,7 @@ class LLMService
   end
 
   def parse_chapter_content(content)
-    # Handle structured responses (which are already hashes)
+    # Handle mock responses (which are already hashes)
     return content if content.is_a?(Hash)
 
     # Try to extract structured chapter data from string response
@@ -849,6 +844,17 @@ class LLMService
       merged_options.merge!(@config['task_options'][task_type])
     end
 
+    # Apply generous defaults if max_tokens not specified
+    unless merged_options['max_tokens'] || base_options[:max_tokens]
+      default_limits = {
+        'generation' => 8000,    # Generous for chapter content
+        'translation' => 12000,  # Extra generous for translations
+        'chat' => 4000          # Reasonable for conversations
+      }
+      
+      merged_options['max_tokens'] = default_limits[task_type] || 6000
+    end
+
     # Finally merge with any provided base options (method-level defaults)
     merged_options.merge!(base_options)
 
@@ -869,4 +875,24 @@ class LLMService
       @config['model'] || DEFAULT_MODEL
     end
   end
+
+  # Get safe max_tokens that doesn't exceed model capacity
+  def get_safe_max_tokens(task_type, model)
+    configured_limit = get_task_options(task_type)[:max_tokens]
+    
+    # Model capacity limits (conservative estimates)
+    model_caps = {
+      'gpt-4o' => 100_000,
+      'gpt-4o-mini' => 100_000,
+      'o3-mini' => 50_000,
+      'o3' => 150_000
+    }
+    
+    model_cap = model_caps[model] || 50_000
+    
+    # Use configured limit, but cap at model capacity minus prompt overhead
+    [configured_limit, model_cap - 5000].min
+  end
 end
+
+
