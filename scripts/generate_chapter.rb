@@ -6,11 +6,13 @@ require 'date'
 require 'fileutils'
 require 'slop'
 require_relative 'book_utils'
+require_relative 'world_utils'
 require_relative 'llm_service'
 require_relative 'prompt_utils'
 
 class ChapterGenerator
   include BookUtils
+  include WorldUtils
 
   def initialize(model_override = nil)
     # Always generate in English
@@ -221,6 +223,9 @@ class ChapterGenerator
     one_review_man_real_name = one_review_man&.dig('real_name') || '[to be generated]'
     quantum_android_real_name = quantum_android&.dig('real_name') || '[to be generated]'
 
+    # Build world consistency context
+    world_context = build_world_context
+
     # Build placeholders hash
     placeholders = {
       'CHAPTER_NUMBER' => chapter_num.to_s,
@@ -237,7 +242,7 @@ class ChapterGenerator
       'CHARACTER_TRAITS' => '',
       'CHARACTER_CODING_LEVEL' => '',
       'CHARACTER_RELATIONSHIP' => ''
-    }
+    }.merge(world_context) # Add world consistency placeholders
 
     # Use PromptUtils to build the prompt with validation
     PromptUtils.build_prompt(prompt_template, placeholders)

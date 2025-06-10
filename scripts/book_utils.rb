@@ -70,6 +70,19 @@ module BookUtils
     data[lang] || data['en'] || {}
   end
 
+  def load_world_data(lang = 'en')
+    file_path = File.join(DATA_DIR, 'world.yml')
+    data = load_yaml_file(file_path) || {}
+    
+    if lang && data[lang] && data[lang]['world']
+      data[lang]['world']
+    elsif data['en'] && data['en']['world']
+      data['en']['world']
+    else
+      {}
+    end
+  end
+
   # Data file saving methods - support both simple and language-specific patterns
   def save_book_data(data, lang = nil)
     file_path = File.join(DATA_DIR, 'book_metadata.yml')

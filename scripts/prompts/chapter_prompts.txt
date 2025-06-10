@@ -40,6 +40,14 @@ Context:
 
 {CHARACTER_CONTEXT}
 
+WORLD CONSISTENCY (CRITICAL):
+- Company Name: {COMPANY_NAME}
+- Office Environment: {OFFICE_DESCRIPTION}
+- Established Locations: {ESTABLISHED_LOCATIONS}
+- Infrastructure Details: {INFRASTRUCTURE_DETAILS}
+- Cultural Patterns: {CULTURAL_PATTERNS}
+- Previously Established Facts: {ESTABLISHED_FACTS}
+
 KEY CHARACTERS TO REFERENCE:
 - One Review Man ({ONE_REVIEW_MAN_REAL_NAME}): The protagonist, master programmer (parody of Saitama)
   * People call him by his real name "{ONE_REVIEW_MAN_REAL_NAME}" in conversation
@@ -87,6 +95,15 @@ PULL REQUEST WORKFLOW (CRITICAL - AVOID MISTAKES):
 - The comedy is that his PRs are so perfect they get instant approval
 - He follows professional practices: no self-merging, proper code review process
 - Example: "His PR was reviewed by Sarah and merged within minutes" NOT "He merged his perfect PR"
+
+WORLD CONSISTENCY RULES (CRITICAL):
+- ALWAYS use "{COMPANY_NAME}" as the company name (never invent new company names)
+- Maintain the established office environment and nearby locations
+- Reference previously established infrastructure (legacy systems, production environment)
+- Keep consistent with established cultural patterns 
+- Respect previously established facts about characters, relationships, and workplace dynamics
+- When introducing new locations, ensure they fit within the established office environment
+- Maintain consistency with the tech stack and infrastructure mentioned in previous chapters
 
 Programming Comedy Elements to Include:
 - Code review disasters (except for One Review Man's perfect code)
