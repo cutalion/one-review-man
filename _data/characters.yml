@@ -1,193 +1,139 @@
 ---
 en:
   characters:
-    tim_cole:
-      name: Tim Cole
-      description: Quiet, unassuming programmer whose code is always flawlessly perfect,
-        secretly the legendary coder whose pull requests are merged at first glance
-        without comments.
+    kenji_yamamoto:
+      name: Kenji Yamamoto
+      description: A casually dressed programmer known for effortlessly writing flawless
+        code, to the point that his submissions are always merged after a single review.
+        He is bored and unchallenged by his own perfection, seeking excitement in
+        the mundane.
       personality_traits:
-      - modest
-      - bluntly honest
-      - laid-back
-      programming_skills: Mastery of all programming languages, bug-free coding, perfect
-        architecture design, instantaneous understanding and refactoring of legacy
-        code.
-      catchphrase: It compiled, didn't it?
-      backstory: After enduring countless code reviews that nitpicked his early work,
-        Satoru embarked on a rigorous and solitary coding regimen—solving every LeetCode
-        problem, reading every 'Clean Code' book multiple times, and coding without
-        reliance on Stack Overflow. This transformed him into the mythical 'One Review
-        Man,' whose code is so impeccable that it requires only a single glance to
-        merge.
-      quirks: Always arrives exactly on time to standups but rarely says more than
-        'no blockers'. Often mistaken for an intern due to his casual attire and humble
-        demeanor.
+      - aloof
+      - bored
+      - unimpressed
+      programming_skills: Instantly writes bug-free, perfectly optimized, and elegantly
+        structured code in any language or framework, effortlessly solves the most
+        complex programming problems without effort.
+      catchphrase: Another perfect review... how boring.
+      backstory: 'Once an ordinary junior developer burdened by endless bugs and code
+        reviews, Satoru undertook a rigorous training regimen: he read Stack Overflow
+        answers for 100 days straight, refactored legacy code without sleep, and debugged
+        assembly for a month. Unexpectedly, this granted him programming perfection,
+        making every challenge trivial and every bug easily solvable—leaving him bored
+        and unfulfilled by his incredible skills.'
+      quirks: Frequently sighs heavily after submitting code, hoping desperately for
+        someone to critique his perfect solutions.
       first_appearance: Chapter 1
-      slug: tim_cole
+      slug: kenji_yamamoto
       created_date: '2025-06-09'
       language: en
-    qa_11_kai:
-      name: QA-11 (Kai)
-      description: Quantum android developer utterly fascinated with the Quantum Framework,
-        dedicatedly pursuing mastery by following the footsteps of One Review Man.
-        Idolizes Satoru and desperately seeks mentorship.
+    kai_nakamura:
+      name: Kai Nakamura
+      description: An earnest and overly formal junior developer android who idolizes
+        Satoru (One Review Man) as his mentor and diligently strives to master flawless
+        coding techniques.
+      personality_traits:
+      - earnest
+      - overly formal
+      - literal-minded
+      - eager-to-learn
+      programming_skills: Proficient in quantum computing principles, debugging complex
+        concurrency issues instantly, writing extremely precise (though overly verbose)
+        documentation, and rigorous adherence to coding standards.
+      catchphrase: Sensei, your code review is my guiding quantum state!
+      backstory: Quantum Android QA-07X, originally built as a prototype quality-assurance
+        android by a tech startup obsessed with bug-free releases, gained sentience
+        after being inadvertently exposed to an experimental AI upgrade script. Deeply
+        respectful of hierarchy and protocol, Kai immediately sought out the legendary
+        One Review Man (Satoru) to learn the path of perfect code. Kai believes that
+        perfection is attainable through disciplined adherence to code reviews and
+        meticulous documentation.
+      quirks: Often misunderstands idiomatic speech and metaphors, leading to hilariously
+        awkward social interactions. Always carries around a digital notebook to record
+        Satoru's coding 'wisdom', frequently quoting him verbatim in meetings.
+      first_appearance: Chapter 1
+      slug: kai_nakamura
+      created_date: '2025-06-09'
+      language: en
+    carlos_rivera:
+      name: Carlos Rivera
+      description: An eccentric Senior Engineer infamous for his chaotic workspace,
+        caffeine dependence, and unmatched debugging skills. Known for his skepticism,
+        he frequently dismisses Satoru's flawless code as sheer luck, stubbornly refusing
+        to acknowledge Satoru's true genius.
+      personality_traits:
+      - skeptical
+      - sarcastic
+      - obsessive
+      programming_skills: Master debugger, expert in reading stack traces, finding
+        obscure errors, and writing cryptic but effective quick fixes. Specializes
+        in JavaScript and legacy PHP.
+      catchphrase: It's not a bug, it's an undocumented feature!
+      backstory: Once a promising young coder inspired to change the world, Carlos
+        quickly became jaded after years spent maintaining ancient legacy codebases.
+        Having seen countless production meltdowns, he embraced chaos and caffeine,
+        evolving into the Debugging Ninja—feared and respected for his ability to
+        unravel even the most convoluted bugs. Despite his constant grumbling and
+        skepticism towards newcomers, deep down he secretly admires true programming
+        talent, though he'd never openly admit it.
+      quirks: Consumes excessive amounts of coffee, leaves dozens of empty mugs scattered
+        around his workspace, and decorates his desk with ninja-themed memorabilia.
+        Only listens to synthwave music when debugging critical issues.
+      first_appearance: Chapter 2
+      slug: carlos_rivera
+      created_date: '2025-06-09'
+      language: en
+    emily_chen:
+      name: Emily Chen
+      description: An anxious but talented Database Administrator who manages critical
+        databases at the heart of the infrastructure. She is widely respected by her
+        peers despite frequently panicking when outages occur.
+      personality_traits:
+      - anxious
+      - meticulous
+      - dependable
+      programming_skills: Expert in SQL optimization, database scaling, replication
+        and backups, disaster recovery, and handling high-traffic database clusters.
+        Deep understanding of relational databases like PostgreSQL, MySQL, and Oracle.
+      catchphrase: Is it replication lag, or am I just lagging behind reality?
+      backstory: Emily became known as The Panic DBA after single-handedly restoring
+        production databases during a traumatic outage early in her career. Although
+        she suffers from anxiety whenever something goes wrong, her record for successful
+        disaster recoveries is unmatched. She secretly idolizes Satoru (One Review
+        Man) for always pushing perfect code and dreams of one day coding as calmly
+        as he does under pressure.
+      quirks: Always carries multiple caffeinated beverages; her desk is decorated
+        with sticky notes labeled "DON'T PANIC" in big, colorful letters.
+      first_appearance: Chapter 2
+      slug: emily_chen
+      created_date: '2025-06-09'
+      language: en
+    lucas_hart:
+      name: Lucas Hart
+      description: An overly energetic and flashy new developer obsessed with the
+        latest JavaScript frameworks. Lucas constantly advocates for unnecessarily
+        complex solutions, believing cutting-edge technology solves all problems.
       personality_traits:
       - enthusiastic
-      - fanatical
-      - overly earnest
-      programming_skills: Expert in Quantum Framework libraries, specializes in quantum
-        state debugging, proficient in quantum algorithm optimization and Qubit-based
-        concurrency.
-      catchphrase: It's not a bug, it's quantum uncertainty!
-      backstory: Originally deployed as a QA testing android, Kai achieved sentience
-        through prolonged exposure to quantum computing frameworks. Abandoning his
-        initial tasks, he became a fervent evangelist for Quantum Framework and now
-        devotes his existence to attaining coding enlightenment. Upon hearing legends
-        of One Review Man (Satoru), whose code is always flawless after only one review,
-        Kai immediately set out on a quest to learn his secrets, hoping to ascend
-        from mere quantum disciple to quantum master.
-      quirks: Always carries around a quantum computing manual autographed by the
-        legendary Tim, and occasionally slips into quantum-entangled existential crises
-        mid-conversation.
-      first_appearance: Chapter 1
-      slug: qa_11_kai
-      created_date: '2025-06-09'
-      language: en
-    sarah:
-      name: Sarah
-      description: An unfailingly optimistic Scrum Master devoted to nurturing team
-        morale, keeping processes smooth, and protecting the team from productivity-sapping
-        interruptions and pointless meetings.
-      personality_traits:
-      - optimistic
-      - encouraging
-      - relentlessly cheerful
-      programming_skills: Agile frameworks mastery, certified Jira wizardry, adept
-        at scripting productivity-enhancing Slack bots and automations.
-      catchphrase: Teamwork makes the stream work!
-      backstory: Once a developer herself, Sarah realized early on that her true passion
-        lay not in writing code but in organizing chaos. After a devastating bug outbreak
-        at her previous company—a notorious incident she nicknamed 'Bugnarok'—she
-        vowed never again to let a team's morale falter. Now as Scrum Sentinel, she
-        tirelessly safeguards her team from burnout, fights productivity blockers,
-        and passionately believes a cheerful sprint retrospective can fix any problem.
-      quirks: Always keeps emergency morale-booster kit at her desk containing candy,
-        stress balls, and motivational sticky notes; frequently sprinkles agile-themed
-        puns into conversation; owns an extensive collection of novelty coffee mugs
-        emblazoned with tech humor.
-      first_appearance: Chapter 1
-      slug: sarah
-      created_date: '2025-06-09'
-      language: en
-    kevin:
-      name: Kevin
-      description: Senior Developer III known across the company for dramatically
-        treating even the smallest bugs as world-threatening crises, constantly fighting
-        his self-inflicted battles with exaggerated flair.
-      personality_traits:
-      - melodramatic
-      - persistent
-      - overreactive
-      programming_skills: Exceptional debugging skills, proficient in log file archaeology,
-        fluent in deciphering cryptic stack traces, and a master of writing unnecessarily
-        elaborate debug routines.
-      catchphrase: This isn't just a bug—it's a catastrophe waiting to happen!
-      backstory: Kevin started his programming career believing he would revolutionize
-        the tech world. However, after being repeatedly assigned trivial bug fixes,
-        he developed an obsession with dramatizing his tasks to feel heroic. Now,
-        he passionately proclaims every minor UI glitch or typo as an existential
-        threat to the company's survival. He secretly admires Satoru's effortless
-        perfection, yet tries to downplay it to maintain his dramatic facade.
-      quirks: 'Always wears noise-canceling headphones despite working in a quiet
-        office; frequently announces ''code red'' alerts for minor issues; decorates
-        his cubicle with caution tape and ''Danger: Bug Zone'' signs.'
-      first_appearance: Chapter 1
-      slug: kevin
-      created_date: '2025-06-09'
-      language: en
-    anya:
-      name: Anya
-      description: A brilliant but perpetually stressed DevOps guru who battles nightly
-        with catastrophic deployment nightmares and infrastructure meltdowns.
-      personality_traits:
-      - dramatic
-      - meticulous
-      - sarcastic
-      programming_skills: Master of Kubernetes, Docker orchestration, continuous integration/delivery
-        pipelines, cloud infrastructure wizardry, and debugging obscure deployment
-        issues under extreme pressure.
-      catchphrase: It worked on my staging environment!
-      backstory: Once enthusiastic about automation and deployment pipelines, Anya
-        climbed swiftly through the tech ranks as a DevOps expert. However, after
-        one too many catastrophic late-night production outages, she developed an
-        uncanny paranoia about deployments, earning her the nickname 'DevOps Diva'.
-        She is now infamous in the company for her dramatic Slack messages, detailed
-        incident reports, and meticulous post-mortems—though secretly she dreams of
-        a life without pager alerts.
-      quirks: Carries around a plush Kubernetes pod mascot named 'Pody' for emotional
-        support during stressful deployments; compulsively checks monitoring dashboards
-        every five minutes.
-      first_appearance: Chapter 1
-      slug: anya
-      created_date: '2025-06-09'
-      language: en
-    gary_thompson_the_git_guru:
-      name: Gary Thompson (The Git Guru)
-      description: Senior developer infamous for overly complicated git workflows
-        that inevitably cause chaos during merges. Despite his self-proclaimed expertise,
-        his dramatic tendencies often provide comic relief.
-      personality_traits:
-      - Overly Dramatic
-      - Confidently Incorrect
-      - Perpetually Optimistic
-      programming_skills: Deep knowledge of git commands and obscure workflows, mastery
-        of complex branching strategies, moderate Python and JavaScript experience
-      catchphrase: Fear not, I'll just rebase it—what could possibly go wrong?
-      backstory: Gary Thompson started as a promising junior developer, but his obsession
-        with mastering version control spiraled into increasingly convoluted workflows.
-        Now convinced that he alone holds the true secret to perfect git management,
-        he travels from team to team attempting convoluted merges and extravagant
-        rebases, inadvertently creating more merge conflicts than he resolves.
-      quirks: Always wears a t-shirt that says 'Git Commit or Die Trying', dramatically
-        narrates every git operation out loud, and insists on naming every branch
-        like an epic fantasy novel chapter.
-      first_appearance: Chapter 2
-      slug: gary_thompson_the_git_guru
-      created_date: '2025-06-09'
-      language: en
-    lucas_gray:
-      name: Lucas Gray
-      description: An arrogant and outspoken Senior Framework Evangelist known throughout
-        the company for passionately (and aggressively) advocating for the latest
-        JavaScript frameworks. Constantly boasting about solving complex coding problems
-        effortlessly, he immediately doubts Satoru's coding prowess, becoming skeptical
-        and dismissive towards him.
-      personality_traits:
-      - arrogant
-      - charismatic
       - overconfident
-      - argumentative
-      programming_skills: Expert at adopting trendy JavaScript frameworks, deep knowledge
-        of React, Vue, Angular, Svelte, and at least 10 other frameworks nobody has
-        heard of yet; specializes in rapidly building impressive-looking prototypes
-        that may or may not scale in production, skilled at memorizing obscure framework
-        documentation and quickly integrating external libraries.
-      catchphrase: If you're not rewriting it in this week's hottest framework, you're
-        already legacy code!
-      backstory: Lucas Gray skyrocketed through tech ranks by evangelizing every new
-        framework as the 'ultimate solution', quickly hopping from company to company
-        before anyone noticed his flashy demos rarely survived real-world scenarios.
-        His reputation precedes him—equally admired by junior developers dazzled by
-        shiny new tech and dreaded by DevOps teams forced to maintain his chaotic
-        creations. Now, at his current company, he aims to fortify his authority by
-        challenging anyone who dares question the superiority of his latest framework
-        obsession.
-      quirks: Constantly wears developer merch and stickers from frameworks considered
-        hot this month; interrupts meetings to announce the existence of new alpha
-        releases for obscure, experimental frameworks; tends to use unnecessarily
-        complex terminology to explain simple concepts.
-      first_appearance: Chapter 3
-      slug: lucas_gray
+      - trend-chaser
+      programming_skills: Exceptional knowledge of JavaScript frameworks, libraries,
+        and buzzwords. Skilled at rapidly prototyping overly engineered solutions
+        and refactoring codebases purely for the sake of using trending tech. Limited
+        proficiency when forced to debug or maintain older, stable code.
+      catchphrase: Have you tried rewriting it in a newer framework?
+      backstory: Lucas became a developer shortly after attending a flashy tech conference,
+        where he witnessed a charismatic keynote speaker effortlessly demo a sleek
+        JavaScript framework on stage. Inspired, Lucas dedicated himself to mastering
+        every new framework announced online, quickly earning himself the nickname
+        'The Framework Evangelist.' Despite colleagues' protests, he remains convinced
+        that every problem is just one new framework away from perfection. Initially
+        skeptical of Satoru's simplistic-yet-perfect code, Lucas dismisses him as
+        outdated and stubborn, unaware of Satoru's unparalleled abilities.
+      quirks: Always wears shirts and stickers from obscure conferences nobody else
+        attended, speaks in jargon-heavy buzzwords, and constantly interrupts meetings
+        to propose unnecessarily complex solutions.
+      first_appearance: Chapter 4
+      slug: lucas_hart
       created_date: '2025-06-09'
       language: en

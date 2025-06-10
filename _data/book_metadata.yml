@@ -1,17 +1,17 @@
 ---
 book:
   target_chapters: 50
-  current_chapter: 3
+  current_chapter: 4
 generation:
   chapter_length_target: 1500-3000 words
   complexity_level: medium
   character_consistency: true
 status:
   last_generated: '2025-06-09'
-  generation_count: 3
+  generation_count: 4
   characters_created: 0
   active_storylines: []
-  chapters_written: 3
+  chapters_written: 4
 localized:
   en:
     title: One Review Man
