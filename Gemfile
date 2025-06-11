@@ -33,6 +33,14 @@ gem 'ruby-openai', '~> 7.0'
 # CLI argument parsing
 gem 'slop', '~> 4.9'
 
+# Thor CLI framework
+gem 'thor', '~> 1.3'
+
+# Testing framework
+group :development, :test do
+  gem 'rspec', '~> 3.12'
+end
+
 # Windows and JRuby does not include zoneinfo files, so bundle the tzinfo-data gem
 # and associated library.
 platforms :mingw, :x64_mingw, :mswin, :jruby do
