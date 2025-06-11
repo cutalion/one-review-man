@@ -21,13 +21,18 @@ bundle install
 
 ### 2. Set Up OpenAI Configuration
 
-Run the setup command to create a configuration template:
+Create a configuration file `scripts/llm_config.yml` with the following template:
 
-```bash
-ruby scripts/demo_llm.rb setup
+```yaml
+# Optional: Set API key here or use environment variable OPENAI_API_KEY
+# openai_api_key: your-api-key-here
+model: gpt-4o-mini
+timeout: 240
+max_retries: 2
+default_options:
+  temperature: 0.7
+  max_tokens: 2000
 ```
-
-This creates `scripts/llm_config.yml` with example settings.
 
 ### 3. Configure Your OpenAI API Key
 
@@ -61,23 +66,7 @@ default_options:
 
 Get your API key from: https://platform.openai.com/api-keys
 
-### 4. Try the Demo
-
-```bash
-ruby scripts/demo_llm.rb
-```
-
 ## 📚 Usage Guide
-
-### Generate Characters
-
-```bash
-# Generate different types of characters
-ruby scripts/manage_characters.rb generate hero     # Fellow programmer
-ruby scripts/manage_characters.rb generate villain  # Bad coder
-ruby scripts/manage_characters.rb generate side     # Workplace NPC
-ruby scripts/manage_characters.rb generate mentor   # Senior figure
-```
 
 ### Generate Chapters
 
@@ -95,9 +84,6 @@ ruby scripts/generate_chapter.rb regenerate 1
 ### Improve Content
 
 ```bash
-# Make a character funnier
-ruby scripts/manage_characters.rb improve character_slug humor
-
 # Improve chapter clarity
 ruby scripts/generate_chapter.rb improve 1 clarity
 
@@ -364,8 +350,8 @@ task_options:
 ### Common Issues
 
 #### "No OpenAI client configured"
-- Run `ruby scripts/demo_llm.rb setup` to create config
-- Edit `scripts/llm_config.yml` with your API key
+- Create `scripts/llm_config.yml` with your API key (see setup instructions above)
+- Or set the `OPENAI_API_KEY` environment variable
 - Get API key from https://platform.openai.com/api-keys
 
 #### "OpenAI API Error" messages
@@ -387,10 +373,9 @@ task_options:
 
 ### Getting Help
 
-1. Run the demo for interactive guidance: `ruby scripts/demo_llm.rb`
-2. Check script help: `ruby scripts/generate_chapter.rb` (no arguments)
-3. View configuration: Option 5 in the demo menu
-4. Check the existing prompts in `scripts/prompts/` for examples
+1. Check script help: `ruby scripts/generate_chapter.rb` (no arguments)
+2. Check the existing prompts in `scripts/prompts/` for examples
+3. Review the LLM configuration examples above
 
 ## 📁 File Structure
 
@@ -398,12 +383,11 @@ task_options:
 scripts/
 ├── llm_service.rb           # Core OpenAI integration
 ├── generate_chapter.rb      # Chapter generation with AI
-├── manage_characters.rb     # Character management with AI
-├── demo_llm.rb             # Interactive demo
-├── llm_config.yml          # OpenAI configuration (created)
+├── translate_content.rb     # Translation tool
+├── reset_book.rb           # Book reset utilities
+├── llm_config.yml          # OpenAI configuration (create this)
 └── prompts/
-    ├── chapter_prompts.txt  # Chapter generation prompts
-    └── character_prompts.txt # Character generation prompts
+    └── chapter_prompts.txt  # Chapter generation prompts
 ```
 
 ## 🎬 Example Workflow
@@ -413,27 +397,20 @@ scripts/
    # Recommended: Set environment variable (secure)
    export OPENAI_API_KEY="your-api-key-here"
    
-   # Create config file for non-sensitive settings
-   ruby scripts/demo_llm.rb setup
+   # Create config file manually (see setup instructions above)
    ```
 
-2. **Generate initial characters**
-   ```bash
-   ruby scripts/manage_characters.rb generate hero
-   ruby scripts/manage_characters.rb generate side
-   ```
-
-3. **Generate first chapter**
+2. **Generate first chapter**
    ```bash
    ruby scripts/generate_chapter.rb next
    ```
 
-4. **Improve the chapter**
+3. **Improve the chapter**
    ```bash
    ruby scripts/generate_chapter.rb improve 1 humor
    ```
 
-5. **Translate to other languages**
+4. **Translate to other languages**
    ```bash
    ruby scripts/translate_content.rb chapter 1 ru
    ```

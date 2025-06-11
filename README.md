@@ -54,8 +54,8 @@ one-review-man/
 │   └── protagonist.ru.md    # Russian character pages
 ├── scripts/                 # Ruby generation and management scripts
 │   ├── generate_chapter.rb  # Chapter generation (English only)
-│   ├── manage_characters.rb # Character management (English primary)
 │   ├── translate_content.rb # Translation tool
+│   ├── reset_book.rb        # Book reset utilities
 │   ├── book_utils.rb        # Shared utilities
 │   └── prompts/             # AI prompt templates
 ├── index.md                 # English landing page
@@ -100,16 +100,7 @@ ruby scripts/generate_chapter.rb prompt 1
 ```
 
 #### Create Characters
-```bash
-# Add new character interactively (English only)
-ruby scripts/manage_characters.rb add
-
-# List all characters with translation status
-ruby scripts/manage_characters.rb list
-
-# Show character details
-ruby scripts/manage_characters.rb show character_slug
-```
+Create character files manually in the `_characters/` directory following the existing format.
 
 ### 2. Translate to Other Languages
 
@@ -138,9 +129,6 @@ ruby scripts/translate_content.rb status ru
 ```bash
 # Sync chapter metadata (character appearances, etc.)
 ruby scripts/translate_content.rb sync 1 ru
-
-# Sync character metadata across languages
-ruby scripts/manage_characters.rb sync protagonist
 ```
 
 ## Content Guidelines
@@ -208,23 +196,15 @@ This project works with GitHub Pages:
 ## Example Workflow
 
 ```bash
-# 1. Create your first character (the AI-Enhanced Disciple)
-ruby scripts/manage_characters.rb add
-# Enter: "Genos-9000", "Cyborg programmer with neurointerface seeking to learn from One Review Man", "persistent, analytical, technology-obsessed"
-
-# 2. Generate first chapter
+# 1. Generate first chapter
 ruby scripts/generate_chapter.rb next
 # Copy prompt (includes One-Punch Man parody context), generate with AI, paste content into chapter file
 
-# 3. Translate character to Russian
-ruby scripts/translate_content.rb character genos_9000 ru
-# Enter: "Генос-9000", "Программист-киборг с нейроинтерфейсом, стремящийся учиться у One Review Man", etc.
-
-# 4. Translate chapter to Russian
+# 2. Translate chapter to Russian
 ruby scripts/translate_content.rb chapter 1 ru
 # Enter translated title, summary, and content
 
-# 5. Check status
+# 3. Check status
 ruby scripts/translate_content.rb status ru
 ```
 
