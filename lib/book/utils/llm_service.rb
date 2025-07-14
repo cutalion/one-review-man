@@ -355,12 +355,12 @@ class LLMService
 
   def build_improvement_prompt(content, improvement_type)
     template_files = {
-      'humor' => 'scripts/prompts/humor_improvement_prompt.txt',
-      'clarity' => 'scripts/prompts/clarity_improvement_prompt.txt',
-      'consistency' => 'scripts/prompts/consistency_improvement_prompt.txt'
+      'humor' => 'lib/book/prompts/humor_improvement_prompt.txt',
+      'clarity' => 'lib/book/prompts/clarity_improvement_prompt.txt',
+      'consistency' => 'lib/book/prompts/consistency_improvement_prompt.txt'
     }
 
-    template_file = template_files[improvement_type] || 'scripts/prompts/general_improvement_prompt.txt'
+    template_file = template_files[improvement_type] || 'lib/book/prompts/general_improvement_prompt.txt'
 
     placeholders = {
       'CONTENT' => content

@@ -253,7 +253,7 @@ module Book
     end
 
     def load_prompt_template
-      template_file = 'scripts/prompts/chapter_prompts.txt'
+      template_file = 'lib/book/prompts/chapter_prompts.txt'
       raise "Prompt template not found at #{template_file}" unless File.exist?(template_file)
 
       File.read(template_file)
@@ -412,7 +412,7 @@ module Book
     end
 
     def build_character_creation_prompt(char_data, chapter_num)
-      template_file = 'scripts/prompts/new_character_creation_prompt.txt'
+      template_file = 'lib/book/prompts/new_character_creation_prompt.txt'
 
       # Get character real names for template replacement
       one_review_man = @characters['characters'].values.find { |c| c['name'] == 'One Review Man' }
