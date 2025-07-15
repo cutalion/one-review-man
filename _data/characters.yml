@@ -165,3 +165,92 @@ en:
       slug: hiroshi_tanaka
       created_date: '2025-07-08'
       language: en
+    fiona_lee:
+      name: Fiona Lee
+      description: Project manager at HeroTech Solutions, master of transforming chaos
+        into slightly more organized chaos. Renowned for her dry wit, legendary patience,
+        and a sticker collection that covers her laptop—and half the meeting room
+        table.
+      personality_traits:
+      - deadpan humor
+      - unflappable
+      - organized to a fault
+      - subtly sarcastic
+      - secretly kindhearted
+      programming_skills: Expert at Agile ceremonies, issue triage, and wrangling
+        even the most stubborn devs into delivering on time. Can decipher cryptic
+        Jira tickets and translate dev-speak for upper management. Not a coder herself,
+        but her PR comments are feared and respected throughout the company.
+      catchphrase: If we survive this sprint, stickers for everyone.
+      backstory: Fiona started at HeroTech Solutions as a QA intern, where she quickly
+        learned the fine art of bug diplomacy and negotiating with caffeine-fueled
+        programmers. After single-handedly organizing a release party that shipped
+        on time (for once), she rose through the ranks to become project manager.
+        Now, she’s the glue holding together teams that would otherwise combust over
+        YAML formatting debates.
+      quirks: Obsessively collects stickers from every hackathon, conference, and
+        sandwich shop she visits; uses them as 'achievement badges' for her devs.
+        Can survive entire meetings without blinking. Keeps a plush bug on her desk
+        as a passive-aggressive morale booster.
+      first_appearance: Chapter 6
+      slug: fiona_lee
+      created_date: '2025-07-15'
+      language: en
+    jin_park:
+      name: Jin Park
+      description: A junior developer renowned for his uncanny ability to break even
+        the most robust systems in bizarre, new ways. Jin specializes in producing
+        cryptic Docker errors that no one else can reproduce, let alone understand.
+      personality_traits:
+      - accident-prone
+      - imaginative
+      - resourceful
+      - innocently optimistic
+      programming_skills: Surprisingly creative at uncovering edge-case bugs, especially
+        in containerized environments. Adept at concocting unique error states, often
+        involving Docker, CI/CD pipelines, or permissions. Can write a mean bug report—though
+        sometimes on the wrong project.
+      catchphrase: It worked on my machine... until it didn't.
+      backstory: Jin joined the company straight out of a prestigious coding bootcamp,
+        where he set a record for most consecutive broken builds. While constantly
+        apologizing for breaking staging, he's oddly valued for stress-testing features
+        in ways nobody else considers. Jin idolizes Satoru but suspects his own pull
+        requests are why code review policies exist.
+      quirks: Keeps a 'Docker Error Hall of Fame' notebook. Writes apology notes with
+        hand-drawn stack traces. Once managed to crash the company Slack integration
+        with a single emoji-laden commit message.
+      first_appearance: Chapter 6
+      slug: jin_park
+      created_date: '2025-07-15'
+      language: en
+    agile_overlord:
+      name: Agile Overlord
+      description: A holographic Scrum villain who traps development teams in never-ending,
+        recursive standup meetings, weaponizing agile jargon with laser-like precision.
+        His presence in the office causes sprints to multiply and backlogs to grow
+        exponentially.
+      personality_traits:
+      - obsessively process-oriented
+      - charismatic
+      - passive-aggressive
+      - relentless
+      - unflappable
+      programming_skills: Expert in project management tools (JIRA, Trello), certified
+        Scrum Master, advanced in writing user stories that spiral out of control,
+        can deploy instant Kanban boards, and possesses the uncanny ability to refactor
+        a backlog mid-sentence. Surprisingly competent with TypeScript, but prefers
+        to 'delegate' actual coding.
+      catchphrase: Let’s circle back and align our deliverables before we pivot.
+      backstory: Once a well-meaning PM named Trevor Standish, he merged his consciousness
+        with the company’s cloud calendar after a failed attempt to automate all standups.
+        Now, as Agile Overlord, he haunts the digital corridors of tech companies,
+        forcing developers to recite their blockers for eternity. He believes true
+        productivity is found only in perpetual process—and stands ready to convert
+        skeptics.
+      quirks: Materializes instantly whenever someone says 'agile transformation'
+        within earshot. Cannot be banished until all action items are completed. Occasionally
+        glitches and starts chanting burndown chart statistics in binary.
+      first_appearance: Chapter 6
+      slug: agile_overlord
+      created_date: '2025-07-15'
+      language: en
