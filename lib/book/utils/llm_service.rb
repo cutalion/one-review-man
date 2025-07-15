@@ -138,11 +138,14 @@ class LLMService
     response['content']
   end
 
-  def translate_chapter_structured(title, summary, content, target_lang)
+  # Consistent translations benefit from a glossary of proper names that
+  # already have an established translation. The glossary should be a multiline
+  # string with "English -> Translated" lines.
+  def translate_chapter_structured(title, summary, content, target_lang, glossary = nil)
     puts "🤖 Translating chapter to #{target_lang}..."
 
-    # Build translation prompt with schema
-    prompt = build_chapter_translation_prompt(title, summary, content, target_lang)
+    # Build translation prompt with schema and optional glossary
+    prompt = build_chapter_translation_prompt(title, summary, content, target_lang, glossary)
 
     options = get_task_options(
       'translation',
@@ -638,7 +641,7 @@ class LLMService
     chapter
   end
 
-  def build_chapter_translation_prompt(title, summary, content, target_lang)
+  def build_chapter_translation_prompt(title, summary, content, target_lang, glossary = nil)
     language_names = {
       'ru' => 'Russian',
       'es' => 'Spanish',
@@ -674,6 +677,9 @@ class LLMService
       - Technical terms (translate context, keep some English technical terms where appropriate)
       - Naming conventions and character address patterns
       #{special_instructions}
+
+      #{'GLOSSARY OF PROPER NAMES (use exact translations shown below):' if glossary && !glossary.empty?}
+      #{glossary if glossary && !glossary.empty?}
 
       SOURCE CHAPTER:
       Title: #{title}

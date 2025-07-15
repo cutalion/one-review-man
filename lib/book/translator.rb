@@ -15,6 +15,11 @@ module Book
       @llm_service = LLMService.new('scripts/llm_config.yml', model_override)
     end
 
+    # Translate a single chapter using the LLM service.
+    # For higher consistency we pass a glossary of already translated proper names
+    # (e.g. character names) to the LLM. The glossary is generated automatically
+    # from existing translated character files so the maintainer does not need
+    # to curate it manually.
     def translate_chapter_with_ai(chapter_number, target_lang)
       # Find the English chapter file using the standard naming convention
       source_file = "_chapters/#{format_chapter_filename(chapter_number)}"
@@ -34,12 +39,16 @@ module Book
       target_file = "_chapters/#{source_basename}.#{target_lang}.md"
 
       begin
-        # Use LLM to translate with structured output
+        # Build glossary for consistent name usage (if available)
+        glossary = build_name_glossary(target_lang)
+
+        # Use LLM to translate with structured output and glossary context
         translation_data = @llm_service.translate_chapter_structured(
           chapter_data['title'],
           chapter_data['summary'] || 'No summary available',
           chapter_data['content'],
-          target_lang
+          target_lang,
+          glossary
         )
 
         # Create translated chapter file
@@ -105,7 +114,25 @@ module Book
       total_count = 0
       skipped_count = 0
 
-      # Translate all chapters (only English originals, not already translated files)
+      # Translate all characters first (only English originals, not already translated files)
+      puts "\n👥 Translating characters..."
+      Dir.glob('_characters/*.md').reject { |f| f.include?('.ru.') || f.include?('.en.') }.each do |character_file|
+        character_slug = File.basename(character_file, '.md')
+
+        # Check if translation already exists
+        target_file = "_characters/#{character_slug}.#{target_lang}.md"
+
+        if File.exist?(target_file)
+          puts "⏭️  Skipping character #{character_slug} - already translated"
+          skipped_count += 1
+          next
+        end
+
+        total_count += 1
+        success_count += 1 if translate_character_with_ai(character_slug, target_lang)
+      end
+
+      # Translate all chapters after characters so glossary is available
       puts "\n📚 Translating chapters..."
       Dir.glob('_chapters/*.md').reject { |f| f.include?('.ru.') || f.include?('.en.') }.each do |chapter_file|
         chapter_data = parse_chapter_file(chapter_file)
@@ -127,24 +154,6 @@ module Book
         success_count += 1 if translate_chapter_with_ai(chapter_num, target_lang)
       end
 
-      # Translate all characters (only English originals, not already translated files)
-      puts "\n👥 Translating characters..."
-      Dir.glob('_characters/*.md').reject { |f| f.include?('.ru.') || f.include?('.en.') }.each do |character_file|
-        character_slug = File.basename(character_file, '.md')
-
-        # Check if translation already exists
-        target_file = "_characters/#{character_slug}.#{target_lang}.md"
-
-        if File.exist?(target_file)
-          puts "⏭️  Skipping character #{character_slug} - already translated"
-          skipped_count += 1
-          next
-        end
-
-        total_count += 1
-        success_count += 1 if translate_character_with_ai(character_slug, target_lang)
-      end
-
       puts "\n📊 Translation Summary:"
       puts "✅ Successfully translated: #{success_count}/#{total_count}"
       puts "❌ Failed: #{total_count - success_count}/#{total_count}"
@@ -154,6 +163,52 @@ module Book
     end
 
     private
+
+    # Build a glossary of proper names that already have a confirmed translation.
+    # The glossary is generated from pairs of English and translated character
+    # files. It returns a multi-line string in the form "English → Translated"
+    # that can be injected into the LLM prompt.
+    def build_name_glossary(target_lang)
+      glossary_lines = []
+
+      Dir.glob('_characters/*.md').each do |english_file|
+        next if english_file.include?(".#{target_lang}.") || english_file.include?('.en.')
+
+        slug = File.basename(english_file, '.md')
+        translated_file = "_characters/#{slug}.#{target_lang}.md"
+        next unless File.exist?(translated_file)
+
+        english_name = extract_name_from_character_file(english_file)
+        translated_name = extract_name_from_character_file(translated_file)
+
+        next unless english_name && translated_name
+
+        glossary_lines << "#{english_name} -> #{translated_name}"
+
+        # Add mappings for first/last names individually if both exist
+        en_parts = english_name.split
+        tr_parts = translated_name.split
+        if en_parts.size == tr_parts.size && en_parts.size > 1
+          en_parts.zip(tr_parts).each do |en_part, tr_part|
+            glossary_lines << "#{en_part} -> #{tr_part}"
+          end
+        end
+      end
+
+      glossary_lines.uniq.sort.join("\n")
+    end
+
+    # Extract the "name" field from a character markdown file's front matter
+    def extract_name_from_character_file(file_path)
+      content = File.read(file_path)
+      match = content.match(/\A---\s*\n(.*?)\n---/m)
+      return nil unless match
+
+      front_matter = YAML.safe_load(match[1]) || {}
+      front_matter['name']
+    rescue StandardError
+      nil
+    end
 
     def create_translated_chapter_file(target_file, source_data, translation_data, target_lang)
       # Generate proper permalink for Jekyll Polyglot (same as English, Polyglot will handle /ru/ prefix)
