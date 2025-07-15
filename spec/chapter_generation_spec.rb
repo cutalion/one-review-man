@@ -33,7 +33,18 @@ RSpec.describe 'book chapter generation' do
 
       # Run the CLI command from within the temporary directory
       Dir.chdir(test_dir) do
-        Book::CLI::Runner.start(%w[generate chapter --model gpt-4o --auto])
+        # Suppress console output from the CLI command so the spec suite stays
+        # quiet when executed with the documentation formatter.
+        original_stdout = $stdout
+        original_stderr = $stderr
+        begin
+          $stdout = StringIO.new
+          $stderr = StringIO.new
+          Book::CLI::Runner.start(%w[generate chapter --model gpt-4o --auto])
+        ensure
+          $stdout = original_stdout
+          $stderr = original_stderr
+        end
       end
     end
   end
