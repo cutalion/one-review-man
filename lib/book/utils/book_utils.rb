@@ -4,14 +4,12 @@ require 'yaml'
 require 'fileutils'
 
 module BookUtils
-  DATA_DIR = '_data'
   CHAPTERS_DIR = '_chapters'
   CHARACTERS_DIR = '_characters'
 
   # Data file loading methods - support both simple and language-specific patterns
-  def load_book_data(lang = nil)
-    file_path = File.join(DATA_DIR, 'book_metadata.yml')
-    data = load_yaml_file(file_path)
+  def load_book_data(config, lang = nil)
+    data = config.book_metadata
 
     if lang && data['localized'] && data['localized'][lang]
       # Return merged structure: shared data + localized content
@@ -40,9 +38,8 @@ module BookUtils
     end
   end
 
-  def load_characters(lang = nil)
-    file_path = File.join(DATA_DIR, 'characters.yml')
-    data = load_yaml_file(file_path) || { 'characters' => {} }
+  def load_characters(config, lang = nil)
+    data = config.characters || { 'characters' => {} }
 
     if lang && data[lang]
       # Language-specific data
@@ -59,20 +56,17 @@ module BookUtils
     end
   end
 
-  def load_generation_log
-    file_path = File.join(DATA_DIR, 'generation_log.yml')
-    load_yaml_file(file_path)
+  def load_generation_log(config)
+    config.generation_log
   end
 
-  def load_strings(lang = 'en')
-    file_path = File.join(DATA_DIR, 'strings.yml')
-    data = load_yaml_file(file_path) || {}
+  def load_strings(config, lang = 'en')
+    data = config.strings || {}
     data[lang] || data['en'] || {}
   end
 
-  def load_world_data(lang = 'en')
-    file_path = File.join(DATA_DIR, 'world.yml')
-    data = load_yaml_file(file_path) || {}
+  def load_world_data(config, lang = 'en')
+    data = config.world || {}
     
     if lang && data[lang] && data[lang]['world']
       data[lang]['world']
@@ -84,10 +78,9 @@ module BookUtils
   end
 
   # Data file saving methods - support both simple and language-specific patterns
-  def save_book_data(data, lang = nil)
-    file_path = File.join(DATA_DIR, 'book_metadata.yml')
-
-    existing_data = load_yaml_file(file_path) || {}
+  def save_book_data(config, data, lang = nil)
+    file_path = '_data/book_metadata.yml'
+    existing_data = config.book_metadata || {}
 
     if lang && existing_data.key?('localized')
       # New structure: update localized content for specific language
@@ -123,10 +116,9 @@ module BookUtils
     save_yaml_file(file_path, existing_data)
   end
 
-  def save_characters(data, lang = nil)
-    file_path = File.join(DATA_DIR, 'characters.yml')
-
-    existing_data = load_yaml_file(file_path) || {}
+  def save_characters(config, data, lang = nil)
+    file_path = '_data/characters.yml'
+    existing_data = config.characters || {}
     if lang
       # Save to language-specific section
       existing_data[lang] = data
@@ -137,19 +129,9 @@ module BookUtils
     save_yaml_file(file_path, existing_data)
   end
 
-  def save_generation_log(data)
-    file_path = File.join(DATA_DIR, 'generation_log.yml')
+  def save_generation_log(config, data)
+    file_path = '_data/generation_log.yml'
     save_yaml_file(file_path, data)
-  end
-
-  # File operation helpers
-  def load_yaml_file(file_path)
-    if File.exist?(file_path)
-      YAML.load_file(file_path) || {}
-    else
-      puts "Warning: #{file_path} not found, returning empty hash"
-      {}
-    end
   end
 
   def save_yaml_file(file_path, data)
@@ -179,21 +161,21 @@ module BookUtils
     chapters.sort_by { |chapter| chapter['chapter_number'] || 0 }
   end
 
-  def get_all_character_slugs(lang = nil)
-    characters = load_characters(lang)
+  def get_all_character_slugs(config, lang = nil)
+    characters = load_characters(config, lang)
     characters['characters']&.keys || []
   end
 
-  def get_characters_by_slugs(slugs, lang = nil)
-    characters = load_characters(lang)
+  def get_characters_by_slugs(config, slugs, lang = nil)
+    characters = load_characters(config, lang)
     return [] if characters.empty? || !characters['characters']
 
     slugs.filter_map { |slug| characters['characters'][slug] }
   end
 
   # Generation helpers
-  def log_generation(type, content_id, details = {})
-    log = load_generation_log
+  def log_generation(config, type, content_id, details = {})
+    log = load_generation_log(config)
     log['generations'] ||= []
 
     generation_entry = {
@@ -203,27 +185,27 @@ module BookUtils
     }.merge(details)
 
     log['generations'] << generation_entry
-    save_generation_log(log)
+    save_generation_log(config, log)
   end
 
-  def get_used_plot_devices
-    log = load_generation_log
+  def get_used_plot_devices(config)
+    log = load_generation_log(config)
     log['used_plot_devices'] || []
   end
 
-  def add_used_plot_device(device)
-    log = load_generation_log
+  def add_used_plot_device(config, device)
+    log = load_generation_log(config)
     log['used_plot_devices'] ||= []
 
     return if log['used_plot_devices'].include?(device)
 
     log['used_plot_devices'] << device
-    save_generation_log(log)
+    save_generation_log(config, log)
   end
 
   # Character relationship helpers
-  def update_character_interaction(char1_slug, char2_slug, interaction_type)
-    log = load_generation_log
+  def update_character_interaction(config, char1_slug, char2_slug, interaction_type)
+    log = load_generation_log(config)
     log['character_interactions'] ||= {}
 
     key = [char1_slug, char2_slug].sort.join('_')
@@ -233,11 +215,11 @@ module BookUtils
       'date' => Date.today.to_s
     }
 
-    save_generation_log(log)
+    save_generation_log(config, log)
   end
 
-  def get_character_interactions(char_slug)
-    log = load_generation_log
+  def get_character_interactions(config, char_slug)
+    log = load_generation_log(config)
     interactions = log['character_interactions'] || {}
 
     interactions.select do |key, _|

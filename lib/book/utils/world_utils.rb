@@ -7,10 +7,11 @@ module WorldUtils
   include BookUtils
 
   # Build world context hash for prompt placeholders
+  # @param config [Config] Configuration object
   # @param lang [String] Language code (default: 'en')
   # @return [Hash] World context data formatted for prompt placeholders
-  def build_world_context(lang = 'en')
-    world_data = load_world_data(lang)
+  def build_world_context(config, lang = 'en')
+    world_data = load_world_data(config, lang)
     return default_world_context if world_data.empty?
 
     {

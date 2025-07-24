@@ -10,9 +10,10 @@ module Book
   class Translator
     include BookUtils
 
-    def initialize(model_override = nil)
+    def initialize(config: nil, model_override: nil)
+      @config = config || Config.new
       @source_lang = 'en' # Always translate FROM English
-      @llm_service = LLMService.new('scripts/llm_config.yml', model_override)
+      @llm_service = LLMService.new(config: @config, model_override: model_override)
     end
 
     # Translate a single chapter using the LLM service.
@@ -22,7 +23,7 @@ module Book
     # to curate it manually.
     def translate_chapter_with_ai(chapter_number, target_lang)
       # Find the English chapter file using the standard naming convention
-      source_file = "_chapters/#{format_chapter_filename(chapter_number)}"
+      source_file = "#{@config.chapters_dir}/#{format_chapter_filename(chapter_number)}"
 
       unless File.exist?(source_file)
         puts "❌ Chapter #{chapter_number} not found at #{source_file}"
@@ -36,7 +37,7 @@ module Book
 
       # Generate target filename using suffix approach (consistent with project pattern)
       source_basename = File.basename(source_file, '.md')
-      target_file = "_chapters/#{source_basename}.#{target_lang}.md"
+      target_file = "#{@config.chapters_dir}/#{source_basename}.#{target_lang}.md"
 
       begin
         # Build glossary for consistent name usage (if available)
@@ -66,10 +67,10 @@ module Book
 
     def translate_character_with_ai(character_slug, target_lang)
       # Find the English character file
-      source_file = "_characters/#{character_slug}.md"
+      source_file = "#{@config.characters_dir}/#{character_slug}.md"
 
       unless File.exist?(source_file)
-        puts "❌ Character '#{character_slug}' not found in _characters/"
+        puts "❌ Character '#{character_slug}' not found in #{@config.characters_dir}/"
         return false
       end
 
@@ -79,7 +80,7 @@ module Book
       character_data = parse_character_file(source_file)
 
       # Generate target filename using suffix approach (consistent with project pattern)
-      target_file = "_characters/#{character_slug}.#{target_lang}.md"
+      target_file = "#{@config.characters_dir}/#{character_slug}.#{target_lang}.md"
 
       begin
         # Use LLM to translate with structured output
@@ -116,11 +117,11 @@ module Book
 
       # Translate all characters first (only English originals, not already translated files)
       puts "\n👥 Translating characters..."
-      Dir.glob('_characters/*.md').reject { |f| f.include?('.ru.') || f.include?('.en.') }.each do |character_file|
+      Dir.glob("#{@config.characters_dir}/*.md").reject { |f| f.include?('.ru.') || f.include?('.en.') }.each do |character_file|
         character_slug = File.basename(character_file, '.md')
 
         # Check if translation already exists
-        target_file = "_characters/#{character_slug}.#{target_lang}.md"
+        target_file = "#{@config.characters_dir}/#{character_slug}.#{target_lang}.md"
 
         if File.exist?(target_file)
           puts "⏭️  Skipping character #{character_slug} - already translated"
@@ -134,7 +135,7 @@ module Book
 
       # Translate all chapters after characters so glossary is available
       puts "\n📚 Translating chapters..."
-      Dir.glob('_chapters/*.md').reject { |f| f.include?('.ru.') || f.include?('.en.') }.each do |chapter_file|
+      Dir.glob("#{@config.chapters_dir}/*.md").reject { |f| f.include?('.ru.') || f.include?('.en.') }.each do |chapter_file|
         chapter_data = parse_chapter_file(chapter_file)
         chapter_num = chapter_data['chapter_number']
 
@@ -142,7 +143,7 @@ module Book
 
         # Check if translation already exists
         source_basename = File.basename(chapter_file, '.md')
-        target_file = "_chapters/#{source_basename}.#{target_lang}.md"
+        target_file = "#{@config.chapters_dir}/#{source_basename}.#{target_lang}.md"
 
         if File.exist?(target_file)
           puts "⏭️  Skipping Chapter #{chapter_num} - already translated"
@@ -171,11 +172,11 @@ module Book
     def build_name_glossary(target_lang)
       glossary_lines = []
 
-      Dir.glob('_characters/*.md').each do |english_file|
+      Dir.glob("#{@config.characters_dir}/*.md").each do |english_file|
         next if english_file.include?(".#{target_lang}.") || english_file.include?('.en.')
 
         slug = File.basename(english_file, '.md')
-        translated_file = "_characters/#{slug}.#{target_lang}.md"
+        translated_file = "#{@config.characters_dir}/#{slug}.#{target_lang}.md"
         next unless File.exist?(translated_file)
 
         english_name = extract_name_from_character_file(english_file)

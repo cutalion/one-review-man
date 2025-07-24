@@ -18,8 +18,8 @@ class LLMService
   # Models that use max_completion_tokens instead of max_tokens
   O3_MODELS = %w[o3-mini o3].freeze
 
-  def initialize(config_file = 'scripts/llm_config.yml', model_override = nil)
-    @config = load_config(config_file)
+  def initialize(config: nil, model_override: nil)
+    @config = config || Config.new
     @model_override = model_override
     @client = setup_client
   end
@@ -208,23 +208,12 @@ class LLMService
 
   private
 
-  def load_config(config_file)
-    if File.exist?(config_file)
-      YAML.load_file(config_file) || {}
-    else
-      puts "⚠️  LLM config file not found at #{config_file}"
-      puts 'Creating example config file...'
-      create_example_config(config_file)
-      {}
-    end
-  end
-
   def setup_client
     # Use environment variables first (recommended), then fall back to config
-    api_key = ENV['OPENAI_API_KEY'] || @config['openai_api_key']
-    organization = ENV['OPENAI_ORG_ID'] || @config['openai_org_id']
-    ENV['OPENAI_PROJECT_ID'] || @config['openai_project_id']
-    base_url = ENV['OPENAI_BASE_URL'] || @config['openai_base_url']
+    api_key = ENV['OPENAI_API_KEY'] || @config.llm_config['openai_api_key']
+    organization = ENV['OPENAI_ORG_ID'] || @config.llm_config['openai_org_id']
+    ENV['OPENAI_PROJECT_ID'] || @config.llm_config['openai_project_id']
+    base_url = ENV['OPENAI_BASE_URL'] || @config.llm_config['openai_base_url']
 
     unless api_key
       puts '⚠️  No OpenAI API key found in environment or config. Using mock responses...'
@@ -242,7 +231,7 @@ class LLMService
     client_options[:organization_id] = organization if organization
     # NOTE: ruby-openai gem doesn't support project parameter
     client_options[:uri_base] = base_url if base_url
-    client_options[:request_timeout] = @config['timeout'] || 240
+    client_options[:request_timeout] = @config.llm_config['timeout'] || 240
 
     OpenAI::Client.new(**client_options)
   end
@@ -843,11 +832,11 @@ class LLMService
   # Get task-specific configuration options
   def get_task_options(task_type, base_options = {})
     # Start with default options
-    merged_options = (@config['default_options'] || {}).dup
+    merged_options = (@config.llm_config['default_options'] || {}).dup
 
     # Override with task-specific options if they exist
-    if @config['task_options'] && @config['task_options'][task_type]
-      merged_options.merge!(@config['task_options'][task_type])
+    if @config.llm_config['task_options'] && @config.llm_config['task_options'][task_type]
+      merged_options.merge!(@config.llm_config['task_options'][task_type])
     end
 
     # Apply generous defaults if max_tokens not specified
@@ -874,11 +863,11 @@ class LLMService
     return @model_override if @model_override
 
     # Try task-specific model first
-    if @config['models'] && @config['models'][task_type]
-      @config['models'][task_type]
+    if @config.llm_config['models'] && @config.llm_config['models'][task_type]
+      @config.llm_config['models'][task_type]
     else
       # Fall back to default model
-      @config['model'] || DEFAULT_MODEL
+      @config.llm_config['model'] || DEFAULT_MODEL
     end
   end
 

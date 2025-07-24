@@ -32,7 +32,7 @@ RSpec.describe 'book translation' do
 
     it 'calls the Translator for chapters' do
       # Mock the Translator to avoid actual LLM calls
-      expect(Book::Translator).to receive(:new).with('gpt-4o').and_call_original
+      expect(Book::Translator).to receive(:new).with(model_override: 'gpt-4o').and_call_original
       # Stub the translate_chapter_with_ai method to prevent it from running
       expect_any_instance_of(Book::Translator).to receive(:translate_chapter_with_ai).with(1, 'ru')
 
@@ -44,7 +44,7 @@ RSpec.describe 'book translation' do
 
     it 'calls the Translator for characters' do
       # Mock the Translator to avoid actual LLM calls
-      expect(Book::Translator).to receive(:new).with('gpt-4o').and_call_original
+      expect(Book::Translator).to receive(:new).with(model_override: 'gpt-4o').and_call_original
       # Stub the translate_character_with_ai method to prevent it from running
       expect_any_instance_of(Book::Translator).to receive(:translate_character_with_ai).with('test_character', 'ru')
 
@@ -56,7 +56,7 @@ RSpec.describe 'book translation' do
 
     it 'calls the Translator for all content' do
       # Mock the Translator to avoid actual LLM calls
-      expect(Book::Translator).to receive(:new).with('gpt-4o').and_call_original
+      expect(Book::Translator).to receive(:new).with(model_override: 'gpt-4o').and_call_original
       # Stub the translate_all_content method to prevent it from running
       expect_any_instance_of(Book::Translator).to receive(:translate_all_content).with('ru')
 

@@ -6,6 +6,7 @@ require_relative 'cli/version'
 require_relative '../book/chapter_generator'
 require_relative '../book/translator'
 require_relative '../book/reset'
+require_relative '../book/config'
 
 module Book
   module CLI
@@ -63,7 +64,7 @@ module Book
         # files, while the simpler smoke tests exercise the behaviour without
         # any additional setup.
         if Dir.exist?('_data') && File.exist?(File.join('_data', 'book_metadata.yml'))
-          generator = Book::ChapterGenerator.new(model_name)
+          generator = Book::ChapterGenerator.new(model_override: model_name)
           generator.generate_next_chapter(auto_generate: options[:auto])
         end
       end
@@ -79,21 +80,21 @@ module Book
       desc 'chapter <number> <lang>', 'Translate a chapter'
       method_option :model, type: :string, desc: 'Specify LLM model (e.g., gpt-4o, gpt-4o-mini)'
       def chapter(number, lang)
-        translator = Book::Translator.new(options[:model])
+        translator = Book::Translator.new(model_override: options[:model])
         translator.translate_chapter_with_ai(number.to_i, lang)
       end
 
       desc 'character <slug> <lang>', 'Translate a character'
       method_option :model, type: :string, desc: 'Specify LLM model (e.g., gpt-4o, gpt-4o-mini)'
       def character(slug, lang)
-        translator = Book::Translator.new(options[:model])
+        translator = Book::Translator.new(model_override: options[:model])
         translator.translate_character_with_ai(slug, lang)
       end
 
       desc 'all <lang>', 'Translate all content'
       method_option :model, type: :string, desc: 'Specify LLM model (e.g., gpt-4o, gpt-4o-mini)'
       def all(lang)
-        translator = Book::Translator.new(options[:model])
+        translator = Book::Translator.new(model_override: options[:model])
         translator.translate_all_content(lang)
       end
     end
@@ -129,8 +130,7 @@ module Book
 
       desc 'site', 'Clean generated site files'
       def site
-        reset = Book::Reset.new
-        reset.reset_generated_site
+        Book::JekyllHelper.clean_generated_site
       end
 
       desc 'status', 'Show current book status'

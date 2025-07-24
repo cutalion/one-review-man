@@ -4,12 +4,14 @@
 require 'yaml'
 require 'fileutils'
 require_relative 'utils/book_utils'
+require_relative 'jekyll_helper'
 
 module Book
   class Reset
     include BookUtils
 
-    def initialize
+    def initialize(config: nil)
+      @config = config || Config.new
       @dry_run = false
     end
 
@@ -41,7 +43,7 @@ module Book
       success &= reset_characters(force: true)
       success &= reset_chapters(force: true)
       success &= reset_data_files
-      success &= reset_generated_site
+      success &= JekyllHelper.clean_generated_site
 
       if success
         puts "\n✅ Book reset completed successfully!"
@@ -56,7 +58,7 @@ module Book
     def reset_characters(force: false)
       unless force
         puts "\n📊 Character Reset Preview:"
-        character_files = Dir.glob('_characters/*.md')
+        character_files = Dir.glob("#{@config.characters_dir}/*.md")
         if character_files.empty?
           puts '  No character files found.'
           return true # Nothing to reset
@@ -82,7 +84,7 @@ module Book
       puts "\n🎭 Resetting characters..."
 
       # Remove character files
-      character_files = Dir.glob('_characters/*.md')
+      character_files = Dir.glob("#{@config.characters_dir}/*.md")
       character_files.each do |file|
         File.delete(file)
         puts "  🗑️  Deleted: #{file}"
@@ -101,7 +103,7 @@ module Book
     def reset_chapters(force: false)
       unless force
         puts "\n📊 Chapter Reset Preview:"
-        chapter_files = Dir.glob('_chapters/*.md')
+        chapter_files = Dir.glob("#{@config.chapters_dir}/*.md")
         if chapter_files.empty?
           puts '  No chapter files found.'
           return true # Nothing to reset
@@ -127,7 +129,7 @@ module Book
       puts "\n📚 Resetting chapters..."
 
       # Remove chapter files
-      chapter_files = Dir.glob('_chapters/*.md')
+      chapter_files = Dir.glob("#{@config.chapters_dir}/*.md")
       chapter_files.each do |file|
         File.delete(file)
         puts "  🗑️  Deleted: #{file}"
@@ -154,35 +156,13 @@ module Book
       false
     end
 
-    def reset_generated_site
-      puts "\n🌐 Cleaning generated site..."
-
-      # Clean Jekyll cache
-      if Dir.exist?('.jekyll-cache')
-        FileUtils.rm_rf('.jekyll-cache')
-        puts '  🗑️  Deleted: .jekyll-cache/'
-      end
-
-      # Clean _site directory
-      if Dir.exist?('_site')
-        FileUtils.rm_rf('_site')
-        puts '  🗑️  Deleted: _site/'
-      end
-
-      puts '✅ Generated site cleanup completed.'
-      true
-    rescue StandardError => e
-      puts "❌ Error cleaning generated site: #{e.message}"
-      false
-    end
-
     def status
       puts '📊 Book Status'
       puts '=' * 30
 
       # Characters
-      character_files = Dir.glob('_characters/*.md')
-      characters_data = load_characters
+      character_files = Dir.glob("#{@config.characters_dir}/*.md")
+      characters_data = load_characters(@config)
       char_count = characters_data['characters']&.size || 0
 
       puts 'Characters:'
@@ -190,7 +170,7 @@ module Book
       puts "  💾 In YAML: #{char_count}"
 
       # Chapters
-      chapter_files = Dir.glob('_chapters/*.md')
+      chapter_files = Dir.glob("#{@config.chapters_dir}/*.md")
       chapters_data = get_all_chapters
 
       puts "\nChapters:"
@@ -200,7 +180,7 @@ module Book
       # Data files
       puts "\nData Files:"
       %w[book_metadata.yml characters.yml generation_log.yml strings.yml].each do |file|
-        path = File.join('_data', file)
+        path = File.join(@config.data_dir, file)
         status = File.exist?(path) ? '✅ Exists' : '❌ Missing'
         puts "  #{file}: #{status}"
       end
@@ -267,7 +247,7 @@ module Book
         }
       }
 
-      File.write('_data/book_metadata.yml', initial_data.to_yaml)
+      File.write("#{@config.data_dir}/book_metadata.yml", initial_data.to_yaml)
       puts '  📝 Reset: book_metadata.yml'
     end
 
@@ -278,7 +258,7 @@ module Book
         }
       }
 
-      File.write('_data/characters.yml', initial_data.to_yaml)
+      File.write("#{@config.data_dir}/characters.yml", initial_data.to_yaml)
       puts '  📝 Reset: characters.yml'
     end
 
@@ -289,7 +269,7 @@ module Book
         'character_interactions' => {}
       }
 
-      File.write('_data/generation_log.yml', initial_data.to_yaml)
+      File.write("#{@config.data_dir}/generation_log.yml", initial_data.to_yaml)
       puts '  📝 Reset: generation_log.yml'
     end
   end

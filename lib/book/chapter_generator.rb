@@ -8,18 +8,26 @@ require_relative 'utils/book_utils'
 require_relative 'utils/world_utils'
 require_relative 'utils/llm_service'
 require_relative 'utils/prompt_utils'
+require_relative 'jekyll_writer'
+require_relative 'mock_llm_service'
 
 module Book
   class ChapterGenerator
     include BookUtils
     include WorldUtils
 
-    def initialize(model_override = nil)
+    def initialize(config: nil, model_override: nil)
+      @config = config || Config.new
       # Always generate in English
-      @book_data = load_book_data
-      @characters = load_characters
-      @generation_log = load_generation_log
-      @llm_service = LLMService.new('scripts/llm_config.yml', model_override)
+      @book_data = load_book_data(@config)
+      @characters = load_characters(@config)
+      @generation_log = load_generation_log(@config)
+      if ENV['MOCK_AI'] == 'true'
+        @llm_service = MockLLMService.new(config: @config, model_override: model_override)
+      else
+        @llm_service = LLMService.new(config: @config, model_override: model_override)
+      end
+      @jekyll_writer = JekyllWriter.new(@config)
     end
 
     def generate_next_chapter(auto_generate: false)
@@ -54,7 +62,7 @@ module Book
         chapter_data = @llm_service.generate_chapter_structured(prompt)
 
         if chapter_data && chapter_data['content'] && !chapter_data['content'].strip.empty?
-          create_chapter_file_structured(current_chapter, chapter_data, characters)
+          @jekyll_writer.write_chapter(current_chapter, chapter_data, characters)
           update_book_progress(current_chapter)
 
           puts "✅ Chapter #{current_chapter} generated successfully!"
@@ -84,7 +92,7 @@ module Book
       end
 
       # Get current content
-      chapter_file = "_chapters/#{format_chapter_filename(chapter_number)}"
+      chapter_file = "#{@config.chapters_dir}/#{format_chapter_filename(chapter_number)}"
       current_content = extract_chapter_content(chapter_file)
 
       if current_content.empty?
@@ -120,7 +128,7 @@ module Book
 
       # Get characters from existing chapter
       characters = existing_chapter['characters'] || []
-      character_objects = get_characters_by_slugs(characters)
+      character_objects = get_characters_by_slugs(@config, characters)
 
       # Build and display prompt
       prompt = build_chapter_prompt(chapter_number, character_objects)
@@ -148,7 +156,7 @@ module Book
 
       # Get characters from existing chapter
       characters = existing_chapter['characters'] || []
-      character_objects = get_characters_by_slugs(characters)
+      character_objects = get_characters_by_slugs(@config, characters)
 
       # Build prompt
       prompt = build_chapter_prompt(chapter_number, character_objects)
@@ -160,7 +168,7 @@ module Book
         chapter_data = @llm_service.generate_chapter_structured(prompt)
 
         # Update chapter file with structured data
-        chapter_file = "_chapters/#{format_chapter_filename(chapter_number)}"
+        chapter_file = "#{@config.chapters_dir}/#{format_chapter_filename(chapter_number)}"
         update_chapter_with_structured_content(chapter_file, chapter_data)
 
         puts "✅ Chapter #{chapter_number} regenerated successfully!"
@@ -214,7 +222,7 @@ module Book
       end.join("\n")
 
       # Get used plot devices
-      used_devices = get_used_plot_devices
+      used_devices = get_used_plot_devices(@config)
 
       # Get character real names for template replacement
       one_review_man = @characters['characters'].values.find { |c| c['name'] == 'One Review Man' }
@@ -224,7 +232,7 @@ module Book
       quantum_android_real_name = quantum_android&.dig('real_name') || '[to be generated]'
 
       # Build world consistency context
-      world_context = build_world_context
+      world_context = build_world_context(@config)
 
       # Build placeholders hash
       placeholders = {
@@ -308,48 +316,6 @@ module Book
       }
     end
 
-    def create_chapter_file_structured(chapter_num, chapter_data, characters)
-      filename = "_chapters/#{format_chapter_filename(chapter_num)}"
-
-      # Extract new characters if present
-      new_characters = chapter_data['new_characters'] || []
-      character_slugs = new_characters.map { |char| slugify(char['name']) }
-
-      # Generate proper permalink for Jekyll Polyglot (use dashes, not underscores)
-      chapter_slug = format_chapter_filename(chapter_num).gsub('.md', '').gsub('_', '-')
-      permalink = "/chapters/#{chapter_slug}/"
-
-      front_matter = {
-        'layout' => 'chapter',
-        'title' => chapter_data['title'],
-        'chapter_number' => chapter_num,
-        'characters' => characters.map { |c| c['slug'] },
-        'new_characters' => character_slugs,
-        'summary' => chapter_data['summary'],
-        'programming_themes' => chapter_data['programming_themes'] || [],
-        'comedy_elements' => chapter_data['comedy_elements'] || [],
-        'word_count' => chapter_data['word_count'],
-        'difficulty_level' => chapter_data['difficulty_level'],
-        'one_punch_man_references' => chapter_data['one_punch_man_references'] || [],
-        'permalink' => permalink,
-        'generated_date' => Date.today.to_s,
-        'status' => 'generated',
-        'lang' => 'en'
-      }
-
-      File.open(filename, 'w') do |file|
-        file.puts '---'
-        file.puts front_matter.to_yaml.lines[1..] # Skip first "---" line
-        file.puts '---'
-        file.puts ''
-        file.puts chapter_data['content']
-        file.puts ''
-      end
-
-      # Auto-create any new characters mentioned
-      create_new_characters_structured(new_characters, chapter_num) if new_characters.any?
-    end
-
     def create_new_characters_structured(new_characters, chapter_num)
       puts "\n🎭 Creating new characters mentioned in the chapter..."
 
@@ -386,10 +352,10 @@ module Book
 
           # Add to characters data
           @characters['characters'][slug] = character_data
-          save_characters(@characters)
+          save_characters(@config, @characters)
 
           # Create character page
-          create_character_page(slug, character_data)
+          @jekyll_writer.write_character_page(slug, character_data)
 
           puts "✅ Created character: #{char_data['name']}"
         rescue LLMService::LLMError => e
@@ -405,7 +371,7 @@ module Book
           }
 
           @characters['characters'][slug] = basic_character
-          save_characters(@characters)
+          save_characters(@config, @characters)
           puts 'Created basic character entry for manual completion'
         end
       end
@@ -526,66 +492,6 @@ module Book
       end
     end
 
-    def create_character_page(slug, character_data)
-      filename = "_characters/#{slug}.md"
-
-      # Generate proper permalink for Jekyll Polyglot (use dashes, not underscores)
-      permalink_slug = slug.gsub('_', '-')
-      permalink = "/characters/#{permalink_slug}/"
-
-      front_matter = {
-        'layout' => 'character',
-        'name' => character_data['name'],
-        'slug' => slug,
-        'description' => character_data['description'],
-        'personality_traits' => character_data['personality_traits'] || [],
-        'programming_skills' => character_data['programming_skills'],
-        'first_appearance' => character_data['first_appearance'],
-        'permalink' => permalink,
-        'created_date' => Date.today.to_s,
-        'lang' => 'en'
-      }
-
-      File.open(filename, 'w') do |file|
-        file.puts '---'
-        file.puts front_matter.to_yaml.lines[1..]
-        file.puts '---'
-        file.puts ''
-
-        file.puts "## About #{character_data['name']}"
-        file.puts ''
-        file.puts character_data['description']
-        file.puts ''
-
-        if character_data['backstory']
-          file.puts '## Backstory'
-          file.puts ''
-          file.puts character_data['backstory']
-          file.puts ''
-        end
-
-        if character_data['quirks']
-          file.puts '## Notable Quirks'
-          file.puts ''
-          file.puts character_data['quirks']
-          file.puts ''
-        end
-
-        if character_data['catchphrase']
-          file.puts '## Catchphrase'
-          file.puts ''
-          file.puts "> \"#{character_data['catchphrase']}\""
-          file.puts ''
-        end
-
-        file.puts '## Appearances'
-        file.puts ''
-        file.puts "First appeared in: #{character_data['first_appearance'] || 'To be determined'}"
-        file.puts ''
-        file.puts '<!-- Chapter appearances will be tracked automatically -->'
-      end
-    end
-
     def slugify(name)
       name.downcase.gsub(/[^a-z0-9\u0430-\u044f]+/, '_').gsub(/^_+|_+$/, '')
     end
@@ -599,10 +505,10 @@ module Book
       @book_data['status']['last_generated'] = Date.today.to_s
       @book_data['status']['generation_count'] += 1
 
-      save_book_data(@book_data)
+      save_book_data(@config, @book_data)
 
       # Log generation
-      log_generation('chapter', "chapter-#{format('%03d', chapter_num)}", {
+      log_generation(@config, 'chapter', "chapter-#{format('%03d', chapter_num)}", {
                        'language' => 'en',
                        'characters_involved' => [],
                        'new_characters' => [],
@@ -641,7 +547,7 @@ module Book
     end
 
     def create_empty_chapter_structure(current_chapter, characters)
-      filename = "_chapters/#{format_chapter_filename(current_chapter)}"
+      filename = "#{@config.chapters_dir}/#{format_chapter_filename(current_chapter)}"
 
       front_matter = {
         'layout' => 'chapter',
@@ -685,7 +591,7 @@ module Book
       @book_data['status']['generation_count'] ||= 0
       @book_data['status']['generation_count'] += 1
 
-      save_book_data(@book_data)
+      save_book_data(@config, @book_data)
       puts "📈 Updated book progress: Chapter #{current_chapter} completed"
     end
   end
