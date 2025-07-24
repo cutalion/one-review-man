@@ -11,8 +11,13 @@ echo "Testing with old system..."
 # old_chapter=$(cat _chapters/001-chapter.md)
 
 echo "Testing with new system..."
+TEST_DIR=$(mktemp -d)
+cp -r . $TEST_DIR
+cd $TEST_DIR
 bin/book generate chapter 1 --auto
 new_chapter=$(cat _chapters/001-chapter.md)
+cd ..
+rm -rf $TEST_DIR
 
 # Compare structure (not exact content)
 if [[ "$new_chapter" =~ ^---.*layout:\ chapter ]] && [[ "$new_chapter" =~ ^---.*layout:\ chapter ]]; then
