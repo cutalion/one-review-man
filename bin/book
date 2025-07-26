@@ -1,7 +1,0 @@
-#!/usr/bin/env ruby
-
-# frozen_string_literal: true
-
-require_relative '../lib/book/cli'
-
-Book::CLI::Runner.start(ARGV) 

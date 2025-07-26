@@ -1,0 +1,82 @@
+---
+en:
+  world:
+    company:
+      name: HeroTech Solutions
+      description: A small but ambitious startup nestled between a coffee shop named "Infinite Loop Café" and a gym ironically named "404 Fitness"
+      type: tech_startup
+      established_chapter: Chapter 1
+    
+    locations:
+      office:
+        name: HeroTech Solutions Office
+        description: Casual tech startup office with open floor plan
+        nearby_locations:
+          - name: Infinite Loop Café
+            type: coffee_shop
+          - name: 404 Fitness
+            type: gym
+        established_chapter: Chapter 1
+      
+      server_room:
+        name: Server Room
+        description: Room with blinking lights and old repository access
+        established_chapter: Chapter 3
+      
+      dev_corner:
+        name: Developer Corner
+        description: Area where developers work, often in chaos during production issues
+        established_chapter: Chapter 1
+      
+      conference_room:
+        name: Main Conference Room
+        description: Room with whiteboards for technical discussions and sprint planning
+        established_chapter: Chapter 3
+    
+    meetings:
+      standup:
+        name: Morning Stand-up
+        description: Daily morning meeting led by Project Manager Alice
+        format: quick team updates
+        established_chapter: Chapter 1
+    
+    infrastructure:
+      legacy_system:
+        name: Ancient Legacy Codebase
+        description: Pre-Git legacy system with COBOL, Perl, VB6, ancient PHP, and Visual Basic scripts embedded in Excel macros
+        danger_level: critical
+        established_chapter: Chapter 3
+      
+      production:
+        name: Production Environment
+        description: Critical production systems that frequently crash and require immediate attention
+        established_chapter: Chapter 1
+    
+    culture:
+      code_review_process:
+        description: Standard PR review process where Kenji's code gets instant approval while others struggle
+        established_chapter: Chapter 1
+      
+      dismissal_pattern:
+        description: Colleagues consistently dismiss Kenji's abilities as luck or trivial solutions
+        established_chapter: Chapter 1
+        
+    established_facts:
+      - Kenji is known as "One Review Man" but colleagues don't call him that seriously
+      - His PRs get instant approval from reviewers
+      - Colleagues attribute his success to luck rather than skill
+      - Kai calls Kenji "sensei" and takes notes of his wisdom
+      - The company has a casual dress code (Kenji wears hoodies)
+      - Production systems frequently crash requiring urgent fixes
+      - Legacy code is considered extremely dangerous and complex
+      - Year 2024 setting (with TODO comment warning about 2024)
+
+ru:
+  world:
+    company:
+      name: ГеройТех Солюшнс
+      description: Небольшой, но амбициозный стартап, расположенный между кофейней "Бесконечный Цикл" и спортзалом с ироничным названием "404 Фитнес"
+      type: tech_startup
+      established_chapter: Глава 1
+    
+    # Russian translations would follow the same structure... 

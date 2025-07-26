@@ -1,0 +1,92 @@
+<!-- Language switcher -->
+<div class="language-switcher">
+  {% if page.lang == 'ru' %}
+    <a href="#" class="lang-link" id="en-link">EN</a>
+    <a href="#" class="lang-link active" id="ru-link">RU</a>
+  {% else %}
+    <a href="#" class="lang-link active" id="en-link">EN</a>
+    <a href="#" class="lang-link" id="ru-link">RU</a>
+  {% endif %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const currentPath = window.location.pathname;
+  const enLink = document.getElementById('en-link');
+  const ruLink = document.getElementById('ru-link');
+  
+  // Determine English and Russian URLs
+  let englishUrl, russianUrl;
+  
+  if (currentPath.startsWith('/ru/')) {
+    // Currently on Russian page
+    englishUrl = currentPath.replace('/ru/', '/');
+    russianUrl = currentPath;
+  } else {
+    // Currently on English page
+    englishUrl = currentPath;
+    russianUrl = '/ru' + currentPath;
+  }
+  
+  // Handle root paths
+  if (englishUrl === '/') englishUrl = '/';
+  if (russianUrl === '/ru') russianUrl = '/ru/';
+  
+  // Set the URLs
+  enLink.href = englishUrl;
+  ruLink.href = russianUrl;
+  
+  // Prevent default for safety
+  enLink.addEventListener('click', function(e) {
+    e.preventDefault();
+    window.location.href = englishUrl;
+  });
+  
+  ruLink.addEventListener('click', function(e) {
+    e.preventDefault();
+    window.location.href = russianUrl;
+  });
+});
+</script>
+
+<style>
+.language-switcher {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  display: flex;
+  gap: 0.5rem;
+  background: white;
+  padding: 0.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  z-index: 1000;
+}
+
+.lang-link {
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  text-decoration: none;
+  color: #7f8c8d;
+  font-weight: bold;
+  transition: all 0.2s ease;
+}
+
+.lang-link:hover, .lang-link.active {
+  background-color: #3498db;
+  color: white;
+}
+
+@media (max-width: 768px) {
+  .language-switcher {
+    top: 0.5rem;
+    right: 0.5rem;
+    padding: 0.25rem;
+  }
+  
+  .lang-link {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.9rem;
+  }
+}
+</style> 

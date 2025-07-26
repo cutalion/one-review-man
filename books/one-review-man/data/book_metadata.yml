@@ -1,0 +1,39 @@
+---
+book:
+  target_chapters: 50
+  current_chapter: 6
+generation:
+  chapter_length_target: 1500-3000 words
+  complexity_level: medium
+  character_consistency: true
+status:
+  last_generated: '2025-07-15'
+  generation_count: 6
+  characters_created: 0
+  active_storylines: []
+  chapters_written: 6
+localized:
+  en:
+    title: One Review Man
+    subtitle: An AI-Generated Comedy of Errors
+    author: AI Collective
+    genre: Humor/Comedy
+    humor_style: absurdist
+    themes:
+      primary: workplace comedy
+      secondary:
+      - mistaken identity
+      - bureaucratic absurdity
+      - everyday situations gone wrong
+  ru:
+    title: Ванревьюмэн
+    subtitle: ИИ-генерируемая Комедия Ошибок
+    author: ИИ Коллектив
+    genre: Юмор/Комедия
+    humor_style: абсурдистский
+    themes:
+      primary: рабочая комедия
+      secondary:
+      - ошибочная идентичность
+      - бюрократический абсурд
+      - обычные ситуации, которые идут не так

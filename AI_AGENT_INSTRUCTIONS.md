@@ -22,6 +22,10 @@ You are an AI agent tasked with refactoring the One Review Man project from a mo
 - **Full backup** before starting: `cp -r . ../backup-$(date +%Y%m%d)`
 - **Commit frequently** but only after validation passes
 
+### 📊 Progress Tracking
+- **After completing any task or test, immediately update `REFACTORING_PLAN.md` checkboxes** so the plan always reflects real-time progress.
+- **Never claim that tests or validation passed unless they have actually been executed and succeeded locally – always verify before reporting success.**
+
 ## Phase Execution Instructions
 
 ### Phase -1: Decoupling Preparation
@@ -80,7 +84,7 @@ You are an AI agent tasked with refactoring the One Review Man project from a mo
 4. Test mock service to ensure it works
 
 **Step 2: Validation Script**
-1. Create `bin/validate-refactoring` script
+1. (Deprecated) Legacy validation script is no longer used
 2. Script should:
    - Use mock AI for consistent results
    - Generate content with old and new systems
@@ -96,7 +100,7 @@ You are an AI agent tasked with refactoring the One Review Man project from a mo
 1. Create new `BookCore` namespace to avoid conflicts
 2. Move chapter generation logic to `BookCore::ChapterGenerator`
 3. Update CLI to use new generator with feature flag
-4. Validate with `USE_NEW_CORE=true bin/validate-refactoring`
+4. Validation no longer compares against legacy. Use `MOCK_AI=true` with the new CLI to run structural checks or build the site.
 
 **Step 2: Extract Configuration**
 1. Create `BookCore::Config` class

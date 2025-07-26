@@ -1,0 +1,16 @@
+<span class="character-mention">
+  {% assign character_page = site.characters | where: "slug", include.character.slug | first %}
+  {% if character_page %}
+    <a href="{{ character_page.url }}" 
+       class="character-link" 
+       title="{{ include.character.description }}">
+      {{ include.character.name }}
+    </a>
+  {% else %}
+    <a href="/characters/{{ include.character.slug | slugify }}" 
+       class="character-link" 
+       title="{{ include.character.description }}">
+      {{ include.character.name }}
+    </a>
+  {% endif %}
+</span>
