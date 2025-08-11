@@ -139,9 +139,9 @@ module Book
 
         FileUtils.mkdir_p(target)
         FileUtils.mkdir_p(File.join(target, 'data'))
-        FileUtils.mkdir_p(File.join(target, '_chapters'))
-        FileUtils.mkdir_p(File.join(target, '_characters'))
-        FileUtils.mkdir_p(File.join(target, 'scripts'))
+        # Only keep authored content and data in the book repo
+        FileUtils.mkdir_p(File.join(target, 'content', 'chapters'))
+        FileUtils.mkdir_p(File.join(target, 'content', 'characters'))
 
         # Minimal data files
         write_yaml_file(File.join(target, 'data', 'book_metadata.yml'), {
@@ -152,19 +152,18 @@ module Book
           'default_language' => default_lang
         })
 
-        write_yaml_file(File.join(target, 'data', 'characters.yml'), { 'characters' => [] })
+        # Initialize characters with locale namespace and an empty map
+        write_yaml_file(
+          File.join(target, 'data', 'characters.yml'),
+          {
+            'en' => {
+              'characters' => {}
+            }
+          }
+        )
         write_yaml_file(File.join(target, 'data', 'generation_log.yml'), { 'chapters' => [] })
 
-        # LLM config stub living INSIDE the book folder
-        llm_config_path = File.join(target, 'scripts', 'llm_config.yml')
-        unless File.exist?(llm_config_path)
-          write_yaml_file(llm_config_path, {
-            'provider' => 'openai',
-            'model' => 'gpt-4o-mini',
-            'temperature' => 0.7,
-            'api_key' => ENV['OPENAI_API_KEY'] || 'set-me-via-env'
-          })
-        end
+        # Do not create scripts/ or _chapters/_characters here; keep the book lean
 
         say "Initialised book at: #{target}", :green
       end
@@ -183,7 +182,7 @@ module Book
         # Prefer local template bundled with this repo layout
         template_root = ENV['JEKYLL_TEMPLATE_PATH'] || File.expand_path('../../templates/jekyll', __dir__)
         unless Dir.exist?(template_root)
-          say 'Jekyll site template not found. Ensure the jekyll-site package is available.', :red
+          say 'Jekyll site template not found. Set JEKYLL_TEMPLATE_PATH or ensure templates exist at book-generator/templates/jekyll.', :red
           exit 1
         end
 

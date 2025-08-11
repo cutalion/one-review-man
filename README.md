@@ -9,8 +9,8 @@ one-review-man/
 ├── book-generator/          # 📚 Core library + CLI (bin/book)
 │   ├── lib/book_core/       # Core generation/translation engine
 │   └── bin/book             # CLI entrypoint (Thor)
-├── jekyll-site/             # 🏗️ Jekyll adapter + site template
-│   └── site_template/       # Layouts, includes, assets
+├── book-generator/templates/
+│   └── jekyll/              # Jekyll site template (layouts, includes, assets)
 ├── books/                   # 📖 Book content and per-book config
 │   └── one-review-man/
 │       ├── data/            # Book metadata, characters, logs
@@ -112,12 +112,6 @@ Model compatibility helpers:
 Core library:
 ```bash
 cd book-generator
-bundle exec rspec
-```
-
-Jekyll adapter:
-```bash
-cd jekyll-site
 bundle exec rspec
 ```
 

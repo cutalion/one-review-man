@@ -40,7 +40,7 @@ book-generator/bin/book jekyll generate --project-dir /path/to/my-book --dest /p
 - **`BookCore::ChapterGenerator`**: Main content generation engine
 - **`BookCore::LLMService`**: Abstract LLM service interface and implementations
 - **`BookCore::Config`**: Configuration management
-- **`BookCore::JekyllAdapter`**: Jekyll output adapter (bridge to jekyll-site package)
+- **`BookCore::JekyllAdapter`**: Jekyll output adapter
 
 ### Dependency Injection
 
