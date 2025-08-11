@@ -11,30 +11,15 @@ A Jekyll-based static site generator adapter for the book-generator library. Thi
 - **Chapter Navigation**: Seamless navigation between chapters
 - **SEO Optimized**: Meta tags and structured data for better search visibility
 
-## Installation
+## Usage
 
-Add this line to your application's Gemfile:
-
-```ruby
-gem 'book-generator-jekyll'
-```
-
-And then execute:
-
-```bash
-bundle install
-```
+This package now ships only the Jekyll site template. Use the `book` CLI from the `book-generator` gem to generate content and prepare a site. No Ruby API is exposed from this package.
 
 ## Quick Start
 
 ### 1. Initialize a New Book Site
 
-```ruby
-require 'book_generator/jekyll_adapter'
-
-adapter = BookGenerator::JekyllAdapter.new
-adapter.setup_project('./my-book-site')
-```
+Use the `book jekyll generate` command (from the `book-generator` gem) to scaffold a site using this template.
 
 ### 2. Generate Content
 
@@ -128,21 +113,7 @@ polyglot:
 
 ## Integration with Book Generator Core
 
-This package is designed to work seamlessly with the `book-generator` core library:
-
-```ruby
-require 'book_core/chapter_generator'
-require 'book_generator/jekyll_adapter'
-
-# Initialize core generator
-generator = BookCore::ChapterGenerator.new(
-  llm_service: llm_service,
-  output_adapter: BookGenerator::JekyllAdapter.new
-)
-
-# Generate and output content
-generator.generate_chapter(1)
-```
+Use the `book` CLI to generate chapters and characters, and to prepare a site directory that includes this template. There is no direct Ruby `require` from this package.
 
 ## Multi-language Support
 
@@ -192,9 +163,7 @@ bundle exec jekyll serve --livereload
 
 ### Testing
 
-```bash
-bundle exec rspec
-```
+No Ruby code is shipped in this package; there are no specs here.
 
 ## Themes and Templates
 

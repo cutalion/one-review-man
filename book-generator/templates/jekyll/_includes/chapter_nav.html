@@ -1,0 +1,30 @@
+{% assign current_chapter = page.chapter_number %}
+{% assign chapters = site.chapters | where: "lang", page.lang | sort: "chapter_number" %}
+{% assign strings = site.data.strings[page.lang] %}
+
+{% assign prev_chapter = nil %}
+{% assign next_chapter = nil %}
+
+{% for chapter in chapters %}
+  {% if chapter.chapter_number < current_chapter %}
+    {% assign prev_chapter = chapter %}
+  {% elsif chapter.chapter_number > current_chapter and next_chapter == nil %}
+    {% assign next_chapter = chapter %}
+  {% endif %}
+{% endfor %}
+
+<ul>
+  {% if prev_chapter %}
+    <li class="prev-chapter"><a href="{{ prev_chapter.url }}">{{ prev_chapter.title }}</a></li>
+  {% endif %}
+  
+  
+  {% if next_chapter %}
+    <li class="next-chapter"><a href="{{ next_chapter.url }}">{{ next_chapter.title }}</a></li>
+  {% endif %}
+</ul>
+
+{% assign progress_text = strings.chapter.progress | replace: "{current}", current_chapter | replace: "{total}", chapters.size %}
+<p>{{ progress_text }}</p>
+
+ 

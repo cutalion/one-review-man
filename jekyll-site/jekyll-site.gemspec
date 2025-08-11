@@ -6,9 +6,8 @@ Gem::Specification.new do |spec|
   spec.authors       = ["One Review Man Contributors"]
   spec.email         = ["book-generator@example.com"]
 
-  spec.summary       = "Jekyll adapter for the book-generator library"
-  spec.description   = "A Jekyll-based static site generator adapter for the book-generator library. " \
-                       "Provides templates, layouts, and build scripts for creating beautiful book websites."
+  spec.summary       = "Jekyll site template for the book-generator CLI"
+  spec.description   = "Provides Jekyll layouts, includes, and assets for generating book websites. No Ruby API is exposed."
   spec.homepage      = "https://github.com/yourusername/one-review-man"
   spec.license       = "MIT"
   spec.required_ruby_version = ">= 2.7.0"
@@ -19,16 +18,15 @@ Gem::Specification.new do |spec|
 
   # Specify which files should be added to the gem when it is released.
   spec.files = Dir.glob(%w[
-    lib/**/*.rb
     site_template/**/*
     LICENSE.txt
     README.md
   ], File::FNM_DOTMATCH).reject { |f| File.directory?(f) }
 
-  spec.require_paths = ["lib"]
+  spec.require_paths = []
 
   # Runtime dependencies
-  spec.add_dependency "book-generator", "~> 1.0"
+  # No runtime dependency on book-generator; this gem only ships a template.
   spec.add_dependency "jekyll", "~> 4.3"
   spec.add_dependency "jekyll-polyglot", "~> 1.8"
   spec.add_dependency "jekyll-feed", "~> 0.17"

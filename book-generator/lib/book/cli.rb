@@ -181,7 +181,7 @@ module Book
         dest_dir = File.expand_path(dest || options[:dest] || File.join(book_root, 'site'))
 
         # Prefer local template bundled with this repo layout
-        template_root = ENV['JEKYLL_TEMPLATE_PATH'] || File.expand_path('../../../jekyll-site/site_template', __dir__)
+        template_root = ENV['JEKYLL_TEMPLATE_PATH'] || File.expand_path('../../templates/jekyll', __dir__)
         unless Dir.exist?(template_root)
           say 'Jekyll site template not found. Ensure the jekyll-site package is available.', :red
           exit 1
