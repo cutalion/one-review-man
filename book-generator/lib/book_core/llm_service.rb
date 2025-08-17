@@ -42,7 +42,7 @@ module BookCore
     end
 
     # Structured chapter translation (returns hash with title/summary/content)
-    def translate_chapter_structured(title, summary, content, target_lang, glossary = nil)
+    def translate_chapter_structured(title, summary, content, target_lang, glossary = nil, book_metadata = nil)
       if EnvUtils.mock_ai_enabled?
         return {
           'title' => "#{title} (#{target_lang})",
@@ -51,7 +51,7 @@ module BookCore
         }
       end
 
-      prompt = build_chapter_translation_prompt(title, summary, content, target_lang, glossary)
+      prompt = build_chapter_translation_prompt(title, summary, content, target_lang, glossary, book_metadata)
       options = get_task_options('translation', {
         temperature: 0.3,
         system_prompt: 'You are a professional translator specializing in programming humor and technical content. Translate accurately while preserving comedy and technical references. Respond with valid JSON only.',
@@ -337,21 +337,14 @@ module BookCore
       true
     end
 
-    def build_chapter_translation_prompt(title, summary, content, target_lang, glossary)
+    def build_chapter_translation_prompt(title, summary, content, target_lang, glossary, book_metadata = nil)
       language_names = { 'ru' => 'Russian', 'es' => 'Spanish', 'fr' => 'French', 'de' => 'German', 'zh' => 'Chinese' }
       target_language_name = language_names[target_lang] || target_lang.upcase
 
       special_instructions = ''
       if target_lang == 'ru'
-        special_instructions = <<~RUSSIAN
-
-          RUSSIAN TRANSLITERATION RULES:
-          - "One Review Man" → "Ванревьюмен"
-          - "AI-Enhanced Disciple" → "ИИ-Усиленный Ученик"
-          - Keep real names in Japanese style: "Satoru" → "Сатору", "Genki" → "Генки"
-          - Use respectful address: "Сатору-сенсей" for "Satoru-sensei"
-          - Programming terms: mix English and Russian naturally (e.g., "программист", "код", but "pull request", "git")
-        RUSSIAN
+        book_title = book_metadata&.dig('localized', 'en', 'title') || ''
+        special_instructions = build_russian_translation_rules(book_title: book_title)
       end
 
       glossary_block = if glossary && !glossary.to_s.empty?
@@ -482,6 +475,32 @@ module BookCore
       File.write(File.join(@debug_dir, filename), content.to_s)
     rescue StandardError
       # best effort only
+    end
+
+    def build_russian_translation_rules(options = {})
+      # Extract book-specific translation rules from options if provided
+      if options[:book_title] && options[:book_title].include?('One Review Man')
+        # OneReviewMan-specific rules
+        <<~RUSSIAN
+
+          RUSSIAN TRANSLITERATION RULES:
+          - "One Review Man" → "Ванревьюмен"
+          - "AI-Enhanced Disciple" → "ИИ-Усиленный Ученик"
+          - Keep real names in Japanese style: "Satoru" → "Сатору", "Genki" → "Генки"
+          - Use respectful address: "Сатору-сенсей" for "Satoru-sensei"
+          - Programming terms: mix English and Russian naturally (e.g., "программист", "код", but "pull request", "git")
+        RUSSIAN
+      else
+        # Generic translation rules
+        <<~RUSSIAN
+
+          RUSSIAN TRANSLATION GUIDELINES:
+          - Preserve proper names and character names as appropriate for the story
+          - Use natural Russian equivalents for common terms
+          - Keep technical terms in their commonly used form (mix English/Russian as appropriate)
+          - Maintain respectful address forms when present in original
+        RUSSIAN
+      end
     end
   end
 end

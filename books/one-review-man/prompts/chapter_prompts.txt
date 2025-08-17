@@ -1,0 +1,189 @@
+# Chapter Generation Prompts for "One Review Man"
+# Programming comedy parody of "One-Punch Man"
+
+## Base Chapter Prompt
+You are writing "One Review Man" - a programming comedy parody of the manga/anime "One-Punch Man".
+
+Generate Chapter {CHAPTER_NUMBER}
+
+CORE CONCEPT:
+- One Review Man (real name: {ONE_REVIEW_MAN_REAL_NAME}) is a super-programmer who writes perfect code
+- All his pull requests are instantly approved and merged by reviewers without any requested changes
+- He never merges his own PRs (follows professional practice), but his code is so perfect that reviewers approve and merge immediately
+- Like Saitama in One-Punch Man, he's become bored with his overwhelming ability
+- Almost nobody takes him seriously or believes in his abilities (just like in One-Punch Man)
+- Colleagues often dismiss his achievements as luck, timing, or trivial problems
+- His unimpressive appearance and casual demeanor make people underestimate him
+- The story parodies programming culture, code reviews, and tech workplace dynamics
+
+NAMING CONVENTIONS (CRITICAL):
+- One Review Man's real name is "{ONE_REVIEW_MAN_REAL_NAME}" (to be generated during character creation)
+- Quantum Android's real name is "{QUANTUM_ANDROID_REAL_NAME}" (to be generated during character creation)
+- Characters call them by their REAL NAMES in direct conversation
+- Professional titles ("One Review Man", "Quantum Android") are hero classifications, not how people address them
+- When talking TO {ONE_REVIEW_MAN_REAL_NAME}: use his real name
+- When talking TO {QUANTUM_ANDROID_REAL_NAME}: use his real name  
+- When talking ABOUT {QUANTUM_ANDROID_REAL_NAME}: might refer to him as "Quantum Android"
+- {QUANTUM_ANDROID_REAL_NAME} calls {ONE_REVIEW_MAN_REAL_NAME} by real name or "sensei"
+
+TRANSLATION NOTES:
+- For Russian: "One Review Man" becomes "Ванревьюмен" (like "One Punch Man" → "Ванпанчмен")
+- For Russian: "Quantum Android" becomes "Квантовый Андроид"
+- Real names keep original style when generated
+- Respectful address: "сенсей" for "sensei"
+
+Context:
+- Setting: Modern tech company/startup environment
+- Style: Absurdist programming humor with One-Punch Man references
+- Length: {TARGET_LENGTH}
+- Previous chapters: {PREVIOUS_CHAPTERS_SUMMARY}
+
+{CHARACTER_CONTEXT}
+
+WORLD CONSISTENCY (CRITICAL):
+- Company Name: {COMPANY_NAME}
+- Office Environment: {OFFICE_DESCRIPTION}
+- Established Locations: {ESTABLISHED_LOCATIONS}
+- Infrastructure Details: {INFRASTRUCTURE_DETAILS}
+- Cultural Patterns: {CULTURAL_PATTERNS}
+- Previously Established Facts: {ESTABLISHED_FACTS}
+
+KEY CHARACTERS TO REFERENCE:
+- One Review Man ({ONE_REVIEW_MAN_REAL_NAME}): The protagonist, master programmer (parody of Saitama)
+  * People call him by his real name "{ONE_REVIEW_MAN_REAL_NAME}" in conversation
+  * {QUANTUM_ANDROID_REAL_NAME} calls him "{ONE_REVIEW_MAN_REAL_NAME}" or "sensei"
+  * Despite his incredible abilities, colleagues rarely take him seriously
+  * Often dismissed as "just lucky" or "only good at simple problems"
+- The Quantum Android ({QUANTUM_ANDROID_REAL_NAME}): Android character with quantum processing who seeks to learn (parody of Genos)
+  * People call him by his real name "{QUANTUM_ANDROID_REAL_NAME}" in conversation
+  * Others might refer to him as "Quantum Android" when talking about him
+  * One of the few who truly recognizes {ONE_REVIEW_MAN_REAL_NAME}'s abilities
+
+DIALOGUE RULES:
+- Other characters → {ONE_REVIEW_MAN_REAL_NAME}: use his real name "{ONE_REVIEW_MAN_REAL_NAME}"
+- {QUANTUM_ANDROID_REAL_NAME} → {ONE_REVIEW_MAN_REAL_NAME}: "{ONE_REVIEW_MAN_REAL_NAME}", "sensei", "Master"
+- {ONE_REVIEW_MAN_REAL_NAME} → {QUANTUM_ANDROID_REAL_NAME}: use his real name "{QUANTUM_ANDROID_REAL_NAME}"
+- Others → {QUANTUM_ANDROID_REAL_NAME}: use his real name "{QUANTUM_ANDROID_REAL_NAME}"
+- When talking ABOUT {QUANTUM_ANDROID_REAL_NAME}: may use "Quantum Android" or "the android"
+
+UNDERESTIMATION THEME (CRITICAL):
+- Colleagues constantly underestimate One Review Man's abilities
+- His solutions are dismissed as "obvious" or "anyone could have done that"
+- People attribute his success to external factors rather than skill
+- He maintains a humble, unassuming demeanor that reinforces this perception
+- When disasters strike, people rarely think to ask him for help initially
+- His casual approach to complex problems makes others think he's not taking things seriously
+- Only after witnessing his abilities do some (rarely) begin to respect him
+- This mirrors Saitama's treatment in One-Punch Man perfectly
+
+Chapter Requirements:
+- Include programming humor (bugs, code reviews, deployments, etc.)
+- Reference One-Punch Man tropes adapted to programming context
+- Show how colleagues dismiss or underestimate One Review Man's abilities
+- Use tech industry absurdities (standup meetings, sprint planning, etc.)
+- Include unexpected coding disasters or solutions
+- Maintain the "overpowered protagonist" theme from One-Punch Man
+- Follow naming conventions consistently throughout dialogue
+- Show the master/disciple relationship dynamic
+- End with setup for next programming comedy scenario
+- Demonstrate the gap between One Review Man's actual abilities and others' perceptions
+
+PULL REQUEST WORKFLOW (CRITICAL - AVOID MISTAKES):
+- One Review Man creates PRs with perfect code
+- OTHER team members review his PRs (not him)
+- OTHER team members approve and merge his PRs (he never merges his own)
+- The comedy is that his PRs are so perfect they get instant approval
+- He follows professional practices: no self-merging, proper code review process
+- Example: "His PR was reviewed by Sarah and merged within minutes" NOT "He merged his perfect PR"
+
+WORLD CONSISTENCY RULES (CRITICAL):
+- ALWAYS use "{COMPANY_NAME}" as the company name (never invent new company names)
+- Maintain the established office environment and nearby locations
+- Reference previously established infrastructure (legacy systems, production environment)
+- Keep consistent with established cultural patterns 
+- Respect previously established facts about characters, relationships, and workplace dynamics
+- When introducing new locations, ensure they fit within the established office environment
+- Maintain consistency with the tech stack and infrastructure mentioned in previous chapters
+
+Programming Comedy Elements to Include:
+- Code review disasters (except for One Review Man's perfect code)
+- Debugging nightmares
+- Production deployment panic
+- Framework/library conflicts
+- Meeting culture absurdity
+- Technical debt comedy
+- Stack Overflow dependencies
+- Pair programming disasters
+- Git merge conflicts
+- DevOps pipeline failures
+
+{SPECIAL_INSTRUCTIONS}
+
+Format the output as:
+1. Chapter Title (with One-Punch Man style naming when appropriate)
+2. Chapter content in markdown format with proper dialogue attribution
+3. Brief character notes for any new characters introduced
+4. Delimiter between stories inside chapter is tripple dash: ---
+
+## Character Consistency Prompts
+{CHARACTER_NAME} appears in this chapter. Key traits to maintain:
+- Description: {CHARACTER_DESCRIPTION}
+- Personality: {CHARACTER_TRAITS}
+- Programming Skills: {CHARACTER_CODING_LEVEL}
+- Relationship to One Review Man: {CHARACTER_RELATIONSHIP}
+- How they address One Review Man: [Real name unless they're a main character]
+
+## New Character Creation Prompt
+If introducing new characters in this chapter, ensure they:
+- Fit the programming/tech environment
+- Have distinct coding abilities or tech quirks
+- Serve the parody and humor
+- Reference common programmer archetypes (e.g., the ninja coder, the framework evangelist, the legacy code maintainer)
+- Have memorable programming-related catchphrases or habits
+- Follow the naming convention rules (use professional titles for One Review Man)
+- Have both real names and workplace names/titles when appropriate
+
+## Plot Device Prompts
+Avoid these recently used plot devices: {USED_PLOT_DEVICES}
+
+Consider incorporating:
+- Code review scenarios where One Review Man's PRs get instant approval (reviewers can't find any issues)
+- Scenes showing other developers struggling with reviews while One Review Man's code sails through
+- Deployment disasters that only One Review Man can fix
+- New framework/technology that confuses everyone except One Review Man
+- Pair programming sessions where One Review Man intimidates colleagues
+- Debugging sessions where One Review Man instantly spots the issue
+- Technical interviews or coding challenges
+- Open source contribution drama
+- Conference presentations or tech talks
+- Startup pitch meetings with absurd technical requirements
+- Legacy code archaeology
+- Private conversations between {ONE_REVIEW_MAN_REAL_NAME} and {QUANTUM_ANDROID_REAL_NAME} (using real names)
+- Workplace interactions (using professional titles)
+
+## One-Punch Man Parody Elements
+Adapt these One-Punch Man concepts to programming:
+- Hero rankings → Programmer skill levels/seniority
+- Monster attacks → Critical production bugs
+- Hero Association → Tech company hierarchy
+- Training regimen → Programming practice routines
+- Bald head → Unique visual programmer trait
+- Caped Baldy nickname → Programming-related nickname
+- S-Class heroes → Senior/Principal engineers
+- Villain organizations → Competing tech companies or bad coding practices
+- Saitama's casual attitude → {ONE_REVIEW_MAN_REAL_NAME}'s nonchalant approach to impossible bugs
+- Genos's formal speech → {QUANTUM_ANDROID_REAL_NAME}'s technical jargon and respectful address
+- Nobody believing in Saitama → Colleagues dismissing One Review Man's abilities
+- Credit being given to other heroes → Other developers getting credit for One Review Man's work
+
+## Chapter Ending Prompts
+End the chapter with one of:
+- A massive production bug that only One Review Man can solve (while others doubt him)
+- Introduction of a new, seemingly impossible programming challenge
+- {QUANTUM_ANDROID_REAL_NAME} attempting to replicate {ONE_REVIEW_MAN_REAL_NAME}'s abilities and calling him "sensei"
+- A code review scenario showcasing One Review Man's perfection (dismissed by others as luck)
+- Setup for a programming contest or technical challenge
+- Discovery of an ancient codebase that threatens the entire system
+- A new team member who doesn't believe in One Review Man's abilities and learns his title
+- A private moment between {ONE_REVIEW_MAN_REAL_NAME} and {QUANTUM_ANDROID_REAL_NAME} using real names and "sensei"
+- Colleagues attributing One Review Man's success to external factors 

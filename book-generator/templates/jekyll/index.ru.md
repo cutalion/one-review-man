@@ -1,6 +1,6 @@
 ---
 layout: default
-title: "Все Главы - One Review Man"
+title: "Все Главы - {{BOOK_TITLE_RU}}"
 lang: ru
 permalink: /
 nav_order: 1
@@ -26,6 +26,6 @@ nav_order: 1
 {% else %}
 <section>
 <h2>Пока Нет Глав!</h2>
-<p>История вот-вот начнется. Загляните позже, чтобы прочитать первую главу веселой рабочей комедии!</p>
+<p>История вот-вот начнется. Загляните позже, чтобы прочитать первую главу {{BOOK_GENRE_DESCRIPTION_RU}}!</p>
 </section>
 {% endif %}

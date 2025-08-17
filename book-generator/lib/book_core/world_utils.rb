@@ -85,21 +85,21 @@ module WorldUtils
 
   def default_world_context
     {
-      'COMPANY_NAME' => 'HeroTech Solutions',
-      'OFFICE_DESCRIPTION' => 'Modern tech startup office',
-      'ESTABLISHED_LOCATIONS' => '- Office: Modern tech workspace',
-      'INFRASTRUCTURE_DETAILS' => '- Production Environment: Critical systems',
-      'CULTURAL_PATTERNS' => '- Code Review Process: Efficient development workflow',
-      'ESTABLISHED_FACTS' => '- Team follows modern development practices'
+      'COMPANY_NAME' => 'Generic Organization',
+      'OFFICE_DESCRIPTION' => 'Standard workplace setting',
+      'ESTABLISHED_LOCATIONS' => '- Main location: Primary setting for the story',
+      'INFRASTRUCTURE_DETAILS' => '- Environment: Setting-appropriate details',
+      'CULTURAL_PATTERNS' => '- Standard patterns: Appropriate to the story genre',
+      'ESTABLISHED_FACTS' => '- Background context: Setting-appropriate background'
     }
   end
 
   def extract_company_name(world_data)
-    world_data.dig('company', 'name') || 'HeroTech Solutions'
+    world_data.dig('company', 'name') || 'Generic Organization'
   end
 
   def extract_office_description(world_data)
-    world_data.dig('company', 'description') || 'Modern tech startup office'
+    world_data.dig('company', 'description') || 'Standard setting'
   end
 
   def format_locations(world_data)

@@ -6,6 +6,7 @@
 core_lib = File.expand_path('../..', __dir__)
 $LOAD_PATH.unshift(core_lib) unless $LOAD_PATH.include?(core_lib)
 
+require 'yaml'
 require 'book_core/llm_service'
 require 'book_core/book_utils'
 
@@ -36,12 +37,14 @@ module Book
 
       begin
         glossary = build_name_glossary(target_lang)
+        book_metadata = load_book_metadata_abs
         translation_data = @llm_service.translate_chapter_structured(
           chapter_data['title'],
           chapter_data['summary'] || 'No summary available',
           chapter_data['content'],
           target_lang,
-          glossary
+          glossary,
+          book_metadata
         )
 
         create_translated_chapter_file(target_file, chapter_data, translation_data, target_lang)
@@ -266,6 +269,11 @@ module Book
         file.puts ''
         file.puts '<!-- Chapter appearances will be tracked automatically -->'
       end
+    end
+
+    def load_book_metadata_abs
+      path = File.join(@project_root, 'data', 'book_metadata.yml')
+      File.exist?(path) ? (YAML.safe_load(File.read(path)) || {}) : {}
     end
   end
 end

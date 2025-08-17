@@ -91,28 +91,15 @@ module BookCore
       # Used plot devices
       used_devices = load_generation_log_abs['used_plot_devices'] || []
 
-      # Real names
-      one_review_man_real = find_character_real_name(chars, 'One Review Man') || '[to be generated]'
-      quantum_android_real = find_character_real_name(chars, 'Quantum Android') || '[to be generated]'
-
       # World context (use world utils; ensure correct CWD)
       world_ctx = Dir.chdir(@project_root) { build_world_context('en') }
 
-      placeholders = {
-        'CHAPTER_NUMBER' => chapter_number.to_s,
-        'TARGET_LENGTH' => (book_metadata.dig('generation', 'chapter_length_target') || '1500-3000 words'),
-        'PREVIOUS_CHAPTERS_SUMMARY' => previous_summary,
-        'CHARACTER_CONTEXT' => character_context.empty? ? 'No existing characters.' : "Existing characters:\n#{character_context}",
-        'USED_PLOT_DEVICES' => used_devices.join(', '),
-        'SPECIAL_INSTRUCTIONS' => get_special_instructions(chapter_number),
-        'ONE_REVIEW_MAN_REAL_NAME' => one_review_man_real,
-        'QUANTUM_ANDROID_REAL_NAME' => quantum_android_real,
-        'CHARACTER_NAME' => '',
-        'CHARACTER_DESCRIPTION' => '',
-        'CHARACTER_TRAITS' => '',
-        'CHARACTER_CODING_LEVEL' => '',
-        'CHARACTER_RELATIONSHIP' => ''
-      }.merge(world_ctx || {})
+      # Build dynamic placeholders based on book metadata and prompt requirements
+      placeholders = build_chapter_placeholders(chapter_number, book_metadata, chars, 
+                                               character_context, used_devices, previous_summary)
+                                               
+      # Add world context
+      placeholders.merge!(world_ctx || {})
 
       PromptUtils.build_prompt(template, placeholders, warn_unused: false)
     rescue PromptUtils::UnfilledPlaceholdersError => e
@@ -304,15 +291,7 @@ module BookCore
         character_prompt = nil
         if template
           chars = load_characters_abs
-          orm = find_character_real_name(chars, 'One Review Man') || '[to be generated]'
-          qa  = find_character_real_name(chars, 'Quantum Android') || '[to be generated]'
-          placeholders = {
-            'CHAPTER_NUMBER' => (determine_next_chapter_number - 1).to_s,
-            'CHARACTER_NAME' => name,
-            'CHARACTER_DESCRIPTION' => c['description'] || 'Brief mention only',
-            'ONE_REVIEW_MAN_REAL_NAME' => orm,
-            'QUANTUM_ANDROID_REAL_NAME' => qa
-          }
+          placeholders = build_character_creation_placeholders(name, c['description'] || 'Brief mention only', chars)
           character_prompt = PromptUtils.build_prompt(template, placeholders)
         else
           character_prompt = "Create character profile for #{name}: #{c['description']}"
@@ -429,6 +408,142 @@ module BookCore
     def find_character_real_name(chars_data, display_name)
       values = (chars_data['characters'] || {}).values
       values.find { |c| c['name'] == display_name }&.dig('real_name')
+    end
+
+    def build_chapter_placeholders(chapter_number, book_metadata, chars, character_context, used_devices, previous_summary)
+      placeholders = {
+        'CHAPTER_NUMBER' => chapter_number.to_s,
+        'TARGET_LENGTH' => (book_metadata.dig('generation', 'chapter_length_target') || '1500-3000 words'),
+        'PREVIOUS_CHAPTERS_SUMMARY' => previous_summary,
+        'CHARACTER_CONTEXT' => character_context.empty? ? 'No existing characters.' : "Existing characters:\n#{character_context}",
+        'USED_PLOT_DEVICES' => used_devices.join(', '),
+        'SPECIAL_INSTRUCTIONS' => get_special_instructions(chapter_number),
+        'CHARACTER_NAME' => '',
+        'CHARACTER_DESCRIPTION' => '',
+        'CHARACTER_TRAITS' => '',
+        'CHARACTER_CODING_LEVEL' => '',
+        'CHARACTER_RELATIONSHIP' => ''
+      }
+
+      # Add generic book metadata placeholders
+      if book_metadata && book_metadata['localized'] && book_metadata['localized']['en']
+        en_metadata = book_metadata['localized']['en']
+        placeholders.merge!({
+          'BOOK_TITLE' => en_metadata['title'] || 'Untitled Book',
+          'BOOK_GENRE' => en_metadata['genre'] || 'Fiction',
+          'BOOK_SETTING' => determine_book_setting(en_metadata),
+          'BOOK_STYLE' => en_metadata['humor_style'] || 'narrative',
+          'PRIMARY_LOCATION' => extract_primary_location(en_metadata),
+          'WORLD_DETAILS' => build_world_details_summary(en_metadata),
+          'CHARACTER_GUIDELINES' => build_character_guidelines(en_metadata),
+          'GENRE_GUIDELINES' => build_genre_guidelines(en_metadata)
+        })
+      end
+
+      # Add OneReviewMan-specific placeholders if this is a OneReviewMan book
+      if is_one_review_man_book?(book_metadata)
+        one_review_man_real = find_character_real_name(chars, 'One Review Man') || '[to be generated]'
+        quantum_android_real = find_character_real_name(chars, 'Quantum Android') || '[to be generated]'
+        placeholders.merge!({
+          'ONE_REVIEW_MAN_REAL_NAME' => one_review_man_real,
+          'QUANTUM_ANDROID_REAL_NAME' => quantum_android_real
+        })
+      end
+
+      placeholders
+    end
+
+    def build_character_creation_placeholders(character_name, character_description, chars)
+      placeholders = {
+        'CHAPTER_NUMBER' => (determine_next_chapter_number - 1).to_s,
+        'CHARACTER_NAME' => character_name,
+        'CHARACTER_DESCRIPTION' => character_description
+      }
+
+      # Try to load book metadata to determine book type
+      book_metadata = load_book_metadata_abs
+
+      # Add generic book placeholders
+      if book_metadata && book_metadata['localized'] && book_metadata['localized']['en']
+        en_metadata = book_metadata['localized']['en']
+        placeholders.merge!({
+          'BOOK_TITLE' => en_metadata['title'] || 'Untitled Book',
+          'BOOK_GENRE' => en_metadata['genre'] || 'Fiction',
+          'BOOK_SETTING' => determine_book_setting(en_metadata),
+          'WORLD_DETAILS' => build_world_details_summary(en_metadata),
+          'GENRE_GUIDELINES' => build_genre_guidelines(en_metadata)
+        })
+      end
+
+      # Add OneReviewMan-specific placeholders if needed
+      if is_one_review_man_book?(book_metadata)
+        orm = find_character_real_name(chars, 'One Review Man') || '[to be generated]'
+        qa = find_character_real_name(chars, 'Quantum Android') || '[to be generated]'
+        placeholders.merge!({
+          'ONE_REVIEW_MAN_REAL_NAME' => orm,
+          'QUANTUM_ANDROID_REAL_NAME' => qa
+        })
+      end
+
+      placeholders
+    end
+
+    def is_one_review_man_book?(book_metadata)
+      return false unless book_metadata
+      title = book_metadata.dig('localized', 'en', 'title')
+      title&.include?('One Review Man') || title&.include?('Ванревьюмэн')
+    end
+
+    def determine_book_setting(en_metadata)
+      themes = en_metadata['themes']
+      return 'Modern tech company/startup environment' if themes&.dig('primary') == 'workplace comedy'
+      return 'Contemporary setting' if en_metadata['genre']&.downcase&.include?('comedy')
+      'Generic setting'
+    end
+
+    def extract_primary_location(en_metadata)
+      themes = en_metadata['themes']
+      return 'Corporate office' if themes&.dig('primary') == 'workplace comedy'
+      'Main setting'
+    end
+
+    def build_world_details_summary(en_metadata)
+      details = []
+      details << "Genre: #{en_metadata['genre']}" if en_metadata['genre']
+      details << "Style: #{en_metadata['humor_style']}" if en_metadata['humor_style']
+      if themes = en_metadata['themes']
+        details << "Primary theme: #{themes['primary']}" if themes['primary']
+        details << "Secondary themes: #{themes['secondary']&.join(', ')}" if themes['secondary']&.any?
+      end
+      details.join('; ')
+    end
+
+    def build_character_guidelines(en_metadata)
+      return 'Characters should fit the genre and established world' unless en_metadata
+      
+      guidelines = []
+      if en_metadata['genre']&.downcase&.include?('comedy')
+        guidelines << 'Characters should have comedic elements and quirks'
+        guidelines << 'Dialogue should be humorous and character-appropriate'
+      end
+      
+      if en_metadata.dig('themes', 'primary') == 'workplace comedy'
+        guidelines << 'Characters should fit a professional workplace environment'
+        guidelines << 'Include workplace-appropriate personalities and roles'
+      end
+      
+      guidelines.empty? ? 'Characters should serve the story and be well-developed' : guidelines.join('; ')
+    end
+
+    def build_genre_guidelines(en_metadata)
+      return 'Follow general fiction conventions' unless en_metadata
+      
+      genre = en_metadata['genre']&.downcase
+      return 'Focus on humor, character comedy, and amusing situations' if genre&.include?('comedy')
+      return 'Build suspense and include mystery elements' if genre&.include?('mystery')
+      return 'Include fantastical elements and world-building' if genre&.include?('fantasy')
+      
+      'Follow conventions appropriate to the established genre and style'
     end
 
     def extract_front_matter(file_path)

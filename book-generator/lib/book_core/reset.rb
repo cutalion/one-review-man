@@ -241,35 +241,35 @@ module Book
           'active_storylines' => [],
           'chapters_written' => 0
         },
-        # Language-specific content only
+        # Language-specific content only (defaults - to be customized per book)
         'localized' => {
           'en' => {
-            'title' => 'One Review Man',
-            'subtitle' => 'An AI-Generated Comedy of Errors',
-            'author' => 'AI Collective',
-            'genre' => 'Humor/Comedy',
-            'humor_style' => 'absurdist',
+            'title' => 'Generated Book',
+            'subtitle' => 'An AI-Generated Story',
+            'author' => 'AI Generator',
+            'genre' => 'Fiction',
+            'humor_style' => 'narrative',
             'themes' => {
-              'primary' => 'workplace comedy',
+              'primary' => 'general fiction',
               'secondary' => [
-                'mistaken identity',
-                'bureaucratic absurdity',
-                'everyday situations gone wrong'
+                'character development',
+                'story progression',
+                'engaging narrative'
               ]
             }
           },
           'ru' => {
-            'title' => 'Ванревьюмэн',
-            'subtitle' => 'ИИ-генерируемая Комедия Ошибок',
-            'author' => 'ИИ Коллектив',
-            'genre' => 'Юмор/Комедия',
-            'humor_style' => 'абсурдистский',
+            'title' => 'Сгенерированная Книга',
+            'subtitle' => 'ИИ-Сгенерированная История',
+            'author' => 'ИИ Генератор',
+            'genre' => 'Художественная литература',
+            'humor_style' => 'повествовательный',
             'themes' => {
-              'primary' => 'рабочая комедия',
+              'primary' => 'общая художественная литература',
               'secondary' => [
-                'ошибочная идентичность',
-                'бюрократический абсурд',
-                'обычные ситуации, которые идут не так'
+                'развитие персонажей',
+                'развитие сюжета',
+                'увлекательное повествование'
               ]
             }
           }

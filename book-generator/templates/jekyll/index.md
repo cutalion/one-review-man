@@ -1,6 +1,6 @@
 ---
 layout: default
-title: "All Chapters - One Review Man"
+title: "All Chapters - {{BOOK_TITLE}}"
 lang: en
 permalink: /
 nav_order: 1
@@ -26,6 +26,6 @@ nav_order: 1
 {% else %}
 <section>
 <h2>No Chapters Yet!</h2>
-<p>The story is about to begin. Check back soon for the first chapter of hilarious workplace comedy!</p>
+<p>The story is about to begin. Check back soon for the first chapter of our {{BOOK_GENRE_DESCRIPTION}}!</p>
 </section>
 {% endif %}

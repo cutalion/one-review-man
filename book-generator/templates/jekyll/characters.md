@@ -1,6 +1,6 @@
 ---
 layout: default
-title: "Characters - One Review Man"
+title: "Characters - {{BOOK_TITLE}}"
 lang: en
 permalink: /characters/
 nav_order: 2
@@ -8,7 +8,7 @@ nav_order: 2
 
 # Characters
 
-Meet the quirky cast of **One Review Man** - each with their own unique personality, backstory, and role in our workplace comedy!
+Meet the cast of **{{BOOK_TITLE}}** - each with their own unique personality, backstory, and role in our {{BOOK_GENRE_DESCRIPTION}}!
 
 {% assign characters = site.characters | where: "lang", page.lang %}
 

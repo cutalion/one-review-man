@@ -1,6 +1,6 @@
-# Clarity Improvement Prompt for "One Review Man"
+# Generic Clarity Improvement Prompt
 # Used for improving content clarity and flow
 
-Please improve the clarity and flow of the following content while maintaining its humor and style:
+Please improve the clarity and flow of the following content while maintaining its original style and tone:
 
 {CONTENT} 

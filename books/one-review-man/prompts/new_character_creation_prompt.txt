@@ -1,0 +1,63 @@
+# New Character Creation Prompt for "One Review Man"
+# Used when creating characters mentioned in chapters
+
+Create a full character profile for a new character introduced in Chapter {CHAPTER_NUMBER} of "One Review Man".
+
+CHARACTER INFO FROM CHAPTER:
+Name: {CHARACTER_NAME}
+Description: {CHARACTER_DESCRIPTION}
+
+CONTEXT:
+This character was introduced in Chapter {CHAPTER_NUMBER} and should fit into the One Review Man universe - a programming parody of One-Punch Man.
+
+UNIVERSE CONTEXT:
+- One Review Man (real name: {ONE_REVIEW_MAN_REAL_NAME}) is a super-programmer who writes perfect code
+- His companion is the Quantum Android (real name: {QUANTUM_ANDROID_REAL_NAME})
+- All his pull requests are accepted and merged without comments on the first review
+- The story parodies programming culture, code reviews, and tech workplace dynamics
+- Characters should fit the modern tech company/startup environment
+
+NAMING CONVENTIONS (IMPORTANT):
+- One Review Man's real name is "{ONE_REVIEW_MAN_REAL_NAME}" (like Saitama in the original)
+- Quantum Android's real name is "{QUANTUM_ANDROID_REAL_NAME}" (like Genos in the original)
+- Characters call them by their REAL NAMES in direct conversation
+- Professional titles ("One Review Man", "Quantum Android") are hero classifications, not address forms
+- When talking TO {ONE_REVIEW_MAN_REAL_NAME}: use his real name
+- When talking TO {QUANTUM_ANDROID_REAL_NAME}: use his real name
+- Other characters should have both real names and professional titles when appropriate
+
+REQUIREMENTS:
+- Expand on the basic description to create a full character
+- Make them fit the programming/tech comedy theme
+- Give them distinctive personality traits
+- Add programming skills appropriate to their role
+- Include a memorable catchphrase if appropriate
+- Add backstory that explains their place in the programming world
+
+PROGRAMMING ARCHETYPES TO CONSIDER:
+- The Framework Evangelist (always pushing new tech)
+- The Legacy Code Archaeologist (maintains ancient systems)
+- The Ninja Coder (writes impossible-to-understand code)
+- The Meeting Addict (loves standups and retrospectives)
+- The Stack Overflow Dependent (can't code without copy-paste)
+- The Premature Optimizer (optimizes everything before it works)
+- The Bug Magnet (breaks everything they touch)
+- The Documentation Hater (refuses to write docs)
+- The Test Zealot (100% coverage or nothing)
+- The DevOps Diva (infrastructure drama queen)
+
+ONE-PUNCH MAN PARODY ELEMENTS:
+Adapt these concepts to programming:
+- Hero rankings → Programmer skill levels (Junior, Senior, Principal, Architect)
+- Monster attacks → Critical production bugs
+- Hero Association → Tech company hierarchy
+- Special powers → Unique programming abilities
+- Training regimens → Coding practice routines
+
+CHARACTER RELATIONSHIP TO PROTAGONISTS:
+- How do they interact with {ONE_REVIEW_MAN_REAL_NAME}?
+- Do they recognize his abilities or dismiss them like most colleagues?
+- What is their opinion of {QUANTUM_ANDROID_REAL_NAME}?
+- Are they mentor, rival, ally, or obstacle?
+
+Please create a complete character profile with typical fields: name, description, personality_traits, programming_skills, catchphrase, backstory, quirks. 
