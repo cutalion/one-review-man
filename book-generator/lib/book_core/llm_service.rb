@@ -3,6 +3,7 @@
 require 'yaml'
 require 'json'
 require 'fileutils'
+require 'book_core/env_utils'
 begin
   require 'openai'
 rescue LoadError
@@ -23,14 +24,14 @@ module BookCore
       @model_override = model_override
       @config = load_config(config_path)
       @client = setup_client
-      @debug = ENV['DEBUG_AI'] == '1' || ENV['DEBUG_AI'] == 'true'
+      @debug = EnvUtils.debug_ai_enabled?
       @debug_dir = nil
     end
 
     # Simple text generation used by ChapterGenerator
     def generate_text(prompt:, context: {})
       # Deterministic mock mode for tests/validation
-      if ENV['MOCK_AI'] == '1' || ENV['MOCK_AI'] == 'true'
+      if EnvUtils.mock_ai_enabled?
         chapter_num = prompt.to_s.match(/chapter\s*(\d+)/i)&.captures&.first || context[:chapter_number] || '1'
         return "Mock chapter content for Chapter #{chapter_num}"
       end
@@ -42,7 +43,7 @@ module BookCore
 
     # Structured chapter translation (returns hash with title/summary/content)
     def translate_chapter_structured(title, summary, content, target_lang, glossary = nil)
-      if ENV['MOCK_AI'] == '1' || ENV['MOCK_AI'] == 'true'
+      if EnvUtils.mock_ai_enabled?
         return {
           'title' => "#{title} (#{target_lang})",
           'summary' => "#{summary} (#{target_lang})",
@@ -66,7 +67,7 @@ module BookCore
 
     # Structured character translation (returns hash with translated fields)
     def translate_character_structured(name, description, personality_traits, programming_skills, catchphrase, backstory, quirks, target_lang)
-      if ENV['MOCK_AI'] == '1' || ENV['MOCK_AI'] == 'true'
+      if EnvUtils.mock_ai_enabled?
         return {
           'name' => "#{name} (#{target_lang})",
           'description' => description,
@@ -94,7 +95,7 @@ module BookCore
 
     # Structured chapter generation (returns Hash with keys like title, summary, content, new_characters)
     def generate_chapter_structured(prompt, options = {})
-      if ENV['MOCK_AI'] == '1' || ENV['MOCK_AI'] == 'true'
+      if EnvUtils.mock_ai_enabled?
         chapter_num = prompt.to_s.match(/chapter\s*(\d+)/i)&.captures&.first || '1'
         return {
           'title' => "Chapter #{chapter_num}",
@@ -140,7 +141,7 @@ module BookCore
     # Returns a Hash with keys: description, personality_traits (Array), programming_skills,
     # catchphrase, backstory, quirks
     def generate_character(character_prompt)
-      if ENV['MOCK_AI'] == '1' || ENV['MOCK_AI'] == 'true'
+      if EnvUtils.mock_ai_enabled?
         return {
           'description' => 'New character generated (mock) for testing.',
           'personality_traits' => ['mocked'],
@@ -183,11 +184,11 @@ module BookCore
     end
 
     def setup_client
-      return nil if ENV['MOCK_AI'] == '1' || ENV['MOCK_AI'] == 'true'
+      return nil if EnvUtils.mock_ai_enabled?
 
-      api_key = ENV['OPENAI_API_KEY'] || @config['openai_api_key']
-      organization = ENV['OPENAI_ORG_ID'] || @config['openai_org_id']
-      base_url = ENV['OPENAI_BASE_URL'] || @config['openai_base_url']
+      api_key = EnvUtils.openai_api_key(@config)
+      organization = EnvUtils.openai_org_id(@config)
+      base_url = EnvUtils.openai_base_url(@config)
       return nil unless defined?(OpenAI)
       unless api_key
         # No API key — caller can still run in mock mode

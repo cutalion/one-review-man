@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'yaml'
+require 'book_core/validation_utils'
 require 'fileutils'
 
 module BookUtils
@@ -277,7 +278,7 @@ module BookUtils
   # Validation helpers
   def validate_chapter_structure(chapter_data)
     required_fields = %w[title chapter_number]
-    missing_fields = required_fields.select { |field| chapter_data[field].nil? }
+    missing_fields = BookCore::ValidationUtils.missing_required_fields(chapter_data, required_fields)
 
     if missing_fields.any?
       puts "Warning: Chapter missing required fields: #{missing_fields.join(', ')}"
@@ -289,7 +290,7 @@ module BookUtils
 
   def validate_character_structure(character_data)
     required_fields = %w[name description]
-    missing_fields = required_fields.select { |field| character_data[field].nil? || character_data[field].empty? }
+    missing_fields = BookCore::ValidationUtils.missing_required_fields(character_data, required_fields)
 
     if missing_fields.any?
       puts "Warning: Character missing required fields: #{missing_fields.join(', ')}"

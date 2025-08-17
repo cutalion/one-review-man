@@ -3,6 +3,7 @@
 require 'fileutils'
 require 'yaml'
 require 'date'
+require 'book_core/file_utils'
 
 module BookCore
   class JekyllAdapter
@@ -55,7 +56,7 @@ module BookCore
 
       Dir.glob(File.join(default_layouts_dir, '*')).each do |src|
         dest = File.join(target_dir, File.basename(src))
-        FileUtils.cp(src, dest) unless File.exist?(dest)
+        SafeFileUtils.safe_copy(src, dest, overwrite: false)
       end
     end
 
@@ -66,7 +67,7 @@ module BookCore
 
       Dir.glob(File.join(default_includes_dir, '*')).each do |src|
         dest = File.join(target_dir, File.basename(src))
-        FileUtils.cp(src, dest) unless File.exist?(dest)
+        SafeFileUtils.safe_copy(src, dest, overwrite: false)
       end
     end
 
@@ -81,16 +82,13 @@ module BookCore
     # front_matter  – Hash that will be serialised as YAML
     # body          – String markdown content (can be empty)
     def write_file(filename, front_matter, body)
-      FileUtils.mkdir_p(File.dirname(filename))
+      content = "---\n"
+      content << front_matter.to_yaml.lines[1..].join # Skip leading '---'
+      content << "---\n\n"
+      content << body if body && !body.empty?
+      content << "\n"
 
-      File.open(filename, 'w') do |file|
-        file.puts '---'
-        file.puts front_matter.to_yaml.lines[1..] # Skip leading '---'
-        file.puts '---'
-        file.puts ''
-        file.puts body if body && !body.empty?
-        file.puts ''
-      end
+      SafeFileUtils.atomic_write(filename, content, backup: true)
     end
 
     # Convenience wrapper for creating character pages.

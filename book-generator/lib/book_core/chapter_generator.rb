@@ -8,6 +8,8 @@ require 'book_core/llm_service'
 require 'book_core/prompt_provider'
 require 'book_core/world_utils'
 require 'book_core/prompt_utils'
+require 'book_core/env_utils'
+require 'book_core/validation_utils'
 
 module BookCore
   class ChapterGenerator
@@ -22,7 +24,7 @@ module BookCore
       @prompt_provider = kwargs[:prompt_provider] || default_prompt_provider
       @output_adapter = kwargs[:output_adapter] || default_output_adapter
 
-      llm_config_path = File.join(@project_root || Dir.pwd, 'scripts/llm_config.yml')
+      llm_config_path = File.join(@project_root, 'scripts/llm_config.yml')
       @llm_service = kwargs[:llm_service] || BookCore::LLMService.new(llm_config_path, model_override)
 
       # Ensure adapter is configured with project root if provided
@@ -63,7 +65,7 @@ module BookCore
           data[key] = data[key].to_s.gsub('{CHAPTER_NUMBER}', chapter_number.to_s) if data[key]
         end
       end
-      unless ENV['MOCK_AI'] == '1' || ENV['MOCK_AI'] == 'true'
+      unless EnvUtils.mock_ai_enabled?
         raise BookCore::LLMService::LLMError, 'Generated content too short' if data['content'].to_s.strip.length < 50
       end
       data
@@ -275,8 +277,27 @@ module BookCore
 
       new_characters.each do |c|
         name = c['name'] || next
-        slug = name.downcase.gsub(/[^a-z0-9]+/, '_').gsub(/^_|_$/, '')
-        next if store['characters'].key?(slug)
+        slug = ValidationUtils.slugify(name)
+        if ValidationUtils.blank?(slug)
+          puts "⚠️  Warning: Could not generate valid slug for character '#{name}', skipping"
+          next
+        end
+        
+        # Check for slug uniqueness and generate alternative if needed
+        original_slug = slug
+        counter = 1
+        while store['characters'].key?(slug)
+          slug = "#{original_slug}-#{counter}"
+          counter += 1
+          if counter > 100  # Prevent infinite loops
+            puts "⚠️  Warning: Could not generate unique slug for character '#{name}', skipping"
+            next
+          end
+        end
+        
+        if slug != original_slug
+          puts "ℹ️  Info: Character '#{name}' slug changed from '#{original_slug}' to '#{slug}' to avoid conflict"
+        end
 
         # Build rich character prompt from template if available
         template = @prompt_provider.load('new_character_creation_prompt.txt') rescue nil
@@ -312,7 +333,9 @@ module BookCore
             'created_date' => Date.today.to_s,
             'language' => 'en'
           }.compact
-        rescue StandardError
+        rescue StandardError => e
+          puts "⚠️  Warning: Failed to generate character details for '#{name}': #{e.message}"
+          puts "   Using fallback character data instead."
           character_data = {
             'name' => name,
             'description' => c['description'] || 'New character',
@@ -371,12 +394,13 @@ module BookCore
     end
 
     def build_character_context(chars)
-      Array(chars).map do |char|
-        traits = Array(char['personality_traits']).join(', ')
-        skills = char['programming_skills'] || 'General programming'
-        name = char['name'] || char['slug'] || 'Unknown'
-        description = char['description'] || ''
-        "#{name}: #{description} (Traits: #{traits.empty? ? 'None specified' : traits}, Skills: #{skills})"
+      ValidationUtils.safe_array(chars).map do |char|
+        traits = ValidationUtils.safe_array(char['personality_traits']).join(', ')
+        skills = ValidationUtils.presence_or(char['programming_skills'], 'General programming')
+        name = ValidationUtils.presence_or(char['name'] || char['slug'], 'Unknown')
+        description = ValidationUtils.safe_string(char['description'])
+        traits_text = ValidationUtils.present?(traits) ? traits : 'None specified'
+        "#{name}: #{description} (Traits: #{traits_text}, Skills: #{skills})"
       end.join("\n")
     end
 

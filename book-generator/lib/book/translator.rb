@@ -174,7 +174,8 @@ module Book
       return nil unless match
       front_matter = YAML.safe_load(match[1]) || {}
       front_matter['name']
-    rescue StandardError
+    rescue StandardError => e
+      puts "⚠️  Warning: Failed to extract name from character file '#{file_path}': #{e.message}"
       nil
     end
 
