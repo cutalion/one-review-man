@@ -27,10 +27,10 @@ book-generator/bin/book --version
 book-generator/bin/book init here --path /path/to/my-book
 
 # Generate next chapter (mock AI for deterministic output)
-MOCK_AI=true book-generator/bin/book generate chapter --project-dir /path/to/my-book --auto
+MOCK_AI=true book-generator/bin/book generate chapter --book-dir /path/to/my-book --auto
 
 # Prepare a Jekyll site from the book content
-book-generator/bin/book jekyll generate --project-dir /path/to/my-book --dest /path/to/site
+book-generator/bin/book jekyll generate --book-dir /path/to/my-book --dest /path/to/site
 ```
 
 ## Architecture

@@ -70,10 +70,10 @@ Get your API key from: https://platform.openai.com/api-keys
 
 ```bash
 # Generate next chapter (interactive)
-book-generator/bin/book generate chapter --project-dir /path/to/book
+book-generator/bin/book generate chapter --book-dir /path/to/book
 
 # Generate automatically without prompts
-book-generator/bin/book generate chapter --project-dir /path/to/book --auto
+book-generator/bin/book generate chapter --book-dir /path/to/book --auto
 
 # Regeneration flows are handled manually for now
 ```
@@ -390,14 +390,14 @@ scripts/
 
 2. **Generate first chapter (via CLI)**
    ```bash
-book-generator/bin/book generate chapter --project-dir /path/to/book
+book-generator/bin/book generate chapter --book-dir /path/to/book
    ```
 
 3. **Improve the chapter** (planned CLI subcommands)
 
 4. **Translate to other languages (via CLI)**
    ```bash
-book-generator/bin/book translate all ru --project-dir /path/to/book
+book-generator/bin/book translate all ru --book-dir /path/to/book
    ```
 
 ## 🔮 Future Extensibility

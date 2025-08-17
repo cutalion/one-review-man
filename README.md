@@ -26,7 +26,7 @@ one-review-man/
 
 ## CLI (new canonical flow)
 
-All commands accept `--project-dir` to work from any current directory.
+All commands accept `--book-dir` (or `-b`) to work from any current directory.
 
 ```bash
 # Initialize a new (empty) book folder
@@ -35,18 +35,18 @@ book-generator/bin/book init here --path books/one-review-man
 # Generate the next English chapter (set a model if needed)
 book-generator/bin/book generate chapter \
   --model gpt-5 \
-  --project-dir books/one-review-man
+  --book-dir books/one-review-man
 
 # Inspect the exact prompt used for the next (or specific) chapter
-book-generator/bin/book generate prompt --project-dir books/one-review-man
-book-generator/bin/book generate prompt 7 --project-dir books/one-review-man
+book-generator/bin/book generate prompt --book-dir books/one-review-man
+book-generator/bin/book generate prompt 7 --book-dir books/one-review-man
 
 # Translate everything to Russian
-book-generator/bin/book translate all ru --project-dir books/one-review-man
+book-generator/bin/book translate all ru --book-dir books/one-review-man
 
 # Prepare a Jekyll site with the current book content
 book-generator/bin/book jekyll generate \
-  --project-dir books/one-review-man \
+  --book-dir books/one-review-man \
   --dest books/one-review-man/site
 
 # Build/serve the site (run inside the generated site directory)
@@ -100,7 +100,7 @@ Model compatibility helpers:
 ## Debugging
 
 - Show the effective prompt without calling the API:
-  - `book-generator/bin/book generate prompt [NUMBER] --project-dir BOOK_DIR`
+  - `book-generator/bin/book generate prompt [NUMBER] --book-dir BOOK_DIR`
 - Enable debug artifacts for real API calls:
   - `--debug` flag (or `DEBUG_AI=1` env)
   - Files: `tmp/ai_debug/request_parameters.json`, `response_raw.json`, `chapter_generation_raw*.json`

@@ -7,6 +7,7 @@ require 'book/cli/version'
 require 'book/translator'
 require 'book_core/reset'
 require 'book_core/chapter_generator'
+require 'book_core/env_utils'
 
 module Book
   module CLI
@@ -23,20 +24,47 @@ module Book
         nil
       end
 
-      def resolve_project_root!(explicit_path = nil)
+      def resolve_project_root!(explicit_path = nil, max_attempts = 3)
         candidate = explicit_path || Dir.pwd
         data_dir = File.join(candidate, 'data')
         metadata = File.join(data_dir, 'book_metadata.yml')
         return candidate if File.exist?(metadata)
 
+        return handle_missing_project_root(max_attempts) if explicit_path
+
         $stderr.puts 'Not a book directory (missing data/book_metadata.yml).'
         path = ask('Path to book directory (leave empty to abort):')
         if path && !path.strip.empty?
-          return resolve_project_root!(File.expand_path(path.strip))
+          # Validate the path before expanding
+          path_stripped = path.strip
+          unless valid_path_input?(path_stripped)
+            $stderr.puts 'Invalid path provided.'
+            return resolve_project_root!(nil, max_attempts - 1) if max_attempts > 1
+          end
+          
+          expanded_path = File.expand_path(path_stripped)
+          return resolve_project_root!(expanded_path, max_attempts - 1) if max_attempts > 1
         end
 
-        $stderr.puts 'Aborted. Please run in a book directory or pass --project-dir.'
+        $stderr.puts 'Aborted. Please run in a book directory or pass --book-dir.'
         exit 1
+      end
+
+      private
+
+      def handle_missing_project_root(max_attempts)
+        if max_attempts <= 1
+          $stderr.puts 'Maximum attempts reached. Aborted.'
+          exit 1
+        end
+        resolve_project_root!(nil, max_attempts - 1)
+      end
+
+      def valid_path_input?(path)
+        # Basic validation: not empty, doesn't contain null bytes, reasonable length
+        return false if path.nil? || path.empty? || path.include?("\0")
+        return false if path.length > 1000  # Reasonable path length limit
+        true
       end
 
       def write_yaml_file(path, hash)
@@ -50,12 +78,12 @@ module Book
       class_option :model, type: :string, desc: 'Specify the model to use for generation'
       class_option :auto, type: :boolean, default: false, desc: 'Auto mode: skip interactive prompts'
       class_option :debug, type: :boolean, default: false, desc: 'Enable verbose LLM debug logging'
-      class_option :project_dir, type: :string, desc: 'Path to the book directory (defaults to current directory)'
+      class_option :book_dir, aliases: ['-b'], type: :string, desc: 'Path to the book directory (defaults to current directory)'
 
       desc 'chapter [NUMBER]', 'Generate a chapter'
       def chapter(number = nil)
         model_name = options[:model]
-        project_root = resolve_project_root!(options[:project_dir])
+        project_root = resolve_project_root!(options[:book_dir])
         abs_root = File.expand_path(project_root)
         Dir.chdir(abs_root) do
           ENV['DEBUG_AI'] = '1' if options[:debug]
@@ -66,7 +94,7 @@ module Book
 
       desc 'prompt [NUMBER]', 'Show generation prompt'
       def prompt(number = nil)
-        project_root = resolve_project_root(options[:project_dir])
+        project_root = resolve_project_root(options[:book_dir])
         unless project_root
           puts 'prompt stub for chapter'
           return
@@ -87,11 +115,11 @@ module Book
 
       class_option :model, type: :string, desc: 'Specify the model to use for translation'
       class_option :debug, type: :boolean, default: false, desc: 'Enable verbose LLM debug logging'
-      class_option :project_dir, type: :string, desc: 'Path to the book directory (defaults to current directory)'
+      class_option :book_dir, aliases: ['-b'], type: :string, desc: 'Path to the book directory (defaults to current directory)'
 
       desc 'chapter NUMBER LANG', 'Translate a chapter to a language'
       def chapter(number, lang)
-        book_root = resolve_project_root!(options[:project_dir])
+        book_root = resolve_project_root!(options[:book_dir])
         abs_root = File.expand_path(book_root)
         Dir.chdir(abs_root) do
           ENV['DEBUG_AI'] = '1' if options[:debug]
@@ -102,7 +130,7 @@ module Book
 
       desc 'character SLUG LANG', 'Translate a character to a language'
       def character(slug, lang)
-        book_root = resolve_project_root!(options[:project_dir])
+        book_root = resolve_project_root!(options[:book_dir])
         abs_root = File.expand_path(book_root)
         Dir.chdir(abs_root) do
           ENV['DEBUG_AI'] = '1' if options[:debug]
@@ -113,7 +141,7 @@ module Book
 
       desc 'all LANG', 'Translate all content to a language'
       def all(lang)
-        book_root = resolve_project_root!(options[:project_dir])
+        book_root = resolve_project_root!(options[:book_dir])
         abs_root = File.expand_path(book_root)
         Dir.chdir(abs_root) do
           ENV['DEBUG_AI'] = '1' if options[:debug]
@@ -126,10 +154,25 @@ module Book
     class Init < Thor
       include Helpers
 
-      desc 'here [PATH]', 'Initialise a new book in PATH (or current directory)'
-      method_option :path, aliases: '-p', type: :string, desc: 'Target directory (defaults to CWD)'
-      def here(path = nil)
-        target = File.expand_path(path || options[:path] || Dir.pwd)
+      class_option :book_dir, aliases: ['-b'], type: :string, desc: 'Path to the book directory (defaults to current directory)'
+
+      desc 'here', 'Initialise a new book (use --book-dir to specify location)'
+      def here
+        target = File.expand_path(options[:book_dir] || Dir.pwd)
+
+        # Check if directory exists and is not empty
+        if Dir.exist?(target) && !Dir.empty?(target)
+          say "Directory #{target} is not empty.", :red
+          exit 1
+        end
+
+        # Ask for confirmation if using current directory (no --book-dir specified)
+        unless options[:book_dir]
+          unless yes?("Create book in current directory (#{target})? [y/N]", :yellow)
+            say "Aborted.", :red
+            exit 1
+          end
+        end
 
         title = ask('Book title:', default: 'My New Book')
         author = ask('Author name:', default: 'Anonymous')
@@ -174,13 +217,13 @@ module Book
 
       desc 'generate [DEST]', 'Create or update a Jekyll site from the current book content'
       method_option :dest, aliases: '-d', type: :string, desc: 'Destination directory for the Jekyll site (defaults to ./site)'
-      class_option :project_dir, type: :string, desc: 'Path to the book directory (defaults to current directory)'
+      class_option :book_dir, aliases: ['-b'], type: :string, desc: 'Path to the book directory (defaults to current directory)'
       def generate(dest = nil)
-        book_root = resolve_project_root!(options[:project_dir])
+        book_root = resolve_project_root!(options[:book_dir])
         dest_dir = File.expand_path(dest || options[:dest] || File.join(book_root, 'site'))
 
         # Prefer local template bundled with this repo layout
-        template_root = ENV['JEKYLL_TEMPLATE_PATH'] || File.expand_path('../../templates/jekyll', __dir__)
+        template_root = BookCore::EnvUtils.jekyll_template_path(File.expand_path('../../templates/jekyll', __dir__))
         unless Dir.exist?(template_root)
           say 'Jekyll site template not found. Set JEKYLL_TEMPLATE_PATH or ensure templates exist at book-generator/templates/jekyll.', :red
           exit 1
