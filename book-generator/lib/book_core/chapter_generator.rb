@@ -39,7 +39,7 @@ module BookCore
       # Auto-migrate world.yml to story_facts.yml if needed  
       migrate_world_data_to_story_facts
 
-      puts "Generating Chapter #{next_chapter} using model #{@model_override || 'default-model'}..."
+      puts "Generating Chapter #{next_chapter} using model #{@llm_service.get_model_for_task('generation')}..."
 
       # Determine characters for this chapter (parity with main)
       character_objects = select_characters_for_chapter(next_chapter)

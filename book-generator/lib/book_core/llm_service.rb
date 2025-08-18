@@ -177,6 +177,15 @@ module BookCore
       raise APIError, "Invalid JSON from LLM (character): #{e.message}"
     end
 
+    def get_model_for_task(task_type)
+      return @model_override if @model_override
+      if @config['models'] && @config['models'][task_type]
+        @config['models'][task_type]
+      else
+        @config['model'] || DEFAULT_MODEL
+      end
+    end
+
     private
 
     def load_config(config_file)
@@ -307,15 +316,6 @@ module BookCore
       end
       merged['max_tokens'] ||= ({ 'generation' => 8000, 'translation' => 12000, 'chat' => 4000 }[task_type] || 6000)
       merged.merge(base_options).transform_keys(&:to_sym)
-    end
-
-    def get_model_for_task(task_type)
-      return @model_override if @model_override
-      if @config['models'] && @config['models'][task_type]
-        @config['models'][task_type]
-      else
-        @config['model'] || DEFAULT_MODEL
-      end
     end
 
     def get_safe_max_tokens(task_type, model)
