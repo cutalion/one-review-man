@@ -49,7 +49,7 @@ cd site && bundle exec jekyll serve
 ├── books/one-review-man/   # Book-specific content and configuration
 │   ├── content/           # Generated chapters and characters
 │   ├── data/             # Metadata, character database, generation log
-│   └── scripts/          # LLM configuration (llm_config.yml)
+│   └── data/             # Book metadata, characters, and LLM configuration
 └── site/                  # Generated Jekyll site (build target)
 ```
 
@@ -63,7 +63,7 @@ cd site && bundle exec jekyll serve
 **LLMService** (`book-generator/lib/book_core/llm_service.rb`)
 - Abstracted AI service interface (currently OpenAI implementation)
 - Supports model-specific parameter handling (gpt-5, o3 series)
-- Configurable via `scripts/llm_config.yml`
+- Configurable via `data/settings.yml` (llm section)
 
 **JekyllAdapter** (`book-generator/lib/book_core/jekyll_adapter.rb`)
 - Output formatting for Jekyll sites
@@ -77,18 +77,20 @@ cd site && bundle exec jekyll serve
 
 ### Configuration System
 
-**LLM Configuration** (`books/*/scripts/llm_config.yml`):
+**LLM Configuration** (`books/*/data/settings.yml`):
 ```yaml
-provider: openai
-model: gpt-4o-mini
-temperature: 0.7
-default_options:
-  max_tokens: 12000
-task_options:
-  generation:
-    max_tokens: 8000
-  translation:
+llm:
+  provider: openai
+  model: gpt-4o-mini
+  temperature: 0.7
+  timeout: 240
+  default_options:
     max_tokens: 12000
+  task_options:
+    generation:
+      max_tokens: 8000
+    translation:
+      max_tokens: 12000
 ```
 
 **Project Detection**: CLI automatically finds book root by searching for `data/book_metadata.yml`

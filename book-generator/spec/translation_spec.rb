@@ -21,12 +21,10 @@ RSpec.describe 'book translation' do
       FileUtils.mkdir_p(File.join(test_dir, '_chapters'))
       FileUtils.mkdir_p(File.join(test_dir, 'data'))
       FileUtils.mkdir_p(File.join(test_dir, '_characters'))
-      FileUtils.mkdir_p(File.join(test_dir, 'scripts', 'prompts'))
       File.write(File.join(test_dir, 'data', 'book_metadata.yml'), "book:\n  current_chapter: 0\n")
       File.write(File.join(test_dir, 'data', 'characters.yml'), "characters:\n")
       File.write(File.join(test_dir, 'data', 'generation_log.yml'), "generations:\n")
-      File.write(File.join(test_dir, 'scripts', 'prompts', 'chapter_prompts.txt'), "prompt template\n")
-      File.write(File.join(test_dir, 'scripts', 'llm_config.yml'), "model: mock\n")
+      File.write(File.join(test_dir, 'data', 'settings.yml'), "llm:\n  model: mock\n")
       File.write(File.join(test_dir, '_chapters', '001-chapter.md'), "---\ntitle: Chapter 1\n---\nContent\n")
       File.write(File.join(test_dir, '_characters', 'test_character.md'), "---\nname: Test Character\n---\nContent\n")
     end

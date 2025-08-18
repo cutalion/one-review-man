@@ -49,8 +49,7 @@ Metrics/PerceivedComplexity:
 
 # Offense count: 1
 Naming/AccessorMethodName:
-  Exclude:
-    - 'scripts/book_utils.rb'
+  Exclude: []
 
 # Offense count: 4
 # Configuration parameters: AllowedConstants.
@@ -58,23 +57,15 @@ Style/Documentation:
   Exclude:
     - 'spec/**/*'
     - 'test/**/*'
-    - 'scripts/book_utils.rb'
-    - 'scripts/generate_chapter.rb'
-    - 'scripts/reset_book.rb'
-    - 'scripts/translate_content.rb'
 
 # Offense count: 8
 # This cop supports safe autocorrection (--autocorrect).
 Style/IfUnlessModifier:
-  Exclude:
-    - 'scripts/generate_chapter.rb'
-    - 'scripts/llm_service.rb'
-    - 'scripts/translate_content.rb'
+  Exclude: []
 
 # Offense count: 1
 Style/MultilineBlockChain:
-  Exclude:
-    - 'scripts/book_utils.rb'
+  Exclude: []
 
 # Offense count: 12
 # This cop supports safe autocorrection (--autocorrect).

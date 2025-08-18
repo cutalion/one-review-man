@@ -26,7 +26,7 @@ Previously chapters created inconsistent world details:
 The `ChapterGenerator` would automatically include world consistency:
 
 ```ruby
-# In scripts/generate_chapter.rb
+# In lib/book_core/chapter_generator.rb
 include WorldUtils
 
 def build_chapter_prompt(chapter_num, characters)

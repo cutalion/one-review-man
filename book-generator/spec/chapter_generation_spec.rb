@@ -19,12 +19,10 @@ RSpec.describe 'book chapter generation' do
       # Create the necessary directories and files in the temporary directory
       FileUtils.mkdir_p(File.join(test_dir, '_chapters'))
       FileUtils.mkdir_p(File.join(test_dir, 'data'))
-      FileUtils.mkdir_p(File.join(test_dir, 'scripts', 'prompts'))
       File.write(File.join(test_dir, 'data', 'book_metadata.yml'), "book:\n  current_chapter: 0\n")
       File.write(File.join(test_dir, 'data', 'characters.yml'), "characters:\n")
       File.write(File.join(test_dir, 'data', 'generation_log.yml'), "generations:\n")
-      File.write(File.join(test_dir, 'scripts', 'prompts', 'chapter_prompts.txt'), "prompt template\n")
-      File.write(File.join(test_dir, 'scripts', 'llm_config.yml'), "model: mock\n")
+      File.write(File.join(test_dir, 'data', 'settings.yml'), "llm:\n  model: mock\n")
 
       # Mock the ChapterGenerator to avoid actual LLM calls
       expect(BookCore::ChapterGenerator).to receive(:new).with('gpt-4o', hash_including(project_root: kind_of(String))).and_call_original

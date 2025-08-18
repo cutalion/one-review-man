@@ -10,8 +10,6 @@ AllCops:
     - 'Gemfile.lock'
 
 Layout/LineLength:
-  Exclude:
-    - 'scripts/prompts/**/*'
   AllowedPatterns:
     - '\s*#.*'
     - '^\s*PROMPT.*'

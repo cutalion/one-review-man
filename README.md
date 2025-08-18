@@ -17,7 +17,7 @@ one-review-man/
 │       ├── content/
 │       │   ├── chapters/    # English chapters + translations (*.ru.md)
 │       │   └── characters/  # English character pages + translations
-│       └── scripts/llm_config.yml  # Per-book LLM config
+│       └── data/               # Book metadata, characters, settings
 └── README.md
 ```
 
@@ -61,21 +61,23 @@ Tips:
 
 ## LLM configuration
 
-Per‑book config lives at `BOOK_DIR/scripts/llm_config.yml`. Example keys:
+Per‑book config lives at `BOOK_DIR/data/settings.yml`. Example LLM configuration:
 
 ```yaml
-provider: openai
-model: gpt-4o-mini
-temperature: 0.7
-openai_base_url: "https://api.openai.com/v1" # optional
-openai_api_key: "env-or-placeholder"         # typically use ENV OPENAI_API_KEY
-default_options:
-  max_tokens: 12000
-task_options:
-  generation:
-    max_tokens: 8000
-  translation:
+llm:
+  provider: openai
+  model: gpt-4o-mini
+  temperature: 0.7
+  timeout: 240
+  # openai_base_url: "https://api.openai.com/v1"  # optional
+  # openai_api_key: "env-or-placeholder"          # typically use ENV OPENAI_API_KEY
+  default_options:
     max_tokens: 12000
+  task_options:
+    generation:
+      max_tokens: 8000
+    translation:
+      max_tokens: 12000
 ```
 
 Model compatibility helpers:
