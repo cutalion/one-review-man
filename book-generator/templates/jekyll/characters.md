@@ -8,7 +8,7 @@ nav_order: 2
 
 # Characters
 
-Meet the cast of **{{BOOK_TITLE}}** - each with their own unique personality, backstory, and role in our {{BOOK_GENRE_DESCRIPTION}}!
+Meet the cast of **{{BOOK_TITLE}}** - each with their own unique personality, backstory, and role in our story!
 
 {% assign characters = site.characters | where: "lang", page.lang %}
 
@@ -83,7 +83,7 @@ Meet the cast of **{{BOOK_TITLE}}** - each with their own unique personality, ba
 {% else %}
 <section>
 <h2>No Characters Yet!</h2>
-<p>Our cast of characters is waiting to be created. Each chapter may introduce new personalities to join the comedy!</p>
+<p>Our cast of characters is waiting to be created. Each chapter may introduce new personalities to join the story!</p>
 
 <section>
 <h3>Coming Soon:</h3>

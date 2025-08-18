@@ -36,6 +36,9 @@ module BookCore
     def generate_next_chapter(auto_generate: false)
       next_chapter = determine_next_chapter_number
 
+      # Auto-migrate world.yml to story_facts.yml if needed  
+      migrate_world_data_to_story_facts
+
       puts "Generating Chapter #{next_chapter} using model #{@model_override || 'default-model'}..."
 
       # Determine characters for this chapter (parity with main)
@@ -46,6 +49,7 @@ module BookCore
 
       write_chapter_file(next_chapter, chapter_data, character_slugs)
       create_new_characters(chapter_data['new_characters']) if chapter_data['new_characters'].is_a?(Array)
+      extract_and_store_story_facts(chapter_data['story_facts'], next_chapter) if chapter_data['story_facts'].is_a?(Hash)
 
       update_book_progress(next_chapter)
 
@@ -103,8 +107,40 @@ module BookCore
 
       PromptUtils.build_prompt(template, placeholders, warn_unused: false)
     rescue PromptUtils::UnfilledPlaceholdersError => e
-      puts "❌ Error: Template has unfilled placeholders: #{e.unfilled_placeholders.join(', ')}"
-      raise
+      # Attempt interactive collection of missing metadata
+      if attempt_interactive_metadata_collection(e.unfilled_placeholders)
+        # Retry with updated metadata
+        return build_chapter_prompt(chapter_number)
+      else
+        # Fall back to detailed error message
+        puts ""
+        puts "❌ Missing Information Required for Chapter Generation"
+        puts ""
+        puts "Your book needs additional information before chapters can be generated."
+        puts "Missing: #{e.unfilled_placeholders.join(', ')}"
+        puts ""
+        puts "💡 To fix this issue:"
+        puts "1. Update your book metadata with the missing information"
+        puts "2. Or run 'book init' again in a new directory with complete setup"
+        puts ""
+        puts "📖 Missing Information Guide:"
+        if e.unfilled_placeholders.include?('BOOK_GENRE')
+          puts "  • BOOK_GENRE: What type of story is this? (fantasy, sci-fi, mystery, etc.)"
+        end
+        if e.unfilled_placeholders.include?('BOOK_STYLE') || e.unfilled_placeholders.include?('BOOK_HUMOR_STYLE')
+          puts "  • Writing Style: How should the story be told? (humorous, serious, adventurous, etc.)"
+        end
+        if e.unfilled_placeholders.include?('BOOK_SETTING') || e.unfilled_placeholders.include?('PRIMARY_LOCATION')
+          puts "  • Setting: Where does your story take place? (medieval castle, space station, modern city, etc.)"
+        end
+        if e.unfilled_placeholders.include?('WORLD_DETAILS')
+          puts "  • World Details: What makes your story world unique?"
+        end
+        puts ""
+        puts "🔧 For immediate help, contact support or check documentation"
+        puts ""
+        raise BookCore::LLMService::LLMError, "Book setup incomplete - missing required metadata for chapter generation"
+      end
     end
 
     def write_chapter_file(chapter_number, chapter_data, character_slugs = [])
@@ -340,6 +376,370 @@ module BookCore
       end
     end
 
+    def extract_and_store_story_facts(story_facts, chapter_number)
+      return if story_facts.nil? || story_facts.empty?
+
+      facts_path = File.join(@project_root, 'data', 'story_facts.yml')
+      facts_data = File.exist?(facts_path) ? (YAML.safe_load(File.read(facts_path)) || {}) : {}
+      
+      # Ensure structure
+      facts_data['en'] ||= {}
+      facts_data['en']['facts'] ||= {}
+      store = facts_data['en']['facts']
+
+      # Process each fact type
+      %w[locations events world_rules relationships].each do |fact_type|
+        next unless story_facts[fact_type].is_a?(Array) && !story_facts[fact_type].empty?
+        
+        store[fact_type] ||= {}
+        story_facts[fact_type].each do |fact|
+          next if fact.nil? || !fact.is_a?(Hash)
+          
+          fact_key = generate_fact_key(fact, fact_type)
+          next if ValidationUtils.blank?(fact_key)
+          
+          # Avoid duplicates - check if fact already exists
+          unless store[fact_type].key?(fact_key)
+            normalized_fact = normalize_fact(fact, fact_type, chapter_number)
+            store[fact_type][fact_key] = normalized_fact if normalized_fact
+          end
+        end
+      end
+
+      # Persist story_facts.yml
+      FileUtils.mkdir_p(File.dirname(facts_path))
+      File.write(facts_path, facts_data.to_yaml)
+    end
+
+    def generate_fact_key(fact, fact_type)
+      case fact_type
+      when 'locations'
+        name = fact['name']&.to_s&.strip
+        return nil if ValidationUtils.blank?(name)
+        ValidationUtils.slugify(name)
+      when 'events'
+        name = fact['name']&.to_s&.strip
+        return nil if ValidationUtils.blank?(name)
+        ValidationUtils.slugify(name)
+      when 'world_rules'
+        rule = fact['rule']&.to_s&.strip
+        return nil if ValidationUtils.blank?(rule)
+        # Create a short slug from the first few words of the rule
+        rule_words = rule.split.first(3).join(' ')
+        ValidationUtils.slugify(rule_words)
+      when 'relationships'
+        char1 = fact['character1']&.to_s&.strip
+        char2 = fact['character2']&.to_s&.strip
+        return nil if ValidationUtils.blank?(char1) || ValidationUtils.blank?(char2)
+        # Create a consistent key regardless of order
+        names = [ValidationUtils.slugify(char1), ValidationUtils.slugify(char2)].sort
+        "#{names[0]}_#{names[1]}"
+      else
+        nil
+      end
+    end
+
+    def normalize_fact(fact, fact_type, chapter_number)
+      case fact_type
+      when 'locations'
+        {
+          'name' => fact['name']&.to_s&.strip,
+          'description' => fact['description']&.to_s&.strip,
+          'type' => fact['type']&.to_s&.strip || 'other',
+          'first_mentioned' => "Chapter #{chapter_number}",
+          'status' => 'established'
+        }.compact.reject { |_, v| ValidationUtils.blank?(v) }
+      when 'events'
+        {
+          'name' => fact['name']&.to_s&.strip,
+          'description' => fact['description']&.to_s&.strip,
+          'chapter' => chapter_number,
+          'impact' => fact['impact']&.to_s&.strip || 'minor'
+        }.compact.reject { |_, v| ValidationUtils.blank?(v) }
+      when 'world_rules'
+        {
+          'rule' => fact['rule']&.to_s&.strip,
+          'category' => fact['category']&.to_s&.strip || 'other',
+          'established' => "Chapter #{chapter_number}"
+        }.compact.reject { |_, v| ValidationUtils.blank?(v) }
+      when 'relationships'
+        {
+          'character1' => fact['character1']&.to_s&.strip,
+          'character2' => fact['character2']&.to_s&.strip,
+          'relationship' => fact['relationship']&.to_s&.strip || 'other',
+          'status' => fact['status']&.to_s&.strip || 'established',
+          'first_chapter' => chapter_number
+        }.compact.reject { |_, v| ValidationUtils.blank?(v) }
+      else
+        nil
+      end
+    end
+
+    def build_story_facts_context
+      story_facts = load_story_facts
+      return {} unless story_facts&.dig('en', 'facts')
+      
+      facts = story_facts['en']['facts']
+      placeholders = {}
+      
+      # Build locations context
+      if facts['locations'] && !facts['locations'].empty?
+        location_list = facts['locations'].map do |key, location|
+          "- #{location['name']}: #{location['description']} (#{location['type']})"
+        end
+        placeholders['ESTABLISHED_LOCATIONS'] = location_list.join("\n")
+      end
+      
+      # Build events context
+      if facts['events'] && !facts['events'].empty?
+        event_list = facts['events'].map do |key, event|
+          "- #{event['name']} (Chapter #{event['chapter']}): #{event['description']}"
+        end
+        placeholders['ESTABLISHED_EVENTS'] = event_list.join("\n")
+      end
+      
+      # Build world rules context
+      if facts['world_rules'] && !facts['world_rules'].empty?
+        rules_list = facts['world_rules'].map do |key, rule|
+          "- #{rule['rule']} (#{rule['category']})"
+        end
+        placeholders['WORLD_RULES'] = rules_list.join("\n")
+      end
+      
+      # Build relationships context
+      if facts['relationships'] && !facts['relationships'].empty?
+        relationship_list = facts['relationships'].map do |key, rel|
+          "- #{rel['character1']} and #{rel['character2']}: #{rel['relationship']}"
+        end
+        placeholders['CHARACTER_RELATIONSHIPS'] = relationship_list.join("\n")
+      end
+      
+      placeholders
+    end
+
+    def load_story_facts
+      facts_path = File.join(@project_root, 'data', 'story_facts.yml')
+      return {} unless File.exist?(facts_path)
+      
+      YAML.safe_load(File.read(facts_path)) || {}
+    rescue StandardError => e
+      puts "⚠️  Warning: Failed to load story facts: #{e.message}"
+      {}
+    end
+
+    def build_content_rules_context(book_metadata)
+      return {} unless book_metadata
+      
+      content_rules = book_metadata.dig('generation', 'content_rules')
+      return {} unless content_rules
+      
+      placeholders = {}
+      
+      # World physics rules
+      if content_rules['world_physics'] && content_rules['world_physics'].is_a?(Array)
+        physics_list = content_rules['world_physics'].map { |rule| "- #{rule}" }
+        placeholders['WORLD_PHYSICS_RULES'] = physics_list.join("\n")
+      end
+      
+      # Style guidelines
+      if content_rules['style_guidelines'] && content_rules['style_guidelines'].is_a?(Array)
+        style_list = content_rules['style_guidelines'].map { |rule| "- #{rule}" }
+        placeholders['STYLE_GUIDELINES'] = style_list.join("\n")
+      end
+      
+      # Content requirements
+      if content_rules['content_requirements'] && content_rules['content_requirements'].is_a?(Array)
+        requirements_list = content_rules['content_requirements'].map { |rule| "- #{rule}" }
+        placeholders['CONTENT_REQUIREMENTS'] = requirements_list.join("\n")
+      end
+      
+      # Character dynamics
+      if content_rules['character_dynamics']
+        dynamics = content_rules['character_dynamics']
+        dynamics_text = []
+        
+        if dynamics['protagonist_addressing']
+          case dynamics['protagonist_addressing']
+          when 'real_names_in_dialogue'
+            dynamics_text << "- Characters use real names when speaking directly to the protagonist"
+          when 'professional_titles'
+            dynamics_text << "- Characters use professional titles when addressing the protagonist"
+          end
+        end
+        
+        if dynamics['mentor_student_pattern']
+          case dynamics['mentor_student_pattern']
+          when 'sensei_usage'
+            dynamics_text << "- Student characters address mentor as 'sensei' or by real name"
+          end
+        end
+        
+        if dynamics['colleague_dismissal_theme']
+          dynamics_text << "- Colleagues consistently dismiss protagonist's abilities as luck"
+        end
+        
+        if dynamics['underestimation_pattern']
+          case dynamics['underestimation_pattern']
+          when 'consistent_dismissal'
+            dynamics_text << "- Others always underestimate protagonist until proven wrong"
+          end
+        end
+        
+        placeholders['CHARACTER_DYNAMICS'] = dynamics_text.join("\n") unless dynamics_text.empty?
+      end
+      
+      # Parody and humor style
+      if content_rules['parody_source']
+        placeholders['PARODY_SOURCE'] = content_rules['parody_source']
+      end
+      
+      if content_rules['humor_style']
+        placeholders['HUMOR_STYLE'] = content_rules['humor_style']
+      end
+      
+      placeholders
+    end
+
+    def migrate_world_data_to_story_facts
+      world_path = File.join(@project_root, 'data', 'world.yml')
+      facts_path = File.join(@project_root, 'data', 'story_facts.yml')
+      
+      # Skip if no world.yml or story_facts.yml already exists
+      return false unless File.exist?(world_path)
+      return false if File.exist?(facts_path)
+      
+      begin
+        world_data = YAML.safe_load(File.read(world_path))
+        return false unless world_data&.dig('en', 'world')
+        
+        world = world_data['en']['world']
+        story_facts = { 'en' => { 'facts' => {} } }
+        facts = story_facts['en']['facts']
+        
+        # Migrate locations
+        if world['locations']
+          facts['locations'] = {}
+          world['locations'].each do |key, location|
+            facts['locations'][key] = {
+              'name' => location['name'],
+              'description' => location['description'],
+              'type' => location['type'] || 'location',
+              'first_mentioned' => location['established_chapter'] || 'Chapter 1',
+              'status' => 'established'
+            }.compact
+          end
+        end
+        
+        # Migrate company info as a location
+        if world['company']
+          facts['locations'] ||= {}
+          facts['locations']['company_office'] = {
+            'name' => world['company']['name'],
+            'description' => world['company']['description'],
+            'type' => world['company']['type'] || 'office',
+            'first_mentioned' => world['company']['established_chapter'] || 'Chapter 1',
+            'status' => 'established'
+          }.compact
+        end
+        
+        # Migrate meetings as events
+        if world['meetings']
+          facts['events'] ||= {}
+          world['meetings'].each do |key, meeting|
+            facts['events'][key] = {
+              'name' => meeting['name'],
+              'description' => meeting['description'],
+              'chapter' => 1, # Default to chapter 1 for recurring meetings
+              'impact' => 'minor'
+            }.compact
+          end
+        end
+        
+        # Migrate infrastructure as world rules
+        if world['infrastructure']
+          facts['world_rules'] ||= {}
+          world['infrastructure'].each do |key, infra|
+            facts['world_rules'][key] = {
+              'rule' => "#{infra['name']}: #{infra['description']}",
+              'category' => 'technology',
+              'established' => infra['established_chapter'] || 'Chapter 1'
+            }.compact
+          end
+        end
+        
+        # Migrate culture as world rules
+        if world['culture']
+          facts['world_rules'] ||= {}
+          world['culture'].each do |key, culture|
+            facts['world_rules']["culture_#{key}"] = {
+              'rule' => culture['description'],
+              'category' => 'culture',
+              'established' => culture['established_chapter'] || 'Chapter 1'
+            }.compact
+          end
+        end
+        
+        # Migrate established_facts as world rules
+        if world['established_facts'] && world['established_facts'].is_a?(Array)
+          facts['world_rules'] ||= {}
+          world['established_facts'].each_with_index do |fact, index|
+            facts['world_rules']["established_fact_#{index + 1}"] = {
+              'rule' => fact,
+              'category' => 'culture',
+              'established' => 'Chapter 1'
+            }
+          end
+        end
+        
+        # Write new story_facts.yml
+        FileUtils.mkdir_p(File.dirname(facts_path))
+        File.write(facts_path, story_facts.to_yaml)
+        
+        puts "✅ Migrated world.yml to story_facts.yml"
+        puts "   Locations: #{facts['locations']&.size || 0}"
+        puts "   Events: #{facts['events']&.size || 0}"
+        puts "   World Rules: #{facts['world_rules']&.size || 0}"
+        
+        true
+      rescue StandardError => e
+        puts "⚠️  Warning: Failed to migrate world.yml: #{e.message}"
+        false
+      end
+    end
+
+    def build_main_character_placeholders(book_metadata, chars)
+      return {} unless book_metadata
+
+      placeholders = {}
+
+      # Check for new-style main character configuration
+      main_characters = book_metadata.dig('generation', 'main_characters')
+      if main_characters && main_characters.is_a?(Array)
+        # New generic approach: iterate through configured main characters
+        main_characters.each do |char_config|
+          display_name = char_config['display_name']
+          placeholder_key = char_config['placeholder_key']
+          
+          next unless display_name && placeholder_key
+          
+          real_name = find_character_real_name(chars, display_name) || '[to be generated]'
+          placeholders[placeholder_key] = real_name
+        end
+      else
+        # Fallback: backward compatibility for OneReviewMan book
+        if is_one_review_man_book?(book_metadata)
+          one_review_man_real = find_character_real_name(chars, 'One Review Man') || '[to be generated]'
+          quantum_android_real = find_character_real_name(chars, 'Quantum Android') || '[to be generated]'
+          placeholders.merge!({
+            'ONE_REVIEW_MAN_REAL_NAME' => one_review_man_real,
+            'QUANTUM_ANDROID_REAL_NAME' => quantum_android_real
+          })
+        end
+      end
+
+      placeholders
+    end
+
     # --- Helpers ported to mirror main branch behaviour ---
 
     def select_characters_for_chapter(chapter_num, characters_data = nil)
@@ -440,15 +840,17 @@ module BookCore
         })
       end
 
-      # Add OneReviewMan-specific placeholders if this is a OneReviewMan book
-      if is_one_review_man_book?(book_metadata)
-        one_review_man_real = find_character_real_name(chars, 'One Review Man') || '[to be generated]'
-        quantum_android_real = find_character_real_name(chars, 'Quantum Android') || '[to be generated]'
-        placeholders.merge!({
-          'ONE_REVIEW_MAN_REAL_NAME' => one_review_man_real,
-          'QUANTUM_ANDROID_REAL_NAME' => quantum_android_real
-        })
-      end
+      # Add story facts context to placeholders
+      story_facts_placeholders = build_story_facts_context
+      placeholders.merge!(story_facts_placeholders) if story_facts_placeholders
+
+      # Add content generation rules to placeholders
+      content_rules_placeholders = build_content_rules_context(book_metadata)
+      placeholders.merge!(content_rules_placeholders) if content_rules_placeholders
+
+      # Add main character placeholders based on book configuration
+      main_character_placeholders = build_main_character_placeholders(book_metadata, chars)
+      placeholders.merge!(main_character_placeholders) if main_character_placeholders
 
       placeholders
     end
@@ -475,15 +877,13 @@ module BookCore
         })
       end
 
-      # Add OneReviewMan-specific placeholders if needed
-      if is_one_review_man_book?(book_metadata)
-        orm = find_character_real_name(chars, 'One Review Man') || '[to be generated]'
-        qa = find_character_real_name(chars, 'Quantum Android') || '[to be generated]'
-        placeholders.merge!({
-          'ONE_REVIEW_MAN_REAL_NAME' => orm,
-          'QUANTUM_ANDROID_REAL_NAME' => qa
-        })
-      end
+      # Add story facts context to placeholders
+      story_facts_placeholders = build_story_facts_context
+      placeholders.merge!(story_facts_placeholders) if story_facts_placeholders
+
+      # Add main character placeholders based on book configuration
+      main_character_placeholders = build_main_character_placeholders(book_metadata, chars)
+      placeholders.merge!(main_character_placeholders) if main_character_placeholders
 
       placeholders
     end
@@ -544,6 +944,137 @@ module BookCore
       return 'Include fantastical elements and world-building' if genre&.include?('fantasy')
       
       'Follow conventions appropriate to the established genre and style'
+    end
+
+    def attempt_interactive_metadata_collection(missing_placeholders)
+      # Check if we're in auto mode or if STDIN is not available for interaction
+      return false if ENV['CI'] || !$stdin.tty? || missing_placeholders.empty?
+
+      puts ""
+      puts "🤔 I notice some information is missing for chapter generation."
+      puts "Would you like to provide this information now? (y/n)"
+      
+      begin
+        response = $stdin.gets&.chomp&.downcase
+        return false unless response == 'y' || response == 'yes'
+      rescue Interrupt
+        puts "\nOperation cancelled."
+        return false
+      end
+
+      puts ""
+      puts "📝 Let's fill in the missing information:"
+      puts ""
+
+      # Load current metadata
+      metadata_path = File.join(@project_root, 'data', 'book_metadata.yml')
+      metadata = if File.exist?(metadata_path)
+                   YAML.safe_load(File.read(metadata_path)) || {}
+                 else
+                   {}
+                 end
+
+      # Ensure localized structure exists
+      metadata['localized'] ||= {}
+      metadata['localized']['en'] ||= {}
+      en_metadata = metadata['localized']['en']
+
+      # Collect missing information
+      updated = false
+
+      if missing_placeholders.include?('BOOK_GENRE') && en_metadata['genre'].to_s.strip.empty?
+        puts "📖 What genre is your book?"
+        puts "   Examples: fantasy, sci-fi, mystery, thriller, comedy, romance, adventure, horror"
+        print "   Genre: "
+        genre = $stdin.gets&.chomp&.strip
+        if !genre.empty?
+          en_metadata['genre'] = genre
+          updated = true
+        end
+      end
+
+      if (missing_placeholders.include?('BOOK_STYLE') || missing_placeholders.include?('BOOK_HUMOR_STYLE')) && 
+         en_metadata['humor_style'].to_s.strip.empty?
+        puts ""
+        puts "✍️ What writing style should I use?"
+        puts "   Examples: humorous, serious, adventurous, suspenseful, whimsical, dramatic"
+        print "   Style: "
+        style = $stdin.gets&.chomp&.strip
+        if !style.empty?
+          en_metadata['humor_style'] = style
+          updated = true
+        end
+      end
+
+      if (missing_placeholders.include?('BOOK_SETTING') || missing_placeholders.include?('PRIMARY_LOCATION')) && 
+         en_metadata['setting'].to_s.strip.empty?
+        puts ""
+        puts "🌍 What is the main setting/location of your story?"
+        puts "   Examples: medieval castle, space station, modern city, magical school, etc."
+        print "   Setting: "
+        setting = $stdin.gets&.chomp&.strip
+        if !setting.empty?
+          en_metadata['setting'] = setting
+          updated = true
+        end
+      end
+
+      if missing_placeholders.include?('WORLD_DETAILS') && 
+         (en_metadata['themes'].nil? || en_metadata['themes']['primary'].to_s.strip.empty?)
+        puts ""
+        puts "🎭 What is the primary theme of your story?"
+        puts "   Examples: friendship, mystery, adventure, love, betrayal, discovery, etc."
+        print "   Primary theme: "
+        theme = $stdin.gets&.chomp&.strip
+        if !theme.empty?
+          en_metadata['themes'] ||= {}
+          en_metadata['themes']['primary'] = theme
+          updated = true
+        end
+      end
+
+      if updated
+        # Save updated metadata
+        File.write(metadata_path, metadata.to_yaml)
+        
+        # Also update world.yml if it exists
+        world_path = File.join(@project_root, 'data', 'world.yml')
+        if File.exist?(world_path) && en_metadata['setting']
+          world_data = YAML.safe_load(File.read(world_path)) || {}
+          world_data['en'] ||= {}
+          world_data['en']['world'] ||= {}
+          world_data['en']['world']['main_setting'] ||= {}
+          world_data['en']['world']['main_setting']['name'] = en_metadata['setting']
+          world_data['en']['world']['main_setting']['description'] = "The primary location where the story unfolds"
+          world_data['en']['world']['established_facts'] ||= []
+          
+          # Update facts with new information
+          facts = world_data['en']['world']['established_facts']
+          facts.clear # Remove old facts
+          facts << "Story takes place in #{en_metadata['setting']}" if en_metadata['setting']
+          facts << "Genre focuses on #{en_metadata['genre']} elements" if en_metadata['genre']
+          facts << "Primary theme is #{en_metadata.dig('themes', 'primary')}" if en_metadata.dig('themes', 'primary')
+          facts << "Writing style is #{en_metadata['humor_style']}" if en_metadata['humor_style']
+          
+          File.write(world_path, world_data.to_yaml)
+        end
+
+        puts ""
+        puts "✅ Information saved! Continuing with chapter generation..."
+        puts ""
+        return true
+      else
+        puts ""
+        puts "ℹ️ No information was provided. Chapter generation cannot continue."
+        return false
+      end
+
+    rescue Interrupt
+      puts "\nOperation cancelled."
+      return false
+    rescue StandardError => e
+      puts "\n❌ Error collecting information: #{e.message}"
+      return false
     end
 
     def extract_front_matter(file_path)

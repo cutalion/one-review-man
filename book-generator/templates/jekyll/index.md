@@ -26,6 +26,6 @@ nav_order: 1
 {% else %}
 <section>
 <h2>No Chapters Yet!</h2>
-<p>The story is about to begin. Check back soon for the first chapter of our {{BOOK_GENRE_DESCRIPTION}}!</p>
+<p>The story is about to begin. Check back soon for the first chapter!</p>
 </section>
 {% endif %}

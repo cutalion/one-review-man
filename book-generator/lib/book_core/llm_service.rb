@@ -341,11 +341,7 @@ module BookCore
       language_names = { 'ru' => 'Russian', 'es' => 'Spanish', 'fr' => 'French', 'de' => 'German', 'zh' => 'Chinese' }
       target_language_name = language_names[target_lang] || target_lang.upcase
 
-      special_instructions = ''
-      if target_lang == 'ru'
-        book_title = book_metadata&.dig('localized', 'en', 'title') || ''
-        special_instructions = build_russian_translation_rules(book_title: book_title)
-      end
+      special_instructions = build_translation_rules(target_lang, book_metadata)
 
       glossary_block = if glossary && !glossary.to_s.empty?
         "GLOSSARY OF PROPER NAMES (use exact translations shown below):\n\n#{glossary}"
@@ -430,11 +426,25 @@ module BookCore
           "content": "Chapter content in markdown format (string)",
           "new_characters": [
             { "name": "Character name", "description": "Brief description", "personality_traits": ["trait"] }
-          ]
+          ],
+          "story_facts": {
+            "locations": [
+              { "name": "Location name", "description": "What makes this location significant", "type": "office|cafe|room|building|other" }
+            ],
+            "events": [
+              { "name": "Event name", "description": "What happened and why it's important", "impact": "minor|major" }
+            ],
+            "world_rules": [
+              { "rule": "How something works in this world", "category": "technology|culture|physics|other" }
+            ],
+            "relationships": [
+              { "character1": "Name", "character2": "Name", "relationship": "colleague|mentor|rival|friend|other", "status": "established|changed" }
+            ]
+          }
         }
 
         Required fields: content
-        Optional: title, summary, new_characters
+        Optional: title, summary, new_characters, story_facts
       SCHEMA
 
       "#{prompt}\n\n#{schema}"
@@ -477,30 +487,77 @@ module BookCore
       # best effort only
     end
 
-    def build_russian_translation_rules(options = {})
-      # Extract book-specific translation rules from options if provided
-      if options[:book_title] && options[:book_title].include?('One Review Man')
-        # OneReviewMan-specific rules
-        <<~RUSSIAN
-
-          RUSSIAN TRANSLITERATION RULES:
-          - "One Review Man" → "Ванревьюмен"
-          - "AI-Enhanced Disciple" → "ИИ-Усиленный Ученик"
-          - Keep real names in Japanese style: "Satoru" → "Сатору", "Genki" → "Генки"
-          - Use respectful address: "Сатору-сенсей" for "Satoru-sensei"
-          - Programming terms: mix English and Russian naturally (e.g., "программист", "код", but "pull request", "git")
-        RUSSIAN
-      else
-        # Generic translation rules
-        <<~RUSSIAN
-
-          RUSSIAN TRANSLATION GUIDELINES:
-          - Preserve proper names and character names as appropriate for the story
-          - Use natural Russian equivalents for common terms
-          - Keep technical terms in their commonly used form (mix English/Russian as appropriate)
-          - Maintain respectful address forms when present in original
-        RUSSIAN
+    def build_translation_rules(target_lang, book_metadata = nil)
+      return '' unless book_metadata
+      
+      # Load translation rules from book configuration
+      translation_rules = book_metadata.dig('generation', 'translation_rules', target_lang)
+      return build_generic_translation_rules(target_lang) unless translation_rules
+      
+      rules_text = []
+      language_names = { 'ru' => 'RUSSIAN', 'es' => 'SPANISH', 'fr' => 'FRENCH', 'de' => 'GERMAN', 'zh' => 'CHINESE' }
+      lang_name = language_names[target_lang] || target_lang.upcase
+      
+      rules_text << "#{lang_name} TRANSLATION RULES:"
+      
+      # Character name mappings
+      if translation_rules['character_mappings']
+        translation_rules['character_mappings'].each do |original, translated|
+          rules_text << "- \"#{original}\" → \"#{translated}\""
+        end
       end
+      
+      # Name style rules
+      if translation_rules['name_style']
+        case translation_rules['name_style']
+        when 'japanese_transliteration'
+          rules_text << "- Keep real names in Japanese style: \"Satoru\" → \"Сатору\", \"Genki\" → \"Генки\""
+        when 'preserve_original'
+          rules_text << "- Preserve original character names without translation"
+        end
+      end
+      
+      # Address form rules  
+      if translation_rules['address_forms']
+        translation_rules['address_forms'].each do |original, translated|
+          rules_text << "- Use respectful address: \"#{translated}\" for \"#{original}\""
+        end
+      end
+      
+      # Technical term rules
+      if translation_rules['technical_terms']
+        case translation_rules['technical_terms']
+        when 'mixed_en_ru'
+          rules_text << "- Programming terms: mix English and Russian naturally (e.g., \"программист\", \"код\", but \"pull request\", \"git\")"
+        when 'prefer_native'
+          rules_text << "- Use native language equivalents for technical terms when available"
+        when 'preserve_english'
+          rules_text << "- Keep English technical terms in their original form"
+        end
+      end
+      
+      # Custom rules
+      if translation_rules['custom_rules'] && translation_rules['custom_rules'].is_a?(Array)
+        translation_rules['custom_rules'].each do |rule|
+          rules_text << "- #{rule}"
+        end
+      end
+      
+      rules_text.empty? ? build_generic_translation_rules(target_lang) : "\n#{rules_text.join("\n")}"
+    end
+    
+    def build_generic_translation_rules(target_lang)
+      language_names = { 'ru' => 'RUSSIAN', 'es' => 'SPANISH', 'fr' => 'FRENCH', 'de' => 'GERMAN', 'zh' => 'CHINESE' }
+      lang_name = language_names[target_lang] || target_lang.upcase
+      
+      <<~GENERIC
+
+        #{lang_name} TRANSLATION GUIDELINES:
+        - Preserve proper names and character names as appropriate for the story
+        - Use natural #{target_lang} equivalents for common terms
+        - Keep technical terms in their commonly used form
+        - Maintain respectful address forms when present in original
+      GENERIC
     end
   end
 end

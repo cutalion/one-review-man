@@ -18,14 +18,14 @@
 # You can create any custom variable you would like, and they will be accessible
 # in the templates via {{ site.myvariable }}.
 
-title: "{{BOOK_TITLE}} - AI Generated Book"
-email: your-email@example.com
+title: "{{BOOK_TITLE}}"
+email: {{AUTHOR_EMAIL}}
 description: >- # this means to ignore newlines until "baseurl:"
   {{BOOK_DESCRIPTION}}
 baseurl: "" # the subpath of your site, e.g. /blog
 url: "{{SITE_URL}}" # the base hostname & protocol for your site, e.g. http://example.com
-twitter_username: cutalion
-github_username: cutalion
+twitter_username: {{TWITTER_USERNAME}}
+github_username: {{GITHUB_USERNAME}}
 
 # Multilingual settings
 languages: ["en", "ru"]

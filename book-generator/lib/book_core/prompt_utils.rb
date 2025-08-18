@@ -41,7 +41,7 @@ module PromptUtils
       value = normalized_placeholders[placeholder]
       # Convert nil values to empty string to avoid leaving placeholder
       replacement_value = value.nil? ? '' : value.to_s
-      result.gsub!("{#{placeholder}}", replacement_value)
+      result.gsub!("{{#{placeholder}}}", replacement_value)
       used_placeholders.add(placeholder)
     end
 
@@ -62,7 +62,9 @@ module PromptUtils
   # @param template [String] The template string
   # @return [Array<String>] Array of placeholder names (without the braces)
   def self.extract_placeholders(template)
-    template.scan(/\{([^}]+)\}/).flatten.uniq
+    # Look for {{PLACEHOLDER}} format (double braces, no spaces)
+    # This distinguishes from Jekyll Liquid syntax like {{ site.title }} (with spaces)
+    template.scan(/\{\{([A-Z_][A-Z0-9_]*)\}\}/).flatten.uniq
   end
 
   # Validate that all required placeholders are provided
