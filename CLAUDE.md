@@ -25,7 +25,7 @@ book-generator/bin/book translate all ru
 book-generator/bin/book translate chapter 1 ru
 
 # Initialize new book
-book-generator/bin/book init here --path books/new-book
+book-generator/bin/book init --book-dir books/new-book
 
 # Generate Jekyll site
 book-generator/bin/book jekyll generate --dest site

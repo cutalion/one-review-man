@@ -30,7 +30,7 @@ All commands accept `--book-dir` (or `-b`) to work from any current directory.
 
 ```bash
 # Initialize a new (empty) book folder
-book-generator/bin/book init here --path books/one-review-man
+book-generator/bin/book init --book-dir books/one-review-man
 
 # Generate the next English chapter (set a model if needed)
 book-generator/bin/book generate chapter \

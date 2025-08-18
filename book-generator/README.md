@@ -24,7 +24,7 @@ book-generator/bin/book --version
 
 ```bash
 # Initialize a new book (interactive)
-book-generator/bin/book init here --path /path/to/my-book
+book-generator/bin/book init --book-dir /path/to/my-book
 
 # Generate next chapter (mock AI for deterministic output)
 MOCK_AI=true book-generator/bin/book generate chapter --book-dir /path/to/my-book --auto
@@ -100,7 +100,7 @@ task_options:
 
 ### Book Configuration
 
-Stored in `data/book_metadata.yml` inside the book directory. A minimal file is created by `init here`.
+Stored in `data/book_metadata.yml` inside the book directory. A minimal file is created by `init`.
 
 ```yaml
 title: "My Amazing Book"
