@@ -17,8 +17,8 @@ module Book
     def initialize(model_override = nil, llm_service: nil, project_root: Dir.pwd)
       @source_lang = 'en' # Always translate FROM English
       @project_root = File.expand_path(project_root)
-      llm_config_path = File.join(@project_root, 'scripts', 'llm_config.yml')
-      @llm_service = llm_service || BookCore::LLMService.new(llm_config_path, model_override)
+      settings_path = File.join(@project_root, 'data/settings.yml')
+      @llm_service = llm_service || BookCore::LLMService.new(settings_path, model_override)
     end
 
     # Translate a single chapter using the LLM service with glossary support

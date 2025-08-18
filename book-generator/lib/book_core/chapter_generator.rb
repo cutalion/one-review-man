@@ -24,8 +24,8 @@ module BookCore
       @prompt_provider = kwargs[:prompt_provider] || default_prompt_provider
       @output_adapter = kwargs[:output_adapter] || default_output_adapter
 
-      llm_config_path = File.join(@project_root, 'scripts/llm_config.yml')
-      @llm_service = kwargs[:llm_service] || BookCore::LLMService.new(llm_config_path, model_override)
+      settings_path = File.join(@project_root, 'data/settings.yml')
+      @llm_service = kwargs[:llm_service] || BookCore::LLMService.new(settings_path, model_override)
 
       # Ensure adapter is configured with project root if provided
       if @output_adapter.respond_to?(:setup_project)

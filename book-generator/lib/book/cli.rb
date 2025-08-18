@@ -73,6 +73,7 @@ module Book
       end
 
       def infer_genre_from_description(description)
+        return 'fiction' if description.nil? || description.empty?
         desc_lower = description.downcase
         
         # Look for genre keywords in description
@@ -90,6 +91,7 @@ module Book
       end
 
       def infer_style_from_description(description)
+        return 'narrative' if description.nil? || description.empty?
         desc_lower = description.downcase
         
         return 'humorous' if desc_lower.match?(/funny|comedy|hilarious|humor|laugh|joke|witty/i)
@@ -104,6 +106,7 @@ module Book
       end
 
       def infer_setting_from_description(description)
+        return 'contemporary setting' if description.nil? || description.empty?
         desc_lower = description.downcase
         
         return 'magical realm' if desc_lower.match?(/magic|fantasy|realm|kingdom|wizard/i)
@@ -119,6 +122,7 @@ module Book
       end
 
       def infer_theme_from_description(description)
+        return 'adventure' if description.nil? || description.empty?
         desc_lower = description.downcase
         
         return 'exploration' if desc_lower.match?(/explore|discover|journey|adventure|travel/i)
@@ -412,6 +416,29 @@ module Book
         end
         
         write_yaml_file(File.join(target, 'data', 'strings.yml'), strings_data)
+
+        # Create default LLM settings file
+        settings_data = {
+          'llm' => {
+            'provider' => 'openai',
+            'model' => 'gpt-4o-mini',
+            'temperature' => 0.7,
+            'timeout' => 240,
+            'default_options' => {
+              'max_tokens' => 12000
+            },
+            'task_options' => {
+              'generation' => {
+                'max_tokens' => 8000
+              },
+              'translation' => {
+                'max_tokens' => 12000
+              }
+            }
+          }
+        }
+        
+        write_yaml_file(File.join(target, 'data', 'settings.yml'), settings_data)
 
         # Do not create scripts/ or _chapters/_characters here; keep the book lean
 
@@ -972,6 +999,29 @@ module Book
         end
         
         write_yaml_file(File.join(target, 'data', 'strings.yml'), strings_data)
+
+        # Create default LLM settings file
+        settings_data = {
+          'llm' => {
+            'provider' => 'openai',
+            'model' => 'gpt-4o-mini',
+            'temperature' => 0.7,
+            'timeout' => 240,
+            'default_options' => {
+              'max_tokens' => 12000
+            },
+            'task_options' => {
+              'generation' => {
+                'max_tokens' => 8000
+              },
+              'translation' => {
+                'max_tokens' => 12000
+              }
+            }
+          }
+        }
+        
+        write_yaml_file(File.join(target, 'data', 'settings.yml'), settings_data)
 
         # Do not create scripts/ or _chapters/_characters here; keep the book lean
 

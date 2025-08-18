@@ -180,7 +180,13 @@ module BookCore
     private
 
     def load_config(config_file)
-      File.exist?(config_file) ? (YAML.load_file(config_file) || {}) : {}
+      if File.exist?(config_file)
+        settings = YAML.load_file(config_file) || {}
+        # Extract LLM configuration from settings file
+        settings['llm'] || {}
+      else
+        {}
+      end
     end
 
     def setup_client
