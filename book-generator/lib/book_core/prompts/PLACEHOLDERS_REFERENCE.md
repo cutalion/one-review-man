@@ -2,6 +2,8 @@
 
 This document lists all placeholders used in the generic prompt templates that must be replaced when making LLM requests.
 
+**Note:** These placeholders are used by the `PromptUtils.build_prompt()` method to replace template variables with actual content.
+
 ## Story Context Placeholders
 - `{BOOK_TITLE}` - The title of the book being generated
 - `{BOOK_GENRE}` - The genre/style of the book (e.g., "fantasy", "mystery", "comedy")

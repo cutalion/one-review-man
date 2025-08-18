@@ -15,21 +15,28 @@ The scripts now include AI-powered content generation capabilities using the [of
 
 ### 1. No Root Dependencies
 
-Use the CLI directly from `book-generator/bin/book`. Each book maintains its own config in `scripts/llm_config.yml`.
+Use the CLI directly from `book-generator/bin/book`. Each book maintains its own config in `data/settings.yml`.
 
 ### 2. Set Up OpenAI Configuration (per book)
 
-Create a configuration file `scripts/llm_config.yml` with the following template:
+Create a configuration file `data/settings.yml` with the following template:
 
 ```yaml
-# Optional: Set API key here or use environment variable OPENAI_API_KEY
-# openai_api_key: your-api-key-here
-model: gpt-4o-mini
-timeout: 240
-max_retries: 2
-default_options:
+# LLM Configuration for Book Generation
+llm:
+  # Optional: Set API key here or use environment variable OPENAI_API_KEY
+  # openai_api_key: your-api-key-here
+  provider: openai
+  model: gpt-4o-mini
   temperature: 0.7
-  max_tokens: 2000
+  timeout: 240
+  default_options:
+    max_tokens: 12000
+  task_options:
+    generation:
+      max_tokens: 8000
+    translation:
+      max_tokens: 12000
 ```
 
 ### 3. Configure Your OpenAI API Key
@@ -44,16 +51,23 @@ export OPENAI_PROJECT_ID="your-project"   # optional
 
 **Alternative: Edit Config File (Less Secure)**
 
-Edit `scripts/llm_config.yml`:
+Edit `data/settings.yml`:
 
 ```yaml
-# openai_api_key: your-api-key-here  # Uncomment and set, or use env var
-model: gpt-4o-mini
-timeout: 240
-max_retries: 2
-default_options:
+# LLM Configuration for Book Generation
+llm:
+  # openai_api_key: your-api-key-here  # Uncomment and set, or use env var
+  provider: openai
+  model: gpt-4o-mini
   temperature: 0.7
-  max_tokens: 2000
+  timeout: 240
+  default_options:
+    max_tokens: 12000
+  task_options:
+    generation:
+      max_tokens: 8000
+    translation:
+      max_tokens: 12000
 ```
 
 **Why Environment Variables?**
@@ -70,10 +84,10 @@ Get your API key from: https://platform.openai.com/api-keys
 
 ```bash
 # Generate next chapter (interactive)
-book-generator/bin/book generate chapter --book-dir /path/to/book
+book generate chapter --book-dir /path/to/book
 
 # Generate automatically without prompts
-book-generator/bin/book generate chapter --book-dir /path/to/book --auto
+book generate chapter --book-dir /path/to/book --auto
 
 # Regeneration flows are handled manually for now
 ```
@@ -211,29 +225,35 @@ If no OpenAI API key is configured, the system provides mock responses for devel
 The system uses the official [OpenAI Ruby SDK](https://github.com/openai/openai-ruby) for reliable, well-maintained API access.
 
 ```yaml
-# Basic configuration
-openai_api_key: your-api-key-here
-model: gpt-4o-mini  # Default model for all tasks
-
-# Task-specific models (NEW!)
-models:
-  generation: gpt-4o        # For chapters, characters, improvements
-  translation: gpt-4o-mini  # For translation tasks
-  chat: gpt-4o-mini        # For interactive chat
-
-timeout: 240
-
-# Task-specific options (NEW!)
-task_options:
-  generation:
-    temperature: 0.8    # More creative for content
-    max_tokens: 4000    # Longer responses for chapters
-  translation:
-    temperature: 0.3    # More consistent for translation
-    max_tokens: 3000    # Adequate for translation
-  chat:
-    temperature: 0.7    # Balanced for conversations
-    max_tokens: 2000    # Standard length
+# LLM Configuration for Book Generation
+llm:
+  # openai_api_key: your-api-key-here  # Optional: set here or use OPENAI_API_KEY env var
+  provider: openai
+  model: gpt-4o-mini  # Default model for all tasks
+  temperature: 0.7
+  timeout: 240
+  
+  # Task-specific models (NEW!)
+  models:
+    generation: gpt-4o        # For chapters, characters, improvements
+    translation: gpt-4o-mini  # For translation tasks
+    chat: gpt-4o-mini        # For interactive chat
+  
+  # Global defaults
+  default_options:
+    max_tokens: 12000
+  
+  # Task-specific options (NEW!)
+  task_options:
+    generation:
+      temperature: 0.8    # More creative for content
+      max_tokens: 8000    # Longer responses for chapters
+    translation:
+      temperature: 0.3    # More consistent for translation
+      max_tokens: 12000   # Adequate for translation
+    chat:
+      temperature: 0.7    # Balanced for conversations
+      max_tokens: 2000    # Standard length
 ```
 
 ### Task-Specific Model Configuration
@@ -267,34 +287,34 @@ Available OpenAI models:
 
 ```yaml
 # Complete configuration example
-openai_api_key: your-api-key-here
-model: gpt-4o-mini  # Fallback model
-
-# Task-specific models
-models:
-  generation: gpt-4o        # High quality for creative content
-  translation: gpt-4o-mini  # Fast and cost-effective
-  chat: gpt-4o-mini        # Quick responses
-
-timeout: 240
-max_retries: 2
-
-# Global defaults
-default_options:
+llm:
+  # openai_api_key: your-api-key-here  # Optional: set here or use OPENAI_API_KEY env var
+  provider: openai
+  model: gpt-4o-mini  # Fallback model
   temperature: 0.7
-  max_tokens: 2000
-
-# Task-specific overrides
-task_options:
-  generation:
-    temperature: 0.8    # More creative
-    max_tokens: 4000    # Longer content
-  translation:
-    temperature: 0.3    # More consistent
-    max_tokens: 3000    # Adequate length
-  chat:
-    temperature: 0.7    # Balanced
-    max_tokens: 2000    # Standard length
+  timeout: 240
+  
+  # Task-specific models
+  models:
+    generation: gpt-4o        # High quality for creative content
+    translation: gpt-4o-mini  # Fast and cost-effective
+    chat: gpt-4o-mini        # Quick responses
+  
+  # Global defaults
+  default_options:
+    max_tokens: 12000
+  
+  # Task-specific overrides
+  task_options:
+    generation:
+      temperature: 0.8    # More creative
+      max_tokens: 8000    # Longer content
+    translation:
+      temperature: 0.3    # More consistent
+      max_tokens: 12000   # Adequate length
+    chat:
+      temperature: 0.7    # Balanced
+      max_tokens: 2000    # Standard length
 ```
 
 ## 🎯 Best Practices
@@ -342,7 +362,7 @@ task_options:
 ### Common Issues
 
 #### "No OpenAI client configured"
-- Create `scripts/llm_config.yml` with your API key (see setup instructions above)
+- Create `data/settings.yml` with your API key (see setup instructions above)
 - Or set the `OPENAI_API_KEY` environment variable
 - Get API key from https://platform.openai.com/api-keys
 
@@ -365,17 +385,15 @@ task_options:
 
 ### Getting Help
 
-1. Check script help: `ruby scripts/generate_chapter.rb` (no arguments)
-2. Check the existing prompts in `scripts/prompts/` for examples
+1. Check CLI help: `book --help` or `book generate --help`
+2. Check the existing prompts in `book-generator/lib/book_core/prompts/` for examples
 3. Review the LLM configuration examples above
 
 ## 📁 Book File Structure
 
 ```
-scripts/
-├── llm_config.yml          # LLM configuration (create this)
-└── prompts/
-    └── chapter_prompts.txt  # Chapter generation prompts (optional)
+data/
+└── settings.yml            # LLM configuration (create this)
 ```
 
 ## 🎬 Example Workflow
@@ -385,19 +403,19 @@ scripts/
    # Recommended: Set environment variable (secure)
    export OPENAI_API_KEY="your-api-key-here"
    
-   # Create config file manually (see setup instructions above)
+   # Create config file manually at data/settings.yml (see setup instructions above)
    ```
 
 2. **Generate first chapter (via CLI)**
    ```bash
-book-generator/bin/book generate chapter --book-dir /path/to/book
+book generate chapter --book-dir /path/to/book
    ```
 
 3. **Improve the chapter** (planned CLI subcommands)
 
 4. **Translate to other languages (via CLI)**
    ```bash
-book-generator/bin/book translate all ru --book-dir /path/to/book
+book translate all ru --book-dir /path/to/book
    ```
 
 ## 🔮 Future Extensibility

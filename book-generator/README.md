@@ -16,21 +16,23 @@ The core book generation engine for AI-powered content creation. This library pr
 This repository is structured as a monorepo. Use the CLI directly from this package without any root Gemfile:
 
 ```bash
-# From the repo root or package dir
+# From the repo root
 book-generator/bin/book --version
+# Or if you're in a book directory with the CLI in PATH:
+book --version
 ```
 
 ## Quick Start
 
 ```bash
 # Initialize a new book (interactive)
-book-generator/bin/book init --book-dir /path/to/my-book
+book init --book-dir /path/to/my-book
 
 # Generate next chapter (mock AI for deterministic output)
-MOCK_AI=true book-generator/bin/book generate chapter --book-dir /path/to/my-book --auto
+MOCK_AI=true book generate chapter --book-dir /path/to/my-book --auto
 
 # Prepare a Jekyll site from the book content
-book-generator/bin/book jekyll generate --book-dir /path/to/my-book --dest /path/to/site
+book jekyll generate --book-dir /path/to/my-book --dest /path/to/site
 ```
 
 ## Architecture
@@ -72,30 +74,31 @@ generator = BookCore::ChapterGenerator.new(
 
 ### LLM Configuration
 
-Each book keeps its own LLM config at `scripts/llm_config.yml`:
+Each book keeps its own LLM config at `data/settings.yml`:
 
 ```yaml
-model: gpt-4o-mini
-timeout: 240
-max_retries: 2
-default_options:
+llm:
+  provider: openai
+  model: gpt-4o-mini
   temperature: 0.7
-  max_tokens: 2000
+  timeout: 240
+  default_options:
+    max_tokens: 12000
 
-# Task-specific models
-models:
-  generation: gpt-4o
-  translation: gpt-4o-mini
-  chat: gpt-4o-mini
+  # Task-specific models
+  models:
+    generation: gpt-4o
+    translation: gpt-4o-mini
+    chat: gpt-4o-mini
 
-# Task-specific options
-task_options:
-  generation:
-    temperature: 0.8
-    max_tokens: 4000
-  translation:
-    temperature: 0.3
-    max_tokens: 3000
+  # Task-specific options
+  task_options:
+    generation:
+      temperature: 0.8
+      max_tokens: 8000
+    translation:
+      temperature: 0.3
+      max_tokens: 12000
 ```
 
 ### Book Configuration

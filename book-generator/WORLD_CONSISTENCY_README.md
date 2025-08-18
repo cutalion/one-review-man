@@ -1,6 +1,8 @@
-# World Consistency System - Ruby Implementation
+# World Consistency System - Planned Feature
 
-This system maintains world-building consistency across chapters in "One Review Man" using **Ruby** (matching your project's language).
+**⚠️ STATUS: This is a planned feature that has not been implemented yet.**
+
+This document describes a proposed system for maintaining world-building consistency across chapters using Ruby.
 
 ## Problem Solved
 
@@ -8,20 +10,20 @@ Previously chapters created inconsistent world details:
 - Chapter 1: "HeroTech Solutions" ✅
 - Chapter 3: "CodeFlow Inc." ❌ → **Fixed to "HeroTech Solutions"**
 
-## Ruby Implementation
+## Proposed Implementation
 
-### Files Created/Modified:
+### Files to be Created/Modified:
 
-1. **`data/world.yml`** - World data storage (like your character system)
-2. **`scripts/world_utils.rb`** - World consistency utilities module
-3. **`scripts/book_utils.rb`** - Added `load_world_data()` method
-4. **`scripts/generate_chapter.rb`** - Integrated world consistency into prompts
-5. **`scripts/analyze_world_consistency.rb`** - Analysis tool for consistency checking
-6. **`scripts/prompts/chapter_prompts.txt`** - Updated with world placeholders & rules
+1. **`data/world.yml`** - World data storage (following existing character system pattern)
+2. **`lib/book_core/world_utils.rb`** - World consistency utilities module
+3. **`lib/book_core/book_utils.rb`** - Add `load_world_data()` method
+4. **`lib/book_core/chapter_generator.rb`** - Integrate world consistency into prompts
+5. **`lib/book_core/world_analyzer.rb`** - Analysis tool for consistency checking
+6. **`lib/book_core/prompts/chapter_prompts.txt`** - Update with world placeholders & rules
 
-### Integration with Existing Ruby System:
+### Proposed Integration with Ruby System:
 
-Your `ChapterGenerator` now automatically includes world consistency:
+The `ChapterGenerator` would automatically include world consistency:
 
 ```ruby
 # In scripts/generate_chapter.rb
@@ -39,23 +41,23 @@ def build_chapter_prompt(chapter_num, characters)
 end
 ```
 
-## Usage (Ruby Commands)
+## Proposed Usage (CLI Commands)
 
 ### Generate chapters with world consistency:
 ```bash
-ruby scripts/generate_chapter.rb generate
-ruby scripts/generate_chapter.rb prompt 4  # See prompt with world context
+book generate chapter  # Would include world consistency when implemented
+book generate prompt 4  # Would show prompt with world context
 ```
 
-### Analyze world consistency:
+### Analyze world consistency (planned):
 ```bash
-ruby scripts/analyze_world_consistency.rb --summary
-ruby scripts/analyze_world_consistency.rb --chapter _chapters/003-chapter.md
-ruby scripts/analyze_world_consistency.rb --all
+book analyze world --summary
+book analyze world --chapter content/chapters/003-chapter.md
+book analyze world --all
 ```
 
-### World data management:
-The world data is stored in `data/world.yml` following your existing pattern:
+### Proposed world data management:
+The world data would be stored in `data/world.yml` following the existing pattern:
 ```yaml
 en:
   world:
@@ -66,25 +68,29 @@ en:
       # ... etc
 ```
 
+**Note:** Some books already have `data/world.yml` files created by the `book init` command.
+
 ## Ruby Modules Used
 
-### `WorldUtils` module:
-- `build_world_context()` - Formats world data for prompt placeholders
-- `analyze_chapter_consistency()` - Analyzes chapters for issues
-- `fix_chapter_consistency()` - Applies fixes
+### Proposed `WorldUtils` module:
+- `build_world_context()` - Would format world data for prompt placeholders
+- `analyze_chapter_consistency()` - Would analyze chapters for issues
+- `fix_chapter_consistency()` - Would apply fixes
 
-### `BookUtils` module (extended):
-- `load_world_data(lang = 'en')` - Loads world data with language support
+### `BookUtils` module (planned extension):
+- `load_world_data(lang = 'en')` - Would load world data with language support
 
-## Automatic Integration
+**Current Status:** Basic world data loading may exist, but the full consistency system is not implemented.
 
-✅ **No changes needed to your workflow!**
+## Planned Integration
 
-Your existing Ruby commands now automatically include world consistency:
+🚧 **Implementation Required**
 
-- `ruby scripts/generate_chapter.rb generate` - Uses world context
-- World consistency rules are enforced via prompt template
-- Analysis tools available for chapter review
+Once implemented, the existing workflow would automatically include world consistency:
+
+- `book generate chapter` - Would use world context
+- World consistency rules would be enforced via prompt template
+- Analysis tools would be available for chapter review
 
 ## Example Output
 
@@ -108,20 +114,18 @@ WORLD CONSISTENCY RULES (CRITICAL):
 ...
 ```
 
-## Benefits
+## Planned Benefits
 
-✅ **Pure Ruby implementation** (matches your project language)  
-✅ **Seamlessly integrated** with existing `ChapterGenerator`  
-✅ **No workflow changes** - just better consistency  
-✅ **Follows your patterns** - uses same data structure as characters  
-✅ **CLI analysis tools** - `analyze_world_consistency.rb`  
-✅ **Automatic prompt injection** - no manual steps required  
+🚧 **Pure Ruby implementation** (would match project language)  
+🚧 **Seamless integration** with existing `ChapterGenerator`  
+🚧 **No workflow changes** - just better consistency  
+🚧 **Follow existing patterns** - use same data structure as characters  
+🚧 **CLI analysis tools** - integrated into main CLI  
+🚧 **Automatic prompt injection** - no manual steps required  
 
-## Language Consistency Fixed
+## Implementation Notes
 
-- ❌ Removed Python scripts (`build_world_context.py`, etc.)
-- ✅ Pure Ruby implementation using your existing patterns
-- ✅ Integrates with `BookUtils`, `PromptUtils`, etc.
-- ✅ Follows your CLI command structure
-
-Your Ruby-first architecture is now maintained throughout! 🎉
+- Would use pure Ruby implementation following existing patterns
+- Would integrate with `BookUtils`, `PromptUtils`, etc.
+- Would follow the existing CLI command structure
+- Currently, world consistency is handled manually through the existing character and metadata systems

@@ -94,33 +94,33 @@ save_book_data(data, 'ru')                  # Saves to ru localized section
 
 ## Development Tools
 
-### Book Reset Tool (`scripts/reset_book.rb`)
+### Book Reset Tool (CLI)
 Clean up and reset book content for development/testing:
 
 ```bash
 # Check current status
-ruby scripts/reset_book.rb status
+book reset status
 
 # Reset only characters (interactive)
-ruby scripts/reset_book.rb characters
+book reset characters
 
 # Reset only chapters (interactive)
-ruby scripts/reset_book.rb chapters
+book reset chapters
 
 # Reset only data files (no prompt)
-ruby scripts/reset_book.rb data
+book reset data
 
 # Clean generated site files
-ruby scripts/reset_book.rb site
+book reset site
 
 # Full reset (interactive)
-ruby scripts/reset_book.rb all
+book reset all
 
 # Full reset (no prompts)
-ruby scripts/reset_book.rb all --force
+book reset all --force
 
 # Force reset characters (no prompt)
-ruby scripts/reset_book.rb characters --force
+book reset characters --force
 ```
 
 ## Benefits
