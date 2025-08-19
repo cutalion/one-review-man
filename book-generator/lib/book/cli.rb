@@ -328,7 +328,7 @@ module Book
           'title' => title,
           'author' => author,
           'description' => description,
-          'languages' => languages.split(',').map { |s| s.strip },
+          'languages' => (languages || 'en').split(',').map { |s| s.strip },
           'default_language' => default_lang
         }
         
@@ -372,7 +372,7 @@ module Book
         }
         
         # Add Russian section if Russian is included
-        if languages.split(',').map(&:strip).include?('ru')
+        if (languages || 'en').split(',').map(&:strip).include?('ru')
           world_data['ru'] = {
             'world' => {
               'main_setting' => {
@@ -402,7 +402,7 @@ module Book
         }
         
         # Add Russian translations if requested
-        if languages.split(',').map(&:strip).include?('ru')
+        if (languages || 'en').split(',').map(&:strip).include?('ru')
           strings_data['ru'] = {
             'site_title' => "#{title}",
             'site_subtitle' => description,
@@ -464,7 +464,15 @@ module Book
           exit 1
         end
 
+        # Detect if this is an existing site with custom config BEFORE creating directory
+        existing_site = is_existing_site?(dest_dir)
+        
         FileUtils.mkdir_p(dest_dir)
+        if existing_site
+          say "Detected existing Jekyll site - preserving custom configuration", :blue
+        else
+          say "Creating new Jekyll site from templates", :green
+        end
 
         # Copy template (skip content dirs which we handle separately)
         Dir.children(template_root).each do |entry|
@@ -480,11 +488,11 @@ module Book
               if File.directory?(path)
                 FileUtils.mkdir_p(target)
               else
-                copy_template_with_processing(path, target, book_root) unless File.exist?(target)
+                copy_template_with_processing(path, target, book_root, existing_site) unless File.exist?(target)
               end
             end
           else
-            copy_template_with_processing(src, dst, book_root) unless File.exist?(dst)
+            copy_template_with_processing(src, dst, book_root, existing_site) unless File.exist?(dst)
           end
         end
 
@@ -524,9 +532,27 @@ module Book
 
       private
 
-      def copy_template_with_processing(src_path, dst_path, book_root)
-        # Determine if this file needs placeholder processing
-        if needs_template_processing?(src_path)
+      def is_existing_site?(dest_dir)
+        # Check for key indicators of an existing custom Jekyll site
+        config_file = File.join(dest_dir, '_config.yml')
+        return false unless File.exist?(config_file)
+        
+        # Check if _config.yml contains hardcoded values (not template placeholders like {{BOOK_TITLE}})
+        config_content = File.read(config_file)
+        has_title = config_content.include?('title:')
+        # Check for our specific template placeholders, not Jekyll's {{ site.* }} syntax
+        has_template_placeholders = config_content.match(/\{\{[A-Z_]+\}\}/)
+        
+        
+        has_title && !has_template_placeholders
+      end
+
+      def copy_template_with_processing(src_path, dst_path, book_root, existing_site = false)
+        # For existing sites, skip template processing to preserve custom config
+        if existing_site && needs_template_processing?(src_path)
+          # Just copy the file without processing placeholders
+          FileUtils.cp(src_path, dst_path)
+        elsif needs_template_processing?(src_path)
           process_and_copy_template(src_path, dst_path, book_root)
         else
           FileUtils.cp(src_path, dst_path)
@@ -911,7 +937,7 @@ module Book
           'title' => title,
           'author' => author,
           'description' => description,
-          'languages' => languages.split(',').map { |s| s.strip },
+          'languages' => (languages || 'en').split(',').map { |s| s.strip },
           'default_language' => default_lang
         }
         
@@ -955,7 +981,7 @@ module Book
         }
         
         # Add Russian section if Russian is included
-        if languages.split(',').map(&:strip).include?('ru')
+        if (languages || 'en').split(',').map(&:strip).include?('ru')
           world_data['ru'] = {
             'world' => {
               'main_setting' => {
@@ -985,7 +1011,7 @@ module Book
         }
         
         # Add Russian translations if requested
-        if languages.split(',').map(&:strip).include?('ru')
+        if (languages || 'en').split(',').map(&:strip).include?('ru')
           strings_data['ru'] = {
             'site_title' => "#{title}",
             'site_subtitle' => description,
