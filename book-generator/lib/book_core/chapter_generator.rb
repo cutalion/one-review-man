@@ -45,7 +45,7 @@ module BookCore
       character_objects = select_characters_for_chapter(next_chapter)
       character_slugs = character_objects.map { |c| c['slug'] || slugify(c['name'].to_s) }
 
-      chapter_data = generate_chapter_structured(next_chapter)
+      chapter_data = generate_chapter_structured(next_chapter, auto_generate: auto_generate)
 
       write_chapter_file(next_chapter, chapter_data, character_slugs)
       create_new_characters(chapter_data['new_characters']) if chapter_data['new_characters'].is_a?(Array)
@@ -60,8 +60,8 @@ module BookCore
 
     private
 
-    def generate_chapter_structured(chapter_number)
-      prompt = build_chapter_prompt(chapter_number)
+    def generate_chapter_structured(chapter_number, auto_generate: false)
+      prompt = build_chapter_prompt(chapter_number, auto_generate: auto_generate)
       data = @llm_service.generate_chapter_structured(prompt, {})
       # Replace placeholders if present
       if data.is_a?(Hash)
@@ -75,7 +75,7 @@ module BookCore
       data
     end
 
-    def build_chapter_prompt(chapter_number)
+    def build_chapter_prompt(chapter_number, auto_generate: false)
       # Load template matching main branch (explicit filename)
       template = @prompt_provider.load('chapter_prompts.txt') rescue "Write Chapter {CHAPTER_NUMBER} of a programming comedy story"
       # Fail-safe: pre-fill the chapter number in case template contains extra occurrences
@@ -108,9 +108,9 @@ module BookCore
       PromptUtils.build_prompt(template, placeholders, warn_unused: false)
     rescue PromptUtils::UnfilledPlaceholdersError => e
       # Attempt interactive collection of missing metadata
-      if attempt_interactive_metadata_collection(e.unfilled_placeholders)
+      if attempt_interactive_metadata_collection(e.unfilled_placeholders, auto_generate: auto_generate)
         # Retry with updated metadata
-        return build_chapter_prompt(chapter_number)
+        return build_chapter_prompt(chapter_number, auto_generate: auto_generate)
       else
         # Fall back to detailed error message
         puts ""
@@ -946,9 +946,9 @@ module BookCore
       'Follow conventions appropriate to the established genre and style'
     end
 
-    def attempt_interactive_metadata_collection(missing_placeholders)
+    def attempt_interactive_metadata_collection(missing_placeholders, auto_generate: false)
       # Check if we're in auto mode or if STDIN is not available for interaction
-      return false if ENV['CI'] || !$stdin.tty? || missing_placeholders.empty?
+      return false if auto_generate || ENV['CI'] || !$stdin.tty? || missing_placeholders.empty?
 
       puts ""
       puts "🤔 I notice some information is missing for chapter generation."
