@@ -1,7 +1,7 @@
 ---
 book:
   target_chapters: 50
-  current_chapter: 7
+  current_chapter: 6
 generation:
   chapter_length_target: 1500-3000 words
   complexity_level: medium
