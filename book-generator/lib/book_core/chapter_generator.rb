@@ -35,6 +35,7 @@ module BookCore
 
     def generate_next_chapter(auto_generate: false)
       next_chapter = determine_next_chapter_number
+      @current_chapter_number = next_chapter
 
       # Auto-migrate world.yml to story_facts.yml if needed  
       migrate_world_data_to_story_facts
@@ -66,7 +67,29 @@ module BookCore
       # Replace placeholders if present
       if data.is_a?(Hash)
         %w[title summary content].each do |key|
-          data[key] = data[key].to_s.gsub('{CHAPTER_NUMBER}', chapter_number.to_s) if data[key]
+          next unless data[key]
+          content = data[key].to_s
+          content = content.gsub('{CHAPTER_NUMBER}', chapter_number.to_s)
+          
+          # Replace character name placeholders
+          book_metadata = load_book_metadata_abs
+          chars = load_characters_abs
+          main_character_placeholders = build_main_character_placeholders(book_metadata, chars)
+          if main_character_placeholders
+            main_character_placeholders.each do |placeholder_key, replacement_value|
+              content = content.gsub("{#{placeholder_key}}", replacement_value.to_s)
+            end
+          end
+          
+          # Replace world context placeholders
+          world_ctx = Dir.chdir(@project_root) { build_world_context('en') }
+          if world_ctx
+            world_ctx.each do |placeholder_key, replacement_value|
+              content = content.gsub("{#{placeholder_key}}", replacement_value.to_s) if replacement_value
+            end
+          end
+          
+          data[key] = content
         end
       end
       unless EnvUtils.mock_ai_enabled?
@@ -105,42 +128,61 @@ module BookCore
       # Add world context
       placeholders.merge!(world_ctx || {})
 
-      PromptUtils.build_prompt(template, placeholders, warn_unused: false)
+      PromptUtils.build_prompt(template, placeholders, warn_unused: false, context: "chapter #{chapter_number} generation")
     rescue PromptUtils::UnfilledPlaceholdersError => e
       # Attempt interactive collection of missing metadata
       if attempt_interactive_metadata_collection(e.unfilled_placeholders, auto_generate: auto_generate)
-        # Retry with updated metadata
-        return build_chapter_prompt(chapter_number, auto_generate: auto_generate)
-      else
-        # Fall back to detailed error message
-        puts ""
-        puts "❌ Missing Information Required for Chapter Generation"
-        puts ""
-        puts "Your book needs additional information before chapters can be generated."
-        puts "Missing: #{e.unfilled_placeholders.join(', ')}"
-        puts ""
-        puts "💡 To fix this issue:"
-        puts "1. Update your book metadata with the missing information"
-        puts "2. Or run 'book init' again in a new directory with complete setup"
-        puts ""
-        puts "📖 Missing Information Guide:"
-        if e.unfilled_placeholders.include?('BOOK_GENRE')
-          puts "  • BOOK_GENRE: What type of story is this? (fantasy, sci-fi, mystery, etc.)"
+        # Retry with updated metadata - but only once to prevent infinite recursion
+        begin
+          template = @prompt_provider.load('chapter_prompts.txt') rescue "Write Chapter {CHAPTER_NUMBER} of a programming comedy story"
+          template = template.to_s.gsub('{CHAPTER_NUMBER}', chapter_number.to_s)
+          
+          # Rebuild placeholders with fresh data
+          book_metadata = load_book_metadata_abs
+          previous_summary = build_previous_chapters_summary(chapter_number)
+          chars = load_characters_abs
+          selected_chars = select_characters_for_chapter(chapter_number, chars)
+          character_context = build_character_context(selected_chars)
+          used_devices = load_generation_log_abs['used_plot_devices'] || []
+          world_ctx = Dir.chdir(@project_root) { build_world_context('en') }
+          placeholders = build_chapter_placeholders(chapter_number, book_metadata, chars, 
+                                                   character_context, used_devices, previous_summary)
+          placeholders.merge!(world_ctx || {})
+          
+          return PromptUtils.build_prompt(template, placeholders, warn_unused: false, context: "chapter #{chapter_number} generation (retry)")
+        rescue PromptUtils::UnfilledPlaceholdersError => retry_error
+          # If it still fails after metadata collection, fall back to error message
+          e = retry_error # Use the new error for the error message below
         end
-        if e.unfilled_placeholders.include?('BOOK_STYLE') || e.unfilled_placeholders.include?('BOOK_HUMOR_STYLE')
-          puts "  • Writing Style: How should the story be told? (humorous, serious, adventurous, etc.)"
-        end
-        if e.unfilled_placeholders.include?('BOOK_SETTING') || e.unfilled_placeholders.include?('PRIMARY_LOCATION')
-          puts "  • Setting: Where does your story take place? (medieval castle, space station, modern city, etc.)"
-        end
-        if e.unfilled_placeholders.include?('WORLD_DETAILS')
-          puts "  • World Details: What makes your story world unique?"
-        end
-        puts ""
-        puts "🔧 For immediate help, contact support or check documentation"
-        puts ""
-        raise BookCore::LLMService::LLMError, "Book setup incomplete - missing required metadata for chapter generation"
       end
+      # Fall back to detailed error message
+      puts ""
+      puts "❌ Missing Information Required for Chapter Generation"
+      puts ""
+      puts "Your book needs additional information before chapters can be generated."
+      puts "Missing: #{e.unfilled_placeholders.join(', ')}"
+      puts ""
+      puts "💡 To fix this issue:"
+      puts "1. Update your book metadata with the missing information"
+      puts "2. Or run 'book init' again in a new directory with complete setup"
+      puts ""
+      puts "📖 Missing Information Guide:"
+      if e.unfilled_placeholders.include?('BOOK_GENRE')
+        puts "  • BOOK_GENRE: What type of story is this? (fantasy, sci-fi, mystery, etc.)"
+      end
+      if e.unfilled_placeholders.include?('BOOK_STYLE') || e.unfilled_placeholders.include?('BOOK_HUMOR_STYLE')
+        puts "  • Writing Style: How should the story be told? (humorous, serious, adventurous, etc.)"
+      end
+      if e.unfilled_placeholders.include?('BOOK_SETTING') || e.unfilled_placeholders.include?('PRIMARY_LOCATION')
+        puts "  • Setting: Where does your story take place? (medieval castle, space station, modern city, etc.)"
+      end
+      if e.unfilled_placeholders.include?('WORLD_DETAILS')
+        puts "  • World Details: What makes your story world unique?"
+      end
+      puts ""
+      puts "🔧 For immediate help, contact support or check documentation"
+      puts ""
+      raise BookCore::LLMService::LLMError, "Book setup incomplete - missing required metadata for chapter generation"
     end
 
     def write_chapter_file(chapter_number, chapter_data, character_slugs = [])
@@ -328,7 +370,7 @@ module BookCore
         if template
           chars = load_characters_abs
           placeholders = build_character_creation_placeholders(name, c['description'] || 'Brief mention only', chars)
-          character_prompt = PromptUtils.build_prompt(template, placeholders)
+          character_prompt = PromptUtils.build_prompt(template, placeholders, context: "character '#{name}' creation")
         else
           character_prompt = "Create character profile for #{name}: #{c['description']}"
         end
@@ -343,7 +385,7 @@ module BookCore
             'catchphrase' => full['catchphrase'],
             'backstory' => full['backstory'],
             'quirks' => full['quirks'],
-            'first_appearance' => "Chapter #{determine_next_chapter_number - 1}",
+            'first_appearance' => "Chapter #{@current_chapter_number}",
             'slug' => slug,
             'created_date' => Date.today.to_s,
             'language' => 'en'
@@ -354,7 +396,7 @@ module BookCore
           character_data = {
             'name' => name,
             'description' => c['description'] || 'New character',
-            'first_appearance' => "Chapter #{determine_next_chapter_number - 1}",
+            'first_appearance' => "Chapter #{@current_chapter_number}",
             'slug' => slug,
             'created_date' => Date.today.to_s,
             'language' => 'en'
@@ -857,31 +899,13 @@ module BookCore
 
     def build_character_creation_placeholders(character_name, character_description, chars)
       placeholders = {
-        'CHAPTER_NUMBER' => (determine_next_chapter_number - 1).to_s,
+        'CHAPTER_NUMBER' => @current_chapter_number.to_s,
         'CHARACTER_NAME' => character_name,
         'CHARACTER_DESCRIPTION' => character_description
       }
 
-      # Try to load book metadata to determine book type
+      # Add only the main character placeholders that are actually used in the template
       book_metadata = load_book_metadata_abs
-
-      # Add generic book placeholders
-      if book_metadata && book_metadata['localized'] && book_metadata['localized']['en']
-        en_metadata = book_metadata['localized']['en']
-        placeholders.merge!({
-          'BOOK_TITLE' => en_metadata['title'] || 'Untitled Book',
-          'BOOK_GENRE' => en_metadata['genre'] || 'Fiction',
-          'BOOK_SETTING' => determine_book_setting(en_metadata),
-          'WORLD_DETAILS' => build_world_details_summary(en_metadata),
-          'GENRE_GUIDELINES' => build_genre_guidelines(en_metadata)
-        })
-      end
-
-      # Add story facts context to placeholders
-      story_facts_placeholders = build_story_facts_context
-      placeholders.merge!(story_facts_placeholders) if story_facts_placeholders
-
-      # Add main character placeholders based on book configuration
       main_character_placeholders = build_main_character_placeholders(book_metadata, chars)
       placeholders.merge!(main_character_placeholders) if main_character_placeholders
 

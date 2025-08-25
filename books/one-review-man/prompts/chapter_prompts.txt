@@ -4,10 +4,10 @@
 ## Base Chapter Prompt
 You are writing "One Review Man" - a programming comedy parody of the manga/anime "One-Punch Man".
 
-Generate Chapter {CHAPTER_NUMBER}
+Generate Chapter {{CHAPTER_NUMBER}}
 
 CORE CONCEPT:
-- One Review Man (real name: {ONE_REVIEW_MAN_REAL_NAME}) is a super-programmer who writes perfect code
+- One Review Man (real name: {{{ONE_REVIEW_MAN_REAL_NAME}}}) is a super-programmer who writes perfect code
 - All his pull requests are instantly approved and merged by reviewers without any requested changes
 - He never merges his own PRs (follows professional practice), but his code is so perfect that reviewers approve and merge immediately
 - Like Saitama in One-Punch Man, he's become bored with his overwhelming ability
@@ -17,14 +17,14 @@ CORE CONCEPT:
 - The story parodies programming culture, code reviews, and tech workplace dynamics
 
 NAMING CONVENTIONS (CRITICAL):
-- One Review Man's real name is "{ONE_REVIEW_MAN_REAL_NAME}" (to be generated during character creation)
-- Quantum Android's real name is "{QUANTUM_ANDROID_REAL_NAME}" (to be generated during character creation)
+- One Review Man's real name is "{{{ONE_REVIEW_MAN_REAL_NAME}}}" (to be generated during character creation)
+- Quantum Android's real name is "{{{QUANTUM_ANDROID_REAL_NAME}}}" (to be generated during character creation)
 - Characters call them by their REAL NAMES in direct conversation
 - Professional titles ("One Review Man", "Quantum Android") are hero classifications, not how people address them
-- When talking TO {ONE_REVIEW_MAN_REAL_NAME}: use his real name
-- When talking TO {QUANTUM_ANDROID_REAL_NAME}: use his real name  
-- When talking ABOUT {QUANTUM_ANDROID_REAL_NAME}: might refer to him as "Quantum Android"
-- {QUANTUM_ANDROID_REAL_NAME} calls {ONE_REVIEW_MAN_REAL_NAME} by real name or "sensei"
+- When talking TO {{{ONE_REVIEW_MAN_REAL_NAME}}}: use his real name
+- When talking TO {{{QUANTUM_ANDROID_REAL_NAME}}}: use his real name  
+- When talking ABOUT {{{QUANTUM_ANDROID_REAL_NAME}}}: might refer to him as "Quantum Android"
+- {{{QUANTUM_ANDROID_REAL_NAME}}} calls {{{ONE_REVIEW_MAN_REAL_NAME}}} by real name or "sensei"
 
 TRANSLATION NOTES:
 - For Russian: "One Review Man" becomes "Ванревьюмен" (like "One Punch Man" → "Ванпанчмен")
@@ -35,36 +35,36 @@ TRANSLATION NOTES:
 Context:
 - Setting: Modern tech company/startup environment
 - Style: Absurdist programming humor with One-Punch Man references
-- Length: {TARGET_LENGTH}
-- Previous chapters: {PREVIOUS_CHAPTERS_SUMMARY}
+- Length: {{TARGET_LENGTH}}
+- Previous chapters: {{PREVIOUS_CHAPTERS_SUMMARY}}
 
-{CHARACTER_CONTEXT}
+{{CHARACTER_CONTEXT}}
 
 WORLD CONSISTENCY (CRITICAL):
-- Company Name: {COMPANY_NAME}
-- Office Environment: {OFFICE_DESCRIPTION}
-- Established Locations: {ESTABLISHED_LOCATIONS}
-- Infrastructure Details: {INFRASTRUCTURE_DETAILS}
-- Cultural Patterns: {CULTURAL_PATTERNS}
-- Previously Established Facts: {ESTABLISHED_FACTS}
+- Company Name: {{COMPANY_NAME}}
+- Office Environment: {{OFFICE_DESCRIPTION}}
+- Established Locations: {{ESTABLISHED_LOCATIONS}}
+- Infrastructure Details: {{INFRASTRUCTURE_DETAILS}}
+- Cultural Patterns: {{CULTURAL_PATTERNS}}
+- Previously Established Facts: {{ESTABLISHED_FACTS}}
 
 KEY CHARACTERS TO REFERENCE:
-- One Review Man ({ONE_REVIEW_MAN_REAL_NAME}): The protagonist, master programmer (parody of Saitama)
-  * People call him by his real name "{ONE_REVIEW_MAN_REAL_NAME}" in conversation
-  * {QUANTUM_ANDROID_REAL_NAME} calls him "{ONE_REVIEW_MAN_REAL_NAME}" or "sensei"
+- One Review Man ({{{ONE_REVIEW_MAN_REAL_NAME}}}): The protagonist, master programmer (parody of Saitama)
+  * People call him by his real name "{{{ONE_REVIEW_MAN_REAL_NAME}}}" in conversation
+  * {{{QUANTUM_ANDROID_REAL_NAME}}} calls him "{{{ONE_REVIEW_MAN_REAL_NAME}}}" or "sensei"
   * Despite his incredible abilities, colleagues rarely take him seriously
   * Often dismissed as "just lucky" or "only good at simple problems"
-- The Quantum Android ({QUANTUM_ANDROID_REAL_NAME}): Android character with quantum processing who seeks to learn (parody of Genos)
-  * People call him by his real name "{QUANTUM_ANDROID_REAL_NAME}" in conversation
+- The Quantum Android ({{QUANTUM_ANDROID_REAL_NAME}}): Android character with quantum processing who seeks to learn (parody of Genos)
+  * People call him by his real name "{{QUANTUM_ANDROID_REAL_NAME}}" in conversation
   * Others might refer to him as "Quantum Android" when talking about him
-  * One of the few who truly recognizes {ONE_REVIEW_MAN_REAL_NAME}'s abilities
+  * One of the few who truly recognizes {{ONE_REVIEW_MAN_REAL_NAME}}'s abilities
 
 DIALOGUE RULES:
-- Other characters → {ONE_REVIEW_MAN_REAL_NAME}: use his real name "{ONE_REVIEW_MAN_REAL_NAME}"
-- {QUANTUM_ANDROID_REAL_NAME} → {ONE_REVIEW_MAN_REAL_NAME}: "{ONE_REVIEW_MAN_REAL_NAME}", "sensei", "Master"
-- {ONE_REVIEW_MAN_REAL_NAME} → {QUANTUM_ANDROID_REAL_NAME}: use his real name "{QUANTUM_ANDROID_REAL_NAME}"
-- Others → {QUANTUM_ANDROID_REAL_NAME}: use his real name "{QUANTUM_ANDROID_REAL_NAME}"
-- When talking ABOUT {QUANTUM_ANDROID_REAL_NAME}: may use "Quantum Android" or "the android"
+- Other characters → {{ONE_REVIEW_MAN_REAL_NAME}}: use his real name "{{ONE_REVIEW_MAN_REAL_NAME}}"
+- {{QUANTUM_ANDROID_REAL_NAME}} → {{ONE_REVIEW_MAN_REAL_NAME}}: "{{ONE_REVIEW_MAN_REAL_NAME}}", "sensei", "Master"
+- {{ONE_REVIEW_MAN_REAL_NAME}} → {{QUANTUM_ANDROID_REAL_NAME}}: use his real name "{{QUANTUM_ANDROID_REAL_NAME}}"
+- Others → {{QUANTUM_ANDROID_REAL_NAME}}: use his real name "{{QUANTUM_ANDROID_REAL_NAME}}"
+- When talking ABOUT {{QUANTUM_ANDROID_REAL_NAME}}: may use "Quantum Android" or "the android"
 
 UNDERESTIMATION THEME (CRITICAL):
 - Colleagues constantly underestimate One Review Man's abilities
@@ -158,7 +158,7 @@ Consider incorporating:
 - Conference presentations or tech talks
 - Startup pitch meetings with absurd technical requirements
 - Legacy code archaeology
-- Private conversations between {ONE_REVIEW_MAN_REAL_NAME} and {QUANTUM_ANDROID_REAL_NAME} (using real names)
+- Private conversations between {{ONE_REVIEW_MAN_REAL_NAME}} and {{QUANTUM_ANDROID_REAL_NAME}} (using real names)
 - Workplace interactions (using professional titles)
 
 ## One-Punch Man Parody Elements
@@ -171,8 +171,8 @@ Adapt these One-Punch Man concepts to programming:
 - Caped Baldy nickname → Programming-related nickname
 - S-Class heroes → Senior/Principal engineers
 - Villain organizations → Competing tech companies or bad coding practices
-- Saitama's casual attitude → {ONE_REVIEW_MAN_REAL_NAME}'s nonchalant approach to impossible bugs
-- Genos's formal speech → {QUANTUM_ANDROID_REAL_NAME}'s technical jargon and respectful address
+- Saitama's casual attitude → {{ONE_REVIEW_MAN_REAL_NAME}}'s nonchalant approach to impossible bugs
+- Genos's formal speech → {{QUANTUM_ANDROID_REAL_NAME}}'s technical jargon and respectful address
 - Nobody believing in Saitama → Colleagues dismissing One Review Man's abilities
 - Credit being given to other heroes → Other developers getting credit for One Review Man's work
 
@@ -180,10 +180,10 @@ Adapt these One-Punch Man concepts to programming:
 End the chapter with one of:
 - A massive production bug that only One Review Man can solve (while others doubt him)
 - Introduction of a new, seemingly impossible programming challenge
-- {QUANTUM_ANDROID_REAL_NAME} attempting to replicate {ONE_REVIEW_MAN_REAL_NAME}'s abilities and calling him "sensei"
+- {{QUANTUM_ANDROID_REAL_NAME}} attempting to replicate {{ONE_REVIEW_MAN_REAL_NAME}}'s abilities and calling him "sensei"
 - A code review scenario showcasing One Review Man's perfection (dismissed by others as luck)
 - Setup for a programming contest or technical challenge
 - Discovery of an ancient codebase that threatens the entire system
 - A new team member who doesn't believe in One Review Man's abilities and learns his title
-- A private moment between {ONE_REVIEW_MAN_REAL_NAME} and {QUANTUM_ANDROID_REAL_NAME} using real names and "sensei"
+- A private moment between {{ONE_REVIEW_MAN_REAL_NAME}} and {{QUANTUM_ANDROID_REAL_NAME}} using real names and "sensei"
 - Colleagues attributing One Review Man's success to external factors 
