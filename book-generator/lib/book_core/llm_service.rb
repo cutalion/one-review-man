@@ -229,38 +229,14 @@ module BookCore
       messages << { role: 'system', content: options[:system_prompt] } if options[:system_prompt]
       messages << { role: 'user', content: prompt }
 
-      parameters = {
-        model: model,
-        messages: messages
-      }
-      # Only include temperature if model supports it
-      parameters[:temperature] = (options[:temperature] || 0.7) if supports_temperature?(model)
-
-      token_limit = get_safe_max_tokens(task_type, model)
-      token_param = token_param_for_model(model)
-      parameters[token_param] = token_limit
-
+      parameters = build_api_parameters(model, messages, options, task_type)
+      
       debug_dump('request_parameters.json', JSON.pretty_generate(parameters))
       response = @client.chat(parameters: parameters)
       content = response.dig('choices', 0, 'message', 'content')
       debug_dump('response_raw.json', content)
       { 'content' => content }
     rescue Faraday::Error => e
-      # Retry once swapping unsupported params
-      if e.response && e.response[:body].to_s.include?("Unsupported value: 'temperature'")
-        parameters.delete(:temperature)
-        response = @client.chat(parameters: parameters)
-        content = response.dig('choices', 0, 'message', 'content')
-        return { 'content' => content }
-      end
-      # Retry once swapping token param if unsupported
-      if e.response && e.response[:body].to_s.include?("Unsupported parameter: 'max_tokens'")
-        parameters.delete(:max_tokens)
-        parameters[:max_completion_tokens] = token_limit
-        response = @client.chat(parameters: parameters)
-        content = response.dig('choices', 0, 'message', 'content')
-        return { 'content' => content }
-      end
       raise APIError, "the server responded with status #{e.response[:status] if e.response}"
     rescue StandardError => e
       raise LLMError, e.message
@@ -274,39 +250,47 @@ module BookCore
       messages << { role: 'system', content: options[:system_prompt] } if options[:system_prompt]
       messages << { role: 'user', content: prompt }
 
-      parameters = {
-        model: model,
-        messages: messages,
-        response_format: options[:response_format]
-      }
-      parameters[:temperature] = (options[:temperature] || 0.7) if supports_temperature?(model)
-
-      token_limit = get_safe_max_tokens(task_type, model)
-      token_param = token_param_for_model(model)
-      parameters[token_param] = token_limit
-
+      parameters = build_api_parameters(model, messages, options, task_type)
+      parameters[:response_format] = options[:response_format] if options[:response_format]
+      
       debug_dump('request_parameters.json', JSON.pretty_generate(parameters))
       response = @client.chat(parameters: parameters)
       content = response.dig('choices', 0, 'message', 'content')
       debug_dump('response_raw.json', content)
       { 'content' => content }
     rescue Faraday::Error => e
-      if e.response && e.response[:body].to_s.include?("Unsupported value: 'temperature'")
-        parameters.delete(:temperature)
-        response = @client.chat(parameters: parameters)
-        content = response.dig('choices', 0, 'message', 'content')
-        return { 'content' => content }
-      end
-      if e.response && e.response[:body].to_s.include?("Unsupported parameter: 'max_tokens'")
-        parameters.delete(:max_tokens)
-        parameters[:max_completion_tokens] = token_limit
-        response = @client.chat(parameters: parameters)
-        content = response.dig('choices', 0, 'message', 'content')
-        return { 'content' => content }
-      end
       raise APIError, "the server responded with status #{e.response[:status] if e.response}"
     rescue StandardError => e
       raise LLMError, e.message
+    end
+
+    def build_api_parameters(model, messages, options = {}, task_type = 'generation')
+      parameters = {
+        model: model,
+        messages: messages
+      }
+      
+      # Get model-specific settings and add them to parameters
+      model_settings = get_model_settings(model)
+      
+      # Handle token limits with fallback to task options
+      task_token_limit = get_task_options(task_type)[:max_tokens]
+      
+      # Add each configured parameter, with options override
+      model_settings.each do |param, value|
+        param_key = param.to_sym
+        
+        # Special handling for token parameters - use task limit if smaller
+        if param.include?('tokens')
+          final_value = [options[param_key] || value, task_token_limit].min
+          parameters[param_key] = final_value
+        else
+          # For other parameters, use options override or model default
+          parameters[param_key] = options[param_key] || value
+        end
+      end
+      
+      parameters
     end
 
     def get_task_options(task_type, base_options = {})
@@ -318,29 +302,8 @@ module BookCore
       merged.merge(base_options).transform_keys(&:to_sym)
     end
 
-    def get_safe_max_tokens(task_type, model)
-      configured_limit = get_task_options(task_type)[:max_tokens]
-      model_caps = {
-        'gpt-4o' => 100_000,
-        'gpt-4o-mini' => 100_000,
-        'o3-mini' => 50_000,
-        'o3' => 150_000,
-        'gpt-5' => 150_000
-      }
-      model_cap = model_caps[model] || 50_000
-      [configured_limit, model_cap - 5000].min
-    end
-
-    def token_param_for_model(model)
-      return :max_completion_tokens if O3_MODELS.include?(model)
-      return :max_completion_tokens if model.to_s.start_with?('gpt-5')
-      :max_tokens
-    end
-
-    def supports_temperature?(model)
-      # Newer models like gpt-5 may not accept custom temperature
-      return false if model.to_s.start_with?('gpt-5')
-      true
+    def get_model_settings(model)
+      @config.dig('model_settings', model) || {}
     end
 
     def build_chapter_translation_prompt(title, summary, content, target_lang, glossary, book_metadata = nil)
