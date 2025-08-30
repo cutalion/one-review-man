@@ -67,6 +67,119 @@ module Book
         true
       end
 
+      # Renders a concise status report for a book at the given absolute root.
+      def render_status_report(abs_root)
+        # Load metadata
+        metadata_path = File.join(abs_root, 'data', 'book_metadata.yml')
+        metadata = if File.exist?(metadata_path)
+                     YAML.safe_load(File.read(metadata_path)) || {}
+                   else
+                     {}
+                   end
+
+        say "\n📚 Book Status Report", :cyan
+        say "=" * 50, :cyan
+
+        # Basic information
+        title = metadata.dig('localized', 'en', 'title') || metadata['title'] || 'Untitled'
+        author = metadata.dig('localized', 'en', 'author') || metadata['author'] || 'Unknown'
+        say "📖 Title: #{title}", :green
+        say "✍️  Author: #{author}", :green
+
+        # Progress information
+        if metadata['book']
+          current = metadata.dig('book', 'current_chapter') || 0
+          target = metadata.dig('book', 'target_chapters') || 'Not set'
+          say "📊 Progress: #{current}/#{target} chapters", :yellow
+        end
+
+        # Check configuration completeness
+        say "\n🔧 Configuration Status:", :cyan
+        en_metadata = metadata.dig('localized', 'en') || {}
+
+        required_fields = {
+          'genre' => '📖 Genre',
+          'humor_style' => '✍️ Writing Style',
+          'setting' => '🌍 Setting',
+          'themes' => '🎭 Themes'
+        }
+
+        missing_fields = []
+        complete_fields = []
+
+        required_fields.each do |field, display_name|
+          if field == 'themes'
+            if en_metadata.dig('themes', 'primary').to_s.strip.empty?
+              missing_fields << display_name
+            else
+              complete_fields << "#{display_name}: #{en_metadata.dig('themes', 'primary')}"
+            end
+          else
+            if en_metadata[field].to_s.strip.empty?
+              missing_fields << display_name
+            else
+              complete_fields << "#{display_name}: #{en_metadata[field]}"
+            end
+          end
+        end
+
+        # Show complete fields
+        complete_fields.each do |field|
+          say "  ✅ #{field}", :green
+        end
+
+        # Show missing fields
+        missing_fields.each do |field|
+          say "  ❌ #{field}: Not set", :red
+        end
+
+        # Check file structure
+        say "\n📁 File Structure:", :cyan
+        files_to_check = {
+          'data/book_metadata.yml' => 'Book metadata',
+          'data/characters.yml' => 'Characters data',
+          'data/generation_log.yml' => 'Generation log',
+          'data/world.yml' => 'World data',
+          'data/strings.yml' => 'Site strings'
+        }
+
+        files_to_check.each do |file_path, description|
+          full_path = File.join(abs_root, file_path)
+          if File.exist?(full_path)
+            say "  ✅ #{description}", :green
+          else
+            say "  ❌ #{description}: Missing", :red
+          end
+        end
+
+        # Generation readiness
+        say "\n🚀 Generation Readiness:", :cyan
+        if missing_fields.empty?
+          say "  ✅ Ready for chapter generation!", :green
+          say "  Run: book generate chapter", :blue
+        else
+          say "  ❌ Missing required information for chapter generation", :red
+          say "  Fix by running: book init (in new directory) or update metadata manually", :yellow
+        end
+
+        # Show recent chapters
+        chapters_dir = File.join(abs_root, 'content', 'chapters')
+        if Dir.exist?(chapters_dir)
+          chapters = Dir.glob(File.join(chapters_dir, '*.md')).select { |f| !f.end_with?('.ru.md') }.sort
+          if chapters.any?
+            say "\n📝 Recent Chapters:", :cyan
+            chapters.last(3).each do |chapter_file|
+              chapter_name = File.basename(chapter_file, '.md')
+              say "  📄 #{chapter_name}", :blue
+            end
+          else
+            say "\n📝 No chapters generated yet", :yellow
+          end
+        end
+
+        say "\n" + "=" * 50, :cyan
+      end
+
       def write_yaml_file(path, hash)
         FileUtils.mkdir_p(File.dirname(path))
         File.write(path, hash.to_yaml)
@@ -707,116 +820,7 @@ module Book
         end
 
         abs_root = File.expand_path(book_root)
-        
-        # Load metadata
-        metadata_path = File.join(abs_root, 'data', 'book_metadata.yml')
-        metadata = if File.exist?(metadata_path)
-                     YAML.safe_load(File.read(metadata_path)) || {}
-                   else
-                     {}
-                   end
-
-        say "\n📚 Book Status Report", :cyan
-        say "=" * 50, :cyan
-        
-        # Basic information
-        title = metadata.dig('localized', 'en', 'title') || metadata['title'] || 'Untitled'
-        author = metadata.dig('localized', 'en', 'author') || metadata['author'] || 'Unknown'
-        say "📖 Title: #{title}", :green
-        say "✍️  Author: #{author}", :green
-        
-        # Progress information
-        if metadata['book']
-          current = metadata.dig('book', 'current_chapter') || 0
-          target = metadata.dig('book', 'target_chapters') || 'Not set'
-          say "📊 Progress: #{current}/#{target} chapters", :yellow
-        end
-
-        # Check configuration completeness
-        say "\n🔧 Configuration Status:", :cyan
-        en_metadata = metadata.dig('localized', 'en') || {}
-        
-        required_fields = {
-          'genre' => '📖 Genre',
-          'humor_style' => '✍️ Writing Style', 
-          'setting' => '🌍 Setting',
-          'themes' => '🎭 Themes'
-        }
-        
-        missing_fields = []
-        complete_fields = []
-        
-        required_fields.each do |field, display_name|
-          if field == 'themes'
-            if en_metadata.dig('themes', 'primary').to_s.strip.empty?
-              missing_fields << display_name
-            else
-              complete_fields << "#{display_name}: #{en_metadata.dig('themes', 'primary')}"
-            end
-          else
-            if en_metadata[field].to_s.strip.empty?
-              missing_fields << display_name
-            else
-              complete_fields << "#{display_name}: #{en_metadata[field]}"
-            end
-          end
-        end
-        
-        # Show complete fields
-        complete_fields.each do |field|
-          say "  ✅ #{field}", :green
-        end
-        
-        # Show missing fields
-        missing_fields.each do |field|
-          say "  ❌ #{field}: Not set", :red
-        end
-        
-        # Check file structure
-        say "\n📁 File Structure:", :cyan
-        files_to_check = {
-          'data/book_metadata.yml' => 'Book metadata',
-          'data/characters.yml' => 'Characters data',
-          'data/generation_log.yml' => 'Generation log',
-          'data/world.yml' => 'World data',
-          'data/strings.yml' => 'Site strings'
-        }
-        
-        files_to_check.each do |file_path, description|
-          full_path = File.join(abs_root, file_path)
-          if File.exist?(full_path)
-            say "  ✅ #{description}", :green
-          else
-            say "  ❌ #{description}: Missing", :red
-          end
-        end
-        
-        # Generation readiness
-        say "\n🚀 Generation Readiness:", :cyan
-        if missing_fields.empty?
-          say "  ✅ Ready for chapter generation!", :green
-          say "  Run: book generate chapter", :blue
-        else
-          say "  ❌ Missing required information for chapter generation", :red
-          say "  Fix by running: book init (in new directory) or update metadata manually", :yellow
-        end
-        
-        # Show recent chapters
-        chapters_dir = File.join(abs_root, 'content', 'chapters')
-        if Dir.exist?(chapters_dir)
-          chapters = Dir.glob(File.join(chapters_dir, '*.md')).select { |f| !f.end_with?('.ru.md') }.sort
-          if chapters.any?
-            say "\n📝 Recent Chapters:", :cyan
-            chapters.last(3).each do |chapter_file|
-              chapter_name = File.basename(chapter_file, '.md')
-              say "  📄 #{chapter_name}", :blue
-            end
-          else
-            say "\n📝 No chapters generated yet", :yellow
-          end
-        end
-        
-        say "\n" + "=" * 50, :cyan
+        render_status_report(abs_root)
       end
     end
 
@@ -1061,8 +1065,19 @@ module Book
       desc 'reset SUBCOMMAND ...ARGS', 'Reset generated content'
       subcommand 'reset', Reset
       
-      desc 'status SUBCOMMAND ...ARGS', 'Show book status and configuration'
-      subcommand 'status', Status
+      # Replace subcommand with a top-level status command
+      desc 'status', 'Show current book configuration and status'
+      method_option :book_dir, aliases: ['-b'], type: :string, desc: 'Path to the book directory (defaults to current directory)'
+      def status
+        book_root = resolve_project_root(options[:book_dir])
+        unless book_root
+          say "Not in a book directory. Use 'book init' to create a new book.", :red
+          return
+        end
+
+        abs_root = File.expand_path(book_root)
+        render_status_report(abs_root)
+      end
 
       desc 'version', 'Show version'
       def version
