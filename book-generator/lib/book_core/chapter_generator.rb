@@ -1064,7 +1064,7 @@ module BookCore
         metadata, en_metadata = load_metadata_for_interaction
         updated = collect_missing_metadata(missing_placeholders, en_metadata)
 
-        handle_interaction_result(metadata, en_metadata, updated)
+        save_interaction_result(metadata, en_metadata, updated)
       rescue Interrupt
         puts "\nOperation cancelled."
         false
@@ -1116,13 +1116,13 @@ module BookCore
 
     def collect_missing_metadata(missing_placeholders, en_metadata)
       updated = false
-      updated = collect_genre_info(missing_placeholders, en_metadata) || updated
-      updated = collect_style_info(missing_placeholders, en_metadata) || updated
-      updated = collect_setting_info(missing_placeholders, en_metadata) || updated
-      collect_theme_info(missing_placeholders, en_metadata) || updated
+      updated = collect_genre_info_needed(missing_placeholders, en_metadata) || updated
+      updated = collect_style_info_needed(missing_placeholders, en_metadata) || updated
+      updated = collect_setting_info_needed(missing_placeholders, en_metadata) || updated
+      collect_theme_info_needed(missing_placeholders, en_metadata) || updated
     end
 
-    def collect_genre_info(missing_placeholders, en_metadata)
+    def collect_genre_info_needed(missing_placeholders, en_metadata)
       return false unless missing_placeholders.include?('BOOK_GENRE') && en_metadata['genre'].to_s.strip.empty?
 
       puts '📖 What genre is your book?'
@@ -1135,7 +1135,7 @@ module BookCore
       true
     end
 
-    def collect_style_info(missing_placeholders, en_metadata)
+    def collect_style_info_needed(missing_placeholders, en_metadata)
       style_missing = missing_placeholders.include?('BOOK_STYLE') || missing_placeholders.include?('BOOK_HUMOR_STYLE')
       return false unless style_missing && en_metadata['humor_style'].to_s.strip.empty?
 
@@ -1150,7 +1150,7 @@ module BookCore
       true
     end
 
-    def collect_setting_info(missing_placeholders, en_metadata)
+    def collect_setting_info_needed(missing_placeholders, en_metadata)
       setting_missing = missing_placeholders.include?('BOOK_SETTING') || missing_placeholders.include?('PRIMARY_LOCATION')
       return false unless setting_missing && en_metadata['setting'].to_s.strip.empty?
 
@@ -1165,7 +1165,7 @@ module BookCore
       true
     end
 
-    def collect_theme_info(missing_placeholders, en_metadata)
+    def collect_theme_info_needed(missing_placeholders, en_metadata)
       theme_missing = missing_placeholders.include?('WORLD_DETAILS')
       theme_empty = en_metadata['themes'].nil? || en_metadata['themes']['primary'].to_s.strip.empty?
       return false unless theme_missing && theme_empty
@@ -1182,7 +1182,7 @@ module BookCore
       true
     end
 
-    def handle_interaction_result(metadata, en_metadata, updated)
+    def save_interaction_result(metadata, en_metadata, updated)
       if updated
         save_collected_metadata(metadata, en_metadata)
         puts ''
