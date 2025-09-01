@@ -365,7 +365,18 @@ module Book
       desc 'here', 'Initialise a new book (use --book-dir to specify location)'
       def here
         target = File.expand_path(options[:book_dir] || Dir.pwd)
+        
+        validate_target_directory(target)
+        book_info = collect_book_information
+        create_book_structure(target, book_info)
+        
+        say "Initialised book at: #{target}", :green
+        say '✅ Book is ready for chapter generation!', :green
+      end
 
+      private
+
+      def validate_target_directory(target)
         # Check if directory exists and is not empty
         if Dir.exist?(target) && !Dir.empty?(target)
           say "Directory #{target} is not empty.", :red
@@ -377,7 +388,9 @@ module Book
           say 'Aborted.', :red
           exit 1
         end
+      end
 
+      def collect_book_information
         # Basic book information
         title = ask('Book title:', default: 'My New Book')
         author = ask('Author name:', default: 'Anonymous')
@@ -387,53 +400,108 @@ module Book
 
         # Enhanced metadata for chapter generation
         if options[:quick]
-          # Use intelligent defaults based on description for quick setup
-          genre = infer_genre_from_description(description)
-          style = infer_style_from_description(description)
-          setting = infer_setting_from_description(description)
-          primary_theme = infer_theme_from_description(description)
-          secondary_themes = ''
-          target_chapters = 10
-
-          say "\n🚀 Quick setup enabled - using intelligent defaults:", :cyan
-          say "  📖 Genre: #{genre}", :blue
-          say "  ✍️ Style: #{style}", :blue
-          say "  🌍 Setting: #{setting}", :blue
-          say "  🎭 Theme: #{primary_theme}", :blue
+          collect_quick_setup_info(description)
         else
-          say "\n📚 Additional information needed for chapter generation:", :cyan
+          collect_detailed_setup_info
+        end.merge(
+          title: title,
+          author: author,
+          description: description,
+          languages: languages,
+          default_lang: default_lang
+        )
+      end
 
-          # Genre with suggestions
-          genre_examples = 'fantasy, sci-fi, mystery, thriller, comedy, romance, adventure, horror'
-          genre = ask("📖 What genre is your book? (#{genre_examples}):", default: 'fiction')
+      def collect_quick_setup_info(description)
+        genre = infer_genre_from_description(description)
+        style = infer_style_from_description(description)
+        setting = infer_setting_from_description(description)
+        primary_theme = infer_theme_from_description(description)
 
-          # Style with suggestions
-          style_examples = 'humorous, serious, adventurous, suspenseful, whimsical, dramatic'
-          style = ask("✍️  What writing style? (#{style_examples}):", default: 'narrative')
+        say "\n🚀 Quick setup enabled - using intelligent defaults:", :cyan
+        say "  📖 Genre: #{genre}", :blue
+        say "  ✍️ Style: #{style}", :blue
+        say "  🌍 Setting: #{setting}", :blue
+        say "  🎭 Theme: #{primary_theme}", :blue
 
-          # Setting
-          setting = ask('🌍 What is the main setting/location of your story?', default: 'contemporary setting')
+        {
+          genre: genre,
+          style: style,
+          setting: setting,
+          primary_theme: primary_theme,
+          secondary_themes: '',
+          target_chapters: 10
+        }
+      end
 
-          # Themes
-          primary_theme = ask('🎭 What is the primary theme? (e.g., friendship, mystery, adventure):', default: 'adventure')
-          secondary_themes = ask('🎨 Secondary themes (comma-separated, optional):', default: '')
+      def collect_detailed_setup_info
+        say "\n📚 Additional information needed for chapter generation:", :cyan
 
-          # Target chapters
-          target_chapters = ask('📊 Target number of chapters:', default: '10').to_i
-        end
+        # Genre with suggestions
+        genre_examples = 'fantasy, sci-fi, mystery, thriller, comedy, romance, adventure, horror'
+        genre = ask("📖 What genre is your book? (#{genre_examples}):", default: 'fiction')
 
+        # Style with suggestions
+        style_examples = 'humorous, serious, adventurous, suspenseful, whimsical, dramatic'
+        style = ask("✍️  What writing style? (#{style_examples}):", default: 'narrative')
+
+        # Setting
+        setting = ask('🌍 What is the main setting/location of your story?', default: 'contemporary setting')
+
+        # Themes
+        primary_theme = ask('🎭 What is the primary theme? (e.g., friendship, mystery, adventure):', default: 'adventure')
+        secondary_themes = ask('🎨 Secondary themes (comma-separated, optional):', default: '')
+
+        # Target chapters
+        target_chapters = ask('📊 Target number of chapters:', default: '10').to_i
+
+        {
+          genre: genre,
+          style: style,
+          setting: setting,
+          primary_theme: primary_theme,
+          secondary_themes: secondary_themes,
+          target_chapters: target_chapters
+        }
+      end
+
+      def create_book_structure(target, book_info)
+        create_directories(target)
+        create_metadata_files(target, book_info)
+        create_world_data(target, book_info)
+        create_strings_data(target, book_info)
+        create_settings_data(target)
+      end
+
+      def create_directories(target)
         FileUtils.mkdir_p(target)
         FileUtils.mkdir_p(File.join(target, 'data'))
-        # Only keep authored content and data in the book repo
         FileUtils.mkdir_p(File.join(target, 'content', 'chapters'))
         FileUtils.mkdir_p(File.join(target, 'content', 'characters'))
+      end
 
-        # Enhanced metadata structure
-        secondary_themes_array = secondary_themes.strip.empty? ? [] : secondary_themes.split(',').map(&:strip)
+      def create_metadata_files(target, book_info)
+        secondary_themes_array = book_info[:secondary_themes].strip.empty? ? [] : book_info[:secondary_themes].split(',').map(&:strip)
 
-        metadata = {
+        metadata = build_book_metadata(book_info, secondary_themes_array)
+        write_yaml_file(File.join(target, 'data', 'book_metadata.yml'), metadata)
+
+        # Initialize characters with locale namespace and an empty map
+        write_yaml_file(
+          File.join(target, 'data', 'characters.yml'),
+          {
+            'en' => {
+              'characters' => {}
+            }
+          }
+        )
+        write_yaml_file(File.join(target, 'data', 'generation_log.yml'), { 'chapters' => [] })
+      end
+
+      def build_book_metadata(book_info, secondary_themes_array)
+        {
           'book' => {
-            'target_chapters' => target_chapters,
+            'target_chapters' => book_info[:target_chapters],
             'current_chapter' => 0
           },
           'generation' => {
@@ -450,86 +518,84 @@ module Book
           },
           'localized' => {
             'en' => {
-              'title' => title,
-              'subtitle' => description,
-              'author' => author,
-              'genre' => genre,
-              'humor_style' => style,
-              'setting' => setting,
+              'title' => book_info[:title],
+              'subtitle' => book_info[:description],
+              'author' => book_info[:author],
+              'genre' => book_info[:genre],
+              'humor_style' => book_info[:style],
+              'setting' => book_info[:setting],
               'themes' => {
-                'primary' => primary_theme,
+                'primary' => book_info[:primary_theme],
                 'secondary' => secondary_themes_array
               }
             }
           },
           # Legacy fields for backward compatibility
-          'title' => title,
-          'author' => author,
-          'description' => description,
-          'languages' => (languages || 'en').split(',').map(&:strip),
-          'default_language' => default_lang
+          'title' => book_info[:title],
+          'author' => book_info[:author],
+          'description' => book_info[:description],
+          'languages' => (book_info[:languages] || 'en').split(',').map(&:strip),
+          'default_language' => book_info[:default_lang]
         }
+      end
 
-        write_yaml_file(File.join(target, 'data', 'book_metadata.yml'), metadata)
+      def create_world_data(target, book_info)
+        world_data = build_world_data(book_info)
+        add_russian_world_data(world_data, book_info) if includes_russian?(book_info[:languages])
+        write_yaml_file(File.join(target, 'data', 'world.yml'), world_data)
+      end
 
-        # Initialize characters with locale namespace and an empty map
-        write_yaml_file(
-          File.join(target, 'data', 'characters.yml'),
-          {
-            'en' => {
-              'characters' => {}
-            }
-          }
-        )
-        write_yaml_file(File.join(target, 'data', 'generation_log.yml'), { 'chapters' => [] })
-
-        # Create initial world.yml with basic world details
-        world_data = {
+      def build_world_data(book_info)
+        {
           'en' => {
             'world' => {
               'main_setting' => {
-                'name' => setting,
-                'description' => "The primary location where the story of #{title} unfolds",
+                'name' => book_info[:setting],
+                'description' => "The primary location where the story of #{book_info[:title]} unfolds",
                 'type' => 'primary',
                 'established_chapter' => 'Chapter 1'
               },
               'culture' => {
                 'narrative_style' => {
-                  'description' => "#{style} storytelling with engaging characters",
+                  'description' => "#{book_info[:style]} storytelling with engaging characters",
                   'established_chapter' => 'Chapter 1'
                 }
               },
               'established_facts' => [
-                "Story takes place in #{setting}",
-                "Genre focuses on #{genre} elements",
-                "Primary theme is #{primary_theme}",
-                "Writing style is #{style}"
+                "Story takes place in #{book_info[:setting]}",
+                "Genre focuses on #{book_info[:genre]} elements",
+                "Primary theme is #{book_info[:primary_theme]}",
+                "Writing style is #{book_info[:style]}"
               ]
             }
           }
         }
+      end
 
-        # Add Russian section if Russian is included
-        if (languages || 'en').split(',').map(&:strip).include?('ru')
-          world_data['ru'] = {
-            'world' => {
-              'main_setting' => {
-                'name' => setting,
-                'description' => "Основное место, где разворачивается история #{title}",
-                'type' => 'primary',
-                'established_chapter' => 'Глава 1'
-              }
+      def add_russian_world_data(world_data, book_info)
+        world_data['ru'] = {
+          'world' => {
+            'main_setting' => {
+              'name' => book_info[:setting],
+              'description' => "Основное место, где разворачивается история #{book_info[:title]}",
+              'type' => 'primary',
+              'established_chapter' => 'Глава 1'
             }
           }
-        end
+        }
+      end
 
-        write_yaml_file(File.join(target, 'data', 'world.yml'), world_data)
+      def create_strings_data(target, book_info)
+        strings_data = build_strings_data(book_info)
+        add_russian_strings_data(strings_data, book_info) if includes_russian?(book_info[:languages])
+        write_yaml_file(File.join(target, 'data', 'strings.yml'), strings_data)
+      end
 
-        # Create initial strings.yml for site translations
-        strings_data = {
+      def build_strings_data(book_info)
+        {
           'en' => {
-            'site_title' => title,
-            'site_subtitle' => description,
+            'site_title' => book_info[:title],
+            'site_subtitle' => book_info[:description],
             'nav' => {
               'home' => 'Home',
               'chapters' => 'Chapters',
@@ -538,24 +604,22 @@ module Book
             }
           }
         }
+      end
 
-        # Add Russian translations if requested
-        if (languages || 'en').split(',').map(&:strip).include?('ru')
-          strings_data['ru'] = {
-            'site_title' => title.to_s,
-            'site_subtitle' => description,
-            'nav' => {
-              'home' => 'Главная',
-              'chapters' => 'Главы',
-              'characters' => 'Персонажи',
-              'about' => 'О проекте'
-            }
+      def add_russian_strings_data(strings_data, book_info)
+        strings_data['ru'] = {
+          'site_title' => book_info[:title].to_s,
+          'site_subtitle' => book_info[:description],
+          'nav' => {
+            'home' => 'Главная',
+            'chapters' => 'Главы',
+            'characters' => 'Персонажи',
+            'about' => 'О проекте'
           }
-        end
+        }
+      end
 
-        write_yaml_file(File.join(target, 'data', 'strings.yml'), strings_data)
-
-        # Create default LLM settings file
+      def create_settings_data(target)
         settings_data = {
           'llm' => {
             'provider' => 'openai',
@@ -575,14 +639,14 @@ module Book
             }
           }
         }
-
         write_yaml_file(File.join(target, 'data', 'settings.yml'), settings_data)
-
-        # Do not create scripts/ or _chapters/_characters here; keep the book lean
-
-        say "Initialised book at: #{target}", :green
-        say '✅ Book is ready for chapter generation!', :green
       end
+
+      def includes_russian?(languages)
+        (languages || 'en').split(',').map(&:strip).include?('ru')
+      end
+
+      public
     end
 
     # CLI commands for Jekyll site generation
@@ -887,224 +951,8 @@ module Book
       class_option :book_dir, aliases: ['-b'], type: :string, desc: 'Path to the book directory (defaults to current directory)'
       class_option :quick, type: :boolean, default: false, desc: 'Quick setup with minimal prompts (uses intelligent defaults)'
       def init
-        target = File.expand_path(options[:book_dir] || Dir.pwd)
-
-        # Check if directory exists and is not empty
-        if Dir.exist?(target) && !Dir.empty?(target)
-          say "Directory #{target} is not empty.", :red
-          exit 1
-        end
-
-        # Ask for confirmation if using current directory (no --book-dir specified)
-        if !options[:book_dir] && !yes?("Create book in current directory (#{target})? [y/N]", :yellow)
-          say 'Aborted.', :red
-          exit 1
-        end
-
-        # Basic book information
-        title = ask('Book title:', default: 'My New Book')
-        author = ask('Author name:', default: 'Anonymous')
-        description = ask('Short description:', default: 'A generated book.')
-        languages = ask('Languages (comma-separated, e.g. en,ru):', default: 'en')
-        default_lang = ask('Default language code:', default: (languages || 'en').split(',').first.strip)
-
-        # Enhanced metadata for chapter generation
-        if options[:quick]
-          # Use intelligent defaults based on description for quick setup
-          genre = infer_genre_from_description(description)
-          style = infer_style_from_description(description)
-          setting = infer_setting_from_description(description)
-          primary_theme = infer_theme_from_description(description)
-          secondary_themes = ''
-          target_chapters = 10
-
-          say "\n🚀 Quick setup enabled - using intelligent defaults:", :cyan
-          say "  📖 Genre: #{genre}", :blue
-          say "  ✍️ Style: #{style}", :blue
-          say "  🌍 Setting: #{setting}", :blue
-          say "  🎭 Theme: #{primary_theme}", :blue
-        else
-          say "\n📚 Additional information needed for chapter generation:", :cyan
-
-          # Genre with suggestions
-          genre_examples = 'fantasy, sci-fi, mystery, thriller, comedy, romance, adventure, horror'
-          genre = ask("📖 What genre is your book? (#{genre_examples}):", default: 'fiction')
-
-          # Style with suggestions
-          style_examples = 'humorous, serious, adventurous, suspenseful, whimsical, dramatic'
-          style = ask("✍️  What writing style? (#{style_examples}):", default: 'narrative')
-
-          # Setting
-          setting = ask('🌍 What is the main setting/location of your story?', default: 'contemporary setting')
-
-          # Themes
-          primary_theme = ask('🎭 What is the primary theme? (e.g., friendship, mystery, adventure):', default: 'adventure')
-          secondary_themes = ask('🎨 Secondary themes (comma-separated, optional):', default: '')
-
-          # Target chapters
-          target_chapters = ask('📊 Target number of chapters:', default: '10').to_i
-        end
-
-        FileUtils.mkdir_p(target)
-        FileUtils.mkdir_p(File.join(target, 'data'))
-        # Only keep authored content and data in the book repo
-        FileUtils.mkdir_p(File.join(target, 'content', 'chapters'))
-        FileUtils.mkdir_p(File.join(target, 'content', 'characters'))
-
-        # Enhanced metadata structure
-        secondary_themes_array = secondary_themes.strip.empty? ? [] : secondary_themes.split(',').map(&:strip)
-
-        metadata = {
-          'book' => {
-            'target_chapters' => target_chapters,
-            'current_chapter' => 0
-          },
-          'generation' => {
-            'chapter_length_target' => '1500-3000 words',
-            'complexity_level' => 'medium',
-            'character_consistency' => true
-          },
-          'status' => {
-            'last_generated' => '',
-            'generation_count' => 0,
-            'characters_created' => 0,
-            'active_storylines' => [],
-            'chapters_written' => 0
-          },
-          'localized' => {
-            'en' => {
-              'title' => title,
-              'subtitle' => description,
-              'author' => author,
-              'genre' => genre,
-              'humor_style' => style,
-              'setting' => setting,
-              'themes' => {
-                'primary' => primary_theme,
-                'secondary' => secondary_themes_array
-              }
-            }
-          },
-          # Legacy fields for backward compatibility
-          'title' => title,
-          'author' => author,
-          'description' => description,
-          'languages' => (languages || 'en').split(',').map(&:strip),
-          'default_language' => default_lang
-        }
-
-        write_yaml_file(File.join(target, 'data', 'book_metadata.yml'), metadata)
-
-        # Initialize characters with locale namespace and an empty map
-        write_yaml_file(
-          File.join(target, 'data', 'characters.yml'),
-          {
-            'en' => {
-              'characters' => {}
-            }
-          }
-        )
-        write_yaml_file(File.join(target, 'data', 'generation_log.yml'), { 'chapters' => [] })
-
-        # Create initial world.yml with basic world details
-        world_data = {
-          'en' => {
-            'world' => {
-              'main_setting' => {
-                'name' => setting,
-                'description' => "The primary location where the story of #{title} unfolds",
-                'type' => 'primary',
-                'established_chapter' => 'Chapter 1'
-              },
-              'culture' => {
-                'narrative_style' => {
-                  'description' => "#{style} storytelling with engaging characters",
-                  'established_chapter' => 'Chapter 1'
-                }
-              },
-              'established_facts' => [
-                "Story takes place in #{setting}",
-                "Genre focuses on #{genre} elements",
-                "Primary theme is #{primary_theme}",
-                "Writing style is #{style}"
-              ]
-            }
-          }
-        }
-
-        # Add Russian section if Russian is included
-        if (languages || 'en').split(',').map(&:strip).include?('ru')
-          world_data['ru'] = {
-            'world' => {
-              'main_setting' => {
-                'name' => setting,
-                'description' => "Основное место, где разворачивается история #{title}",
-                'type' => 'primary',
-                'established_chapter' => 'Глава 1'
-              }
-            }
-          }
-        end
-
-        write_yaml_file(File.join(target, 'data', 'world.yml'), world_data)
-
-        # Create initial strings.yml for site translations
-        strings_data = {
-          'en' => {
-            'site_title' => title,
-            'site_subtitle' => description,
-            'nav' => {
-              'home' => 'Home',
-              'chapters' => 'Chapters',
-              'characters' => 'Characters',
-              'about' => 'About'
-            }
-          }
-        }
-
-        # Add Russian translations if requested
-        if (languages || 'en').split(',').map(&:strip).include?('ru')
-          strings_data['ru'] = {
-            'site_title' => title.to_s,
-            'site_subtitle' => description,
-            'nav' => {
-              'home' => 'Главная',
-              'chapters' => 'Главы',
-              'characters' => 'Персонажи',
-              'about' => 'О проекте'
-            }
-          }
-        end
-
-        write_yaml_file(File.join(target, 'data', 'strings.yml'), strings_data)
-
-        # Create default LLM settings file
-        settings_data = {
-          'llm' => {
-            'provider' => 'openai',
-            'model' => 'gpt-4o-mini',
-            'temperature' => 0.7,
-            'timeout' => 240,
-            'default_options' => {
-              'max_tokens' => 12_000
-            },
-            'task_options' => {
-              'generation' => {
-                'max_tokens' => 8000
-              },
-              'translation' => {
-                'max_tokens' => 12_000
-              }
-            }
-          }
-        }
-
-        write_yaml_file(File.join(target, 'data', 'settings.yml'), settings_data)
-
-        # Do not create scripts/ or _chapters/_characters here; keep the book lean
-
-        say "Initialised book at: #{target}", :green
-        say '✅ Book is ready for chapter generation!', :green
+        # Delegate to the Init class's here method with the same options
+        Init.new.invoke(:here, [], options)
       end
 
       desc 'jekyll SUBCOMMAND ...ARGS', 'Jekyll site operations'

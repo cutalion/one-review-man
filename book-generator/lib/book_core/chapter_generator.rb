@@ -95,91 +95,101 @@ module BookCore
     end
 
     def build_chapter_prompt(chapter_number, auto_generate: false)
-      # Load template matching main branch (explicit filename)
+      begin
+        template = load_chapter_template(chapter_number)
+        placeholders = build_chapter_context(chapter_number)
+        
+        PromptUtils.build_prompt(template, placeholders, warn_unused: false, context: "chapter #{chapter_number} generation")
+      rescue PromptUtils::UnfilledPlaceholdersError => e
+        handle_unfilled_placeholders(e, chapter_number, auto_generate)
+      end
+    end
+
+    private
+
+    def load_chapter_template(chapter_number)
       template = begin
         @prompt_provider.load('chapter_prompts.txt')
       rescue StandardError
         'Write Chapter {CHAPTER_NUMBER} of a programming comedy story'
       end
       # Fail-safe: pre-fill the chapter number in case template contains extra occurrences
-      template = template.to_s.gsub('{CHAPTER_NUMBER}', chapter_number.to_s)
+      template.to_s.gsub('{CHAPTER_NUMBER}', chapter_number.to_s)
+    end
 
-      # Prioritized book metadata for target length
+    def build_chapter_context(chapter_number)
       book_metadata = load_book_metadata_abs
-
-      # Previous chapters summary
       previous_summary = build_previous_chapters_summary(chapter_number)
-
-      # Characters context
       chars = load_characters_abs
       selected_chars = select_characters_for_chapter(chapter_number, chars)
       character_context = build_character_context(selected_chars)
-
-      # Used plot devices
       used_devices = load_generation_log_abs['used_plot_devices'] || []
-
-      # World context (use world utils; ensure correct CWD)
       world_ctx = Dir.chdir(@project_root) { build_world_context('en') }
 
-      # Build dynamic placeholders based on book metadata and prompt requirements
       placeholders = build_chapter_placeholders(chapter_number, book_metadata, chars,
                                                 character_context, used_devices, previous_summary)
-
-      # Add world context
       placeholders.merge!(world_ctx || {})
+    end
 
-      PromptUtils.build_prompt(template, placeholders, warn_unused: false, context: "chapter #{chapter_number} generation")
-    rescue PromptUtils::UnfilledPlaceholdersError => e
-      # Attempt interactive collection of missing metadata
-      if attempt_interactive_metadata_collection(e.unfilled_placeholders, auto_generate: auto_generate)
-        # Retry with updated metadata - but only once to prevent infinite recursion
-        begin
-          template = begin
-            @prompt_provider.load('chapter_prompts.txt')
-          rescue StandardError
-            'Write Chapter {CHAPTER_NUMBER} of a programming comedy story'
-          end
-          template = template.to_s.gsub('{CHAPTER_NUMBER}', chapter_number.to_s)
+    def handle_unfilled_placeholders(error, chapter_number, auto_generate)
+      return handle_retry_after_collection(error, chapter_number) if attempt_interactive_metadata_collection(error.unfilled_placeholders, auto_generate: auto_generate)
+      
+      show_missing_information_error(error)
+      raise BookCore::LLMService::LLMError, 'Book setup incomplete - missing required metadata for chapter generation'
+    end
 
-          # Rebuild placeholders with fresh data
-          book_metadata = load_book_metadata_abs
-          previous_summary = build_previous_chapters_summary(chapter_number)
-          chars = load_characters_abs
-          selected_chars = select_characters_for_chapter(chapter_number, chars)
-          character_context = build_character_context(selected_chars)
-          used_devices = load_generation_log_abs['used_plot_devices'] || []
-          world_ctx = Dir.chdir(@project_root) { build_world_context('en') }
-          placeholders = build_chapter_placeholders(chapter_number, book_metadata, chars,
-                                                    character_context, used_devices, previous_summary)
-          placeholders.merge!(world_ctx || {})
-
-          return PromptUtils.build_prompt(template, placeholders, warn_unused: false, context: "chapter #{chapter_number} generation (retry)")
-        rescue PromptUtils::UnfilledPlaceholdersError => retry_error
-          # If it still fails after metadata collection, fall back to error message
-          e = retry_error # Use the new error for the error message below
-        end
+    def handle_retry_after_collection(original_error, chapter_number)
+      # Retry with updated metadata - but only once to prevent infinite recursion
+      begin
+        template = load_chapter_template(chapter_number)
+        placeholders = build_chapter_context(chapter_number)
+        
+        return PromptUtils.build_prompt(template, placeholders, warn_unused: false, context: "chapter #{chapter_number} generation (retry)")
+      rescue PromptUtils::UnfilledPlaceholdersError => retry_error
+        # If it still fails after metadata collection, fall back to error message
+        show_missing_information_error(retry_error)
+        raise BookCore::LLMService::LLMError, 'Book setup incomplete - missing required metadata for chapter generation'
       end
-      # Fall back to detailed error message
+    end
+
+    def show_missing_information_error(error)
       puts ''
       puts '❌ Missing Information Required for Chapter Generation'
       puts ''
       puts 'Your book needs additional information before chapters can be generated.'
-      puts "Missing: #{e.unfilled_placeholders.join(', ')}"
+      puts "Missing: #{error.unfilled_placeholders.join(', ')}"
       puts ''
+      show_fix_suggestions
+      show_missing_information_guide(error.unfilled_placeholders)
+      puts ''
+      puts '🔧 For immediate help, contact support or check documentation'
+      puts ''
+    end
+
+    def show_fix_suggestions
       puts '💡 To fix this issue:'
       puts '1. Update your book metadata with the missing information'
       puts "2. Or run 'book init' again in a new directory with complete setup"
       puts ''
-      puts '📖 Missing Information Guide:'
-      puts '  • BOOK_GENRE: What type of story is this? (fantasy, sci-fi, mystery, etc.)' if e.unfilled_placeholders.include?('BOOK_GENRE')
-      puts '  • Writing Style: How should the story be told? (humorous, serious, adventurous, etc.)' if e.unfilled_placeholders.include?('BOOK_STYLE') || e.unfilled_placeholders.include?('BOOK_HUMOR_STYLE')
-      puts '  • Setting: Where does your story take place? (medieval castle, space station, modern city, etc.)' if e.unfilled_placeholders.include?('BOOK_SETTING') || e.unfilled_placeholders.include?('PRIMARY_LOCATION')
-      puts '  • World Details: What makes your story world unique?' if e.unfilled_placeholders.include?('WORLD_DETAILS')
-      puts ''
-      puts '🔧 For immediate help, contact support or check documentation'
-      puts ''
-      raise BookCore::LLMService::LLMError, 'Book setup incomplete - missing required metadata for chapter generation'
     end
+
+    def show_missing_information_guide(unfilled_placeholders)
+      puts '📖 Missing Information Guide:'
+      puts '  • BOOK_GENRE: What type of story is this? (fantasy, sci-fi, mystery, etc.)' if unfilled_placeholders.include?('BOOK_GENRE')
+      puts '  • Writing Style: How should the story be told? (humorous, serious, adventurous, etc.)' if includes_style_placeholder?(unfilled_placeholders)
+      puts '  • Setting: Where does your story take place? (medieval castle, space station, modern city, etc.)' if includes_setting_placeholder?(unfilled_placeholders)
+      puts '  • World Details: What makes your story world unique?' if unfilled_placeholders.include?('WORLD_DETAILS')
+    end
+
+    def includes_style_placeholder?(unfilled_placeholders)
+      unfilled_placeholders.include?('BOOK_STYLE') || unfilled_placeholders.include?('BOOK_HUMOR_STYLE')
+    end
+
+    def includes_setting_placeholder?(unfilled_placeholders)
+      unfilled_placeholders.include?('BOOK_SETTING') || unfilled_placeholders.include?('PRIMARY_LOCATION')
+    end
+
+    public
 
     def write_chapter_file(chapter_number, chapter_data, character_slugs = [])
       if @output_adapter
