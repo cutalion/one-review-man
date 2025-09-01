@@ -6,6 +6,7 @@ require 'fileutils'
 require_relative 'book_utils'
 
 module Book
+  # Utilities for resetting book project content and state
   class Reset
     include BookUtils
 

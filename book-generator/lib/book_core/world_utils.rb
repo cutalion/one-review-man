@@ -3,6 +3,7 @@
 
 require_relative 'book_utils'
 
+# Utilities for managing book world data and story consistency
 module WorldUtils
   include BookUtils
 

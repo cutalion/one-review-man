@@ -4,6 +4,7 @@ require 'yaml'
 require 'book_core/validation_utils'
 require 'fileutils'
 
+# Common utilities and constants for book project management
 module BookUtils
   DATA_DIR = 'data'
   CHAPTERS_DIR = '_chapters'

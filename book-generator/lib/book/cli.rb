@@ -253,6 +253,7 @@ module Book
       end
     end
 
+    # CLI commands for generating book content
     class Generate < Thor
       include Helpers
 
@@ -291,6 +292,7 @@ module Book
       end
     end
 
+    # CLI commands for translating book content
     class Translate < Thor
       include Helpers
 
@@ -332,6 +334,7 @@ module Book
       end
     end
 
+    # CLI commands for initializing new book projects
     class Init < Thor
       include Helpers
 
@@ -561,6 +564,7 @@ module Book
       end
     end
 
+    # CLI commands for Jekyll site generation
     class Jekyll < Thor
       include Helpers
 
@@ -768,6 +772,7 @@ module Book
       end
     end
 
+    # CLI commands for resetting book project content
     class Reset < Thor
       class_option :force, type: :boolean, default: false, desc: 'Force operations without confirmation'
 
@@ -808,6 +813,7 @@ module Book
       end
     end
 
+    # CLI commands for displaying book project status
     class Status < Thor
       include Helpers
 
@@ -826,6 +832,7 @@ module Book
       end
     end
 
+    # Main CLI runner that organizes subcommands
     class Runner < Thor
       include Helpers
 

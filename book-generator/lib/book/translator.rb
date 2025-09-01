@@ -11,6 +11,7 @@ require 'book_core/llm_service'
 require 'book_core/book_utils'
 
 module Book
+  # Service class for translating book content to different languages
   class Translator
     include BookUtils
 

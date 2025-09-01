@@ -6,6 +6,7 @@ require 'date'
 require 'book_core/file_utils'
 
 module BookCore
+  # Adapter for generating Jekyll website content from book data
   class JekyllAdapter
     # Prepare a fresh Jekyll project structure by ensuring the mandatory
     # `_layouts/` and `_includes/` directories (and a few default files) are

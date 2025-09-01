@@ -11,6 +11,7 @@ rescue LoadError
 end
 
 module BookCore
+  # Service class for interacting with Large Language Model APIs
   class LLMService
     class LLMError < StandardError; end
     class ConfigurationError < LLMError; end

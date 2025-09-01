@@ -1,7 +1,9 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
+# Utilities for processing prompt templates and placeholder replacement
 module PromptUtils
+  # Error raised when prompt template contains unfilled placeholders
   class UnfilledPlaceholdersError < StandardError
     attr_reader :unfilled_placeholders
 

@@ -3,6 +3,7 @@
 require 'yaml'
 
 module BookCore
+  # Configuration utilities for loading and parsing book settings
   class Config
     # Load YAML file and return a Hash; return empty Hash when file is missing
     # or when the file parses to nil.

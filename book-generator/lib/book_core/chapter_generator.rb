@@ -11,6 +11,7 @@ require 'book_core/env_utils'
 require 'book_core/validation_utils'
 
 module BookCore
+  # Main engine for generating book chapters using AI models
   class ChapterGenerator
     include WorldUtils
 
