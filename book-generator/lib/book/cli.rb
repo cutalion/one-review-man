@@ -579,7 +579,7 @@ module Book
         end
 
         # Detect if this is an existing site with custom config BEFORE creating directory
-        existing_site = is_existing_site?(dest_dir)
+        existing_site = existing_site?(dest_dir)
 
         FileUtils.mkdir_p(dest_dir)
         if existing_site
@@ -604,11 +604,11 @@ module Book
               if File.directory?(path)
                 FileUtils.mkdir_p(target)
               else
-                copy_template_with_processing(path, target, book_root, existing_site) unless File.exist?(target)
+                copy_template_with_processing(path, target, book_root, existing_site: existing_site) unless File.exist?(target)
               end
             end
           else
-            copy_template_with_processing(src, dst, book_root, existing_site) unless File.exist?(dst)
+            copy_template_with_processing(src, dst, book_root, existing_site: existing_site) unless File.exist?(dst)
           end
         end
 
@@ -648,7 +648,7 @@ module Book
 
       private
 
-      def is_existing_site?(dest_dir)
+      def existing_site?(dest_dir)
         # Check for key indicators of an existing custom Jekyll site
         config_file = File.join(dest_dir, '_config.yml')
         return false unless File.exist?(config_file)
@@ -662,14 +662,12 @@ module Book
         has_title && !has_template_placeholders
       end
 
-      def copy_template_with_processing(src_path, dst_path, book_root, existing_site = false)
+      def copy_template_with_processing(src_path, dst_path, book_root, existing_site: false)
         # For existing sites, skip template processing to preserve custom config
-        if existing_site && needs_template_processing?(src_path)
-          # Just copy the file without processing placeholders
-          FileUtils.cp(src_path, dst_path)
-        elsif needs_template_processing?(src_path)
+        if !existing_site && needs_template_processing?(src_path)
           process_and_copy_template(src_path, dst_path, book_root)
         else
+          # Just copy the file without processing placeholders
           FileUtils.cp(src_path, dst_path)
         end
       end

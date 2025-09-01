@@ -756,7 +756,7 @@ module BookCore
           real_name = find_character_real_name(chars, display_name) || '[to be generated]'
           placeholders[placeholder_key] = real_name
         end
-      elsif is_one_review_man_book?(book_metadata)
+      elsif one_review_man_book?(book_metadata)
         # Fallback: backward compatibility for OneReviewMan book
         one_review_man_real = find_character_real_name(chars, 'One Review Man') || '[to be generated]'
         quantum_android_real = find_character_real_name(chars, 'Quantum Android') || '[to be generated]'
@@ -902,7 +902,7 @@ module BookCore
       placeholders
     end
 
-    def is_one_review_man_book?(book_metadata)
+    def one_review_man_book?(book_metadata)
       return false unless book_metadata
 
       title = book_metadata.dig('localized', 'en', 'title')

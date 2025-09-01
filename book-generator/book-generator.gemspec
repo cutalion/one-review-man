@@ -11,7 +11,7 @@ Gem::Specification.new do |spec|
                        'Supports multiple LLM providers, dependency injection, and pluggable output adapters.'
   spec.homepage      = 'https://github.com/yourusername/one-review-man'
   spec.license       = 'MIT'
-  spec.required_ruby_version = '>= 2.7.0'
+  spec.required_ruby_version = '>= 3.3.0'
 
   spec.metadata['homepage_uri'] = spec.homepage
   spec.metadata['source_code_uri'] = spec.homepage
@@ -39,10 +39,4 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'tty-prompt', '~> 0.23'
   spec.add_dependency 'tty-spinner', '~> 0.9'
 
-  # Development dependencies
-  spec.add_development_dependency 'pry', '~> 0.14'
-  spec.add_development_dependency 'rake', '~> 13.0'
-  spec.add_development_dependency 'rspec', '~> 3.12'
-  spec.add_development_dependency 'rubocop', '~> 1.50'
-  spec.add_development_dependency 'simplecov', '~> 0.22'
 end
