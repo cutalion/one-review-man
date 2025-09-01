@@ -329,7 +329,7 @@ module Book
         Dir.chdir(abs_root) do
           ENV['DEBUG_AI'] = '1' if options[:debug]
           translator = Book::Translator.new(options[:model], project_root: abs_root)
-          translator.translate_all_content(lang)
+          translator.translate_all_content?(lang)
         end
       end
     end

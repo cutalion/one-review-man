@@ -51,7 +51,7 @@ RSpec.describe 'book translation' do
 
     it 'calls the Translator for all content' do
       expect(Book::Translator).to receive(:new).and_call_original
-      expect_any_instance_of(Book::Translator).to receive(:translate_all_content).with('ru')
+      expect_any_instance_of(Book::Translator).to receive(:translate_all_content?).with('ru')
 
       Dir.chdir(test_dir) do
         { 'RUBYOPT' => rubyopt_injector }

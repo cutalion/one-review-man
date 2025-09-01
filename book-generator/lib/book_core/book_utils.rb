@@ -237,7 +237,7 @@ module BookUtils
     save_generation_log(log)
   end
 
-  def get_used_plot_devices
+  def used_plot_devices
     log = load_generation_log
     log['used_plot_devices'] || []
   end
@@ -277,7 +277,7 @@ module BookUtils
   end
 
   # Validation helpers
-  def validate_chapter_structure(chapter_data)
+  def valid_chapter_structure?(chapter_data)
     required_fields = %w[title chapter_number]
     missing_fields = BookCore::ValidationUtils.missing_required_fields(chapter_data, required_fields)
 
@@ -289,7 +289,7 @@ module BookUtils
     true
   end
 
-  def validate_character_structure(character_data)
+  def valid_character_structure?(character_data)
     required_fields = %w[name description]
     missing_fields = BookCore::ValidationUtils.missing_required_fields(character_data, required_fields)
 
@@ -344,7 +344,7 @@ module BookUtils
     match ? match[1].strip : content.strip
   end
 
-  def update_chapter_content(file_path, new_content)
+  def update_chapter_content?(file_path, new_content)
     return false unless File.exist?(file_path)
 
     content = File.read(file_path)
@@ -359,7 +359,7 @@ module BookUtils
     true
   end
 
-  def update_chapter_front_matter(file_path, updates)
+  def update_chapter_front_matter?(file_path, updates)
     return false unless File.exist?(file_path)
 
     content = File.read(file_path)
@@ -428,7 +428,7 @@ module BookUtils
     end
   end
 
-  def update_character_page(slug)
+  def update_character_page?(slug)
     characters = load_characters
     character = characters['characters'][slug]
     return false unless character

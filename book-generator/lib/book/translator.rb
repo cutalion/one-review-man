@@ -93,7 +93,7 @@ module Book
       end
     end
 
-    def translate_all_content(target_lang)
+    def translate_all_content?(target_lang)
       puts "🌍 Translating all ready content to #{target_lang.upcase}..."
 
       success_count = 0
