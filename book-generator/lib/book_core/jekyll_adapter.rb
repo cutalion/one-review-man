@@ -98,16 +98,16 @@ module BookCore
       permalink = "/characters/#{permalink_slug}/"
 
       front_matter = {
-        'layout'             => 'character',
-        'name'               => character_data['name'],
-        'slug'               => slug,
-        'description'        => character_data['description'],
+        'layout' => 'character',
+        'name' => character_data['name'],
+        'slug' => slug,
+        'description' => character_data['description'],
         'personality_traits' => character_data['personality_traits'] || [],
         'programming_skills' => character_data['programming_skills'],
-        'first_appearance'   => character_data['first_appearance'],
-        'permalink'          => permalink,
-        'created_date'       => Date.today.to_s,
-        'lang'               => 'en'
+        'first_appearance' => character_data['first_appearance'],
+        'permalink' => permalink,
+        'created_date' => Date.today.to_s,
+        'lang' => 'en'
       }
 
       body_lines = []
@@ -177,4 +177,4 @@ module BookCore
       [front, body]
     end
   end
-end 
+end

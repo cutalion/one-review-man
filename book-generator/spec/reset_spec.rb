@@ -11,7 +11,7 @@ RSpec.describe 'book reset' do
   let(:test_dir) { Dir.mktmpdir('book_cli_test') }
 
   after do
-    FileUtils.rm_rf(test_dir) if Dir.exist?(test_dir)
+    FileUtils.rm_rf(test_dir)
   end
 
   describe 'integrated reset' do

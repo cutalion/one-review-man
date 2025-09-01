@@ -54,4 +54,4 @@ RSpec.describe 'book help system' do
       expect(stdout).to include('--model')
     end
   end
-end 
+end

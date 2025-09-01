@@ -13,22 +13,22 @@ module BookCore
     # @return [Boolean] true if successful
     def self.atomic_write(file_path, content, backup: false)
       dir = File.dirname(file_path)
-      FileUtils.mkdir_p(dir) unless Dir.exist?(dir)
-      
+      FileUtils.mkdir_p(dir)
+
       # Create backup if requested and file exists
       if backup && File.exist?(file_path)
         backup_path = "#{file_path}.backup.#{Time.now.to_i}"
         FileUtils.cp(file_path, backup_path)
       end
-      
+
       # Write to temporary file first
       temp_file = Tempfile.new(['atomic_write', '.tmp'], dir)
       begin
         temp_file.write(content)
         temp_file.flush
-        temp_file.fsync  # Ensure data is written to disk
+        temp_file.fsync # Ensure data is written to disk
         temp_file.close
-        
+
         # Atomically move the temporary file to the target
         FileUtils.mv(temp_file.path, file_path)
         true
@@ -52,7 +52,7 @@ module BookCore
     def self.safe_copy(source, destination, overwrite: false)
       return false unless File.exist?(source)
       return false if !overwrite && File.exist?(destination)
-      
+
       FileUtils.mkdir_p(File.dirname(destination))
       FileUtils.cp(source, destination)
       true
@@ -78,6 +78,7 @@ module BookCore
     # @return [String] File content or default content
     def self.safe_read(file_path, default_content: '')
       return default_content unless File.exist?(file_path)
+
       File.read(file_path)
     rescue StandardError => e
       puts "⚠️  Warning: Failed to read file '#{file_path}': #{e.message}"

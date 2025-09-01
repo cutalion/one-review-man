@@ -46,17 +46,13 @@ module WorldUtils
     # Check consistency
     expected_company = world_data.dig('company', 'name') || 'HeroTech Solutions'
     analysis[:company_names].each do |company|
-      unless company == expected_company
-        analysis[:warnings] << "⚠️  Found '#{company}' but expected '#{expected_company}'"
-      end
+      analysis[:warnings] << "⚠️  Found '#{company}' but expected '#{expected_company}'" unless company == expected_company
     end
 
     # Check for established cultural patterns
-    expected_patterns = ['dismissed', 'underestimated', 'lucky', 'trivial']
+    expected_patterns = %w[dismissed underestimated lucky trivial]
     found_patterns = analysis[:cultural_patterns] & expected_patterns
-    if found_patterns.any?
-      analysis[:warnings] << "✅ Cultural patterns maintained: #{found_patterns.join(', ')}"
-    end
+    analysis[:warnings] << "✅ Cultural patterns maintained: #{found_patterns.join(', ')}" if found_patterns.any?
 
     analysis
   end
@@ -69,7 +65,7 @@ module WorldUtils
     return false unless File.exist?(chapter_file)
 
     content = File.read(chapter_file)
-    
+
     fixes.each do |old_value, new_value|
       content.gsub!(old_value, new_value)
     end
@@ -112,12 +108,12 @@ module WorldUtils
       location_lines << "- #{name}: #{desc}"
 
       # Add nearby locations if they exist
-      if loc_data['nearby_locations']
-        loc_data['nearby_locations'].each do |nearby|
-          nearby_name = nearby['name'] || ''
-          nearby_type = nearby['type'] || ''
-          location_lines << "  - #{nearby_name} (#{nearby_type})"
-        end
+      next unless loc_data['nearby_locations']
+
+      loc_data['nearby_locations'].each do |nearby|
+        nearby_name = nearby['name'] || ''
+        nearby_type = nearby['type'] || ''
+        location_lines << "  - #{nearby_name} (#{nearby_type})"
       end
     end
 
@@ -218,4 +214,4 @@ module WorldUtils
 
     found_patterns.uniq
   end
-end 
+end

@@ -16,7 +16,7 @@ module BookCore
     end
 
     def write_chapter(chapter_number, content, metadata = {})
-      filename = File.join(@project_root, 'content', 'chapters', format('%03d', chapter_number) + '-chapter.md')
+      filename = File.join(@project_root, 'content', 'chapters', "#{format('%03d', chapter_number)}-chapter.md")
       default_front_matter = {
         'layout' => 'chapter',
         'title' => "Chapter #{chapter_number}"
@@ -27,21 +27,21 @@ module BookCore
     end
 
     def write_character_page(slug, character_data)
-      filename = File.join(@project_root, 'content', 'characters', slug + '.md')
+      filename = File.join(@project_root, 'content', 'characters', "#{slug}.md")
       permalink_slug = slug.gsub('_', '-')
       permalink = "/characters/#{permalink_slug}/"
 
       front_matter = {
-        'layout'             => 'character',
-        'name'               => character_data['name'],
-        'slug'               => slug,
-        'description'        => character_data['description'],
+        'layout' => 'character',
+        'name' => character_data['name'],
+        'slug' => slug,
+        'description' => character_data['description'],
         'personality_traits' => character_data['personality_traits'] || [],
         'programming_skills' => character_data['programming_skills'],
-        'first_appearance'   => character_data['first_appearance'],
-        'permalink'          => permalink,
-        'created_date'       => Date.today.to_s,
-        'lang'               => 'en'
+        'first_appearance' => character_data['first_appearance'],
+        'permalink' => permalink,
+        'created_date' => Date.today.to_s,
+        'lang' => 'en'
       }
 
       body_lines = []
@@ -67,11 +67,7 @@ module BookCore
     end
 
     def stringify_keys(hash)
-      hash.each_with_object({}) do |(k, v), acc|
-        acc[k.to_s] = v
-      end
+      hash.transform_keys(&:to_s)
     end
   end
 end
-
-

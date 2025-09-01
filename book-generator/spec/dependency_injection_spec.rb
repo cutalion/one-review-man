@@ -53,7 +53,7 @@ RSpec.describe 'Dependency injection for core classes' do
                                       book_data: minimal_book_data,
                                       characters: minimal_characters,
                                       generation_log: {},
-                                      prompt_provider: Class.new { def load(_); 'stub'; end }.new)
+                                      prompt_provider: Class.new { def load(_) = 'stub' }.new)
 
       expect(generator.instance_variable_get(:@llm_service)).to be(mock_llm)
     end
@@ -65,4 +65,4 @@ RSpec.describe 'Dependency injection for core classes' do
       expect(translator.instance_variable_get(:@llm_service)).to be(mock_llm)
     end
   end
-end 
+end

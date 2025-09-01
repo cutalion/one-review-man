@@ -30,4 +30,4 @@ module BookCore
        File.join(CORE_PROMPTS_PATH, name)]
     end
   end
-end 
+end

@@ -14,7 +14,7 @@ RSpec.describe 'book generate command' do
     # Test in empty directory (should fail because not a book directory)
     Dir.mktmpdir do |tmpdir|
       Dir.chdir(tmpdir) do
-        stdout, stderr, status = Open3.capture3('ruby', cli_path, 'generate', 'chapter', '1')
+        _, stderr, status = Open3.capture3('ruby', cli_path, 'generate', 'chapter', '1')
         expect(status).not_to be_success
         expect(stderr).to include('book directory')
       end
@@ -35,7 +35,7 @@ RSpec.describe 'book generate command' do
         FileUtils.mkdir_p('data')
         File.write(File.join('data', 'book_metadata.yml'), "book:\n  current_chapter: 0\n")
         env = { 'RUBYOPT' => rubyopt_injector }
-        stdout, stderr, status = Open3.capture3(env, 'ruby', cli_path, 'generate', 'chapter', '--auto')
+        _, stderr, status = Open3.capture3(env, 'ruby', cli_path, 'generate', 'chapter', '--auto')
         expect(status).to be_success
         expect(stderr).to be_empty
       end
@@ -59,4 +59,4 @@ RSpec.describe 'book generate command' do
   after do
     Dir.chdir(original_dir) if Dir.exist?(original_dir)
   end
-end 
+end

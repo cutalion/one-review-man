@@ -145,18 +145,19 @@ module Book
       glossary_lines = []
       Dir.glob(File.join(@project_root, preferred_characters_dir_name, '*.md')).each do |english_file|
         next if english_file.include?(".#{target_lang}.") || english_file.include?('.en.')
+
         slug = File.basename(english_file, '.md')
         translated_file = File.join(@project_root, preferred_characters_dir_name, "#{slug}.#{target_lang}.md")
         next unless File.exist?(translated_file)
+
         english_name = extract_name_from_character_file(english_file)
         translated_name = extract_name_from_character_file(translated_file)
         next unless english_name && translated_name
+
         glossary_lines << "#{english_name} -> #{translated_name}"
         en_parts = english_name.split
         tr_parts = translated_name.split
-        if en_parts.size == tr_parts.size && en_parts.size > 1
-          en_parts.zip(tr_parts).each { |en_part, tr_part| glossary_lines << "#{en_part} -> #{tr_part}" }
-        end
+        en_parts.zip(tr_parts).each { |en_part, tr_part| glossary_lines << "#{en_part} -> #{tr_part}" } if en_parts.size == tr_parts.size && en_parts.size > 1
       end
       glossary_lines.uniq.sort.join("\n")
     end
@@ -175,6 +176,7 @@ module Book
       content = File.read(file_path)
       match = content.match(/\A---\s*\n(.*?)\n---/m)
       return nil unless match
+
       front_matter = YAML.safe_load(match[1]) || {}
       front_matter['name']
     rescue StandardError => e
@@ -190,13 +192,13 @@ module Book
       front_matter.delete('content')
       front_matter.delete('file_path')
       front_matter.update({
-        'title' => translation_data['title'],
-        'summary' => translation_data['summary'],
-        'permalink' => permalink,
-        'lang' => target_lang,
-        'translated_from' => 'en',
-        'translated_date' => Date.today.to_s
-      })
+                            'title' => translation_data['title'],
+                            'summary' => translation_data['summary'],
+                            'permalink' => permalink,
+                            'lang' => target_lang,
+                            'translated_from' => 'en',
+                            'translated_date' => Date.today.to_s
+                          })
 
       File.open(target_file, 'w') do |file|
         file.puts '---'
@@ -236,7 +238,7 @@ module Book
         file.puts '---'
         file.puts ''
 
-        file.puts (target_lang == 'ru' ? "## О персонаже #{translation_data['name']}" : "## About #{translation_data['name']}")
+        file.puts(target_lang == 'ru' ? "## О персонаже #{translation_data['name']}" : "## About #{translation_data['name']}")
         file.puts ''
         file.puts translation_data['description']
         file.puts ''
@@ -273,7 +275,7 @@ module Book
 
     def load_book_metadata_abs
       path = File.join(@project_root, 'data', 'book_metadata.yml')
-      File.exist?(path) ? (YAML.safe_load(File.read(path)) || {}) : {}
+      File.exist?(path) ? (YAML.safe_load_file(path) || {}) : {}
     end
   end
 end

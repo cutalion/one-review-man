@@ -9,7 +9,7 @@ require 'bundler/setup'
 $LOAD_PATH.unshift(File.expand_path('../lib', __dir__)) unless $LOAD_PATH.include?(File.expand_path('../lib', __dir__))
 
 # Provide RUBYOPT to inject mock LLM in subprocess CLI invocations
-ENV['RUBYOPT'] = [ENV['RUBYOPT'], "-r#{File.expand_path('support/inject_mock_llm', __dir__)}"].compact.join(' ')
+ENV['RUBYOPT'] = [ENV.fetch('RUBYOPT', nil), "-r#{File.expand_path('support/inject_mock_llm', __dir__)}"].compact.join(' ')
 
 require 'open3'
 
@@ -28,7 +28,7 @@ require 'tmpdir'
 unless ENV['TMPDIR'] && File.writable?(ENV['TMPDIR'])
   project_tmp = File.expand_path('../tmp', __dir__)
   require 'fileutils'
-  FileUtils.mkdir_p(project_tmp) unless Dir.exist?(project_tmp)
+  FileUtils.mkdir_p(project_tmp)
   ENV['TMPDIR'] = project_tmp
 end
 

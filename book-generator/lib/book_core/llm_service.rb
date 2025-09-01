@@ -1,4 +1,4 @@
-"# frozen_string_literal: true"
+# frozen_string_literal: true
 
 require 'yaml'
 require 'json'
@@ -38,6 +38,7 @@ module BookCore
 
       response = call_llm(prompt, get_task_options('generation', { temperature: 0.7 }), 'generation')
       raise APIError, 'Failed to generate content' unless response && response['content']
+
       response['content']
     end
 
@@ -53,10 +54,10 @@ module BookCore
 
       prompt = build_chapter_translation_prompt(title, summary, content, target_lang, glossary, book_metadata)
       options = get_task_options('translation', {
-        temperature: 0.3,
-        system_prompt: 'You are a professional translator specializing in programming humor and technical content. Translate accurately while preserving comedy and technical references. Respond with valid JSON only.',
-        response_format: { type: 'json_object' }
-      })
+                                   temperature: 0.3,
+                                   system_prompt: 'You are a professional translator specializing in programming humor and technical content. Translate accurately while preserving comedy and technical references. Respond with valid JSON only.',
+                                   response_format: { type: 'json_object' }
+                                 })
       response = call_llm_structured(prompt, options, 'translation')
       raise APIError, 'Failed to translate chapter' unless response && response['content']
 
@@ -81,10 +82,10 @@ module BookCore
 
       prompt = build_character_translation_prompt(name, description, personality_traits, programming_skills, catchphrase, backstory, quirks, target_lang)
       options = get_task_options('translation', {
-        temperature: 0.3,
-        system_prompt: 'You are a professional translator for character profiles in a programming parody universe. Respond with valid JSON only.',
-        response_format: { type: 'json_object' }
-      })
+                                   temperature: 0.3,
+                                   system_prompt: 'You are a professional translator for character profiles in a programming parody universe. Respond with valid JSON only.',
+                                   response_format: { type: 'json_object' }
+                                 })
       response = call_llm_structured(prompt, options, 'translation')
       raise APIError, 'Failed to translate character' unless response && response['content']
 
@@ -107,10 +108,10 @@ module BookCore
 
       enhanced_prompt = build_chapter_prompt_with_schema(prompt)
       options = get_task_options('generation', {
-        temperature: 0.7,
-        system_prompt: 'You are a creative writer specializing in programming humor and parody. Write engaging, funny content that captures the absurdist spirit of programming culture. Respond with valid JSON only.',
-        response_format: { type: 'json_object' }
-      }).merge(options)
+                                   temperature: 0.7,
+                                   system_prompt: 'You are a creative writer specializing in programming humor and parody. Write engaging, funny content that captures the absurdist spirit of programming culture. Respond with valid JSON only.',
+                                   response_format: { type: 'json_object' }
+                                 }).merge(options)
 
       response = call_llm_structured(enhanced_prompt, options, 'generation')
       raise APIError, 'Failed to generate chapter' unless response && response['content']
@@ -120,7 +121,7 @@ module BookCore
       data = try_parse_json(raw)
       unless data
         # Retry once with stricter instruction
-        strict_prompt = enhanced_prompt + "\n\nReturn ONLY a valid minified JSON object matching the schema above. Do not include any explanations or code fences."
+        strict_prompt = "#{enhanced_prompt}\n\nReturn ONLY a valid minified JSON object matching the schema above. Do not include any explanations or code fences."
         response2 = call_llm_structured(strict_prompt, options, 'generation')
         raw2 = response2['content'].to_s
         debug_dump('chapter_generation_raw_retry.json', raw2)
@@ -129,6 +130,7 @@ module BookCore
       raise APIError, 'Invalid JSON from LLM' unless data
       # Minimal validation
       raise APIError, 'Missing chapter content' if data['content'].to_s.strip.empty?
+
       data['title'] ||= 'Untitled Chapter'
       data['summary'] ||= ''
       data['new_characters'] ||= []
@@ -165,20 +167,20 @@ module BookCore
       SCHEMA
 
       options = get_task_options('generation', {
-        temperature: 0.7,
-        system_prompt: 'You generate full, coherent character profiles for a programming parody universe. Respond with valid JSON only.',
-        response_format: { type: 'json_object' }
-      })
+                                   temperature: 0.7,
+                                   system_prompt: 'You generate full, coherent character profiles for a programming parody universe. Respond with valid JSON only.',
+                                   response_format: { type: 'json_object' }
+                                 })
 
       response = call_llm_structured("#{character_prompt}\n\n#{schema}", options, 'generation')
-      data = JSON.parse(response['content'])
-      data
+      JSON.parse(response['content'])
     rescue JSON::ParserError => e
       raise APIError, "Invalid JSON from LLM (character): #{e.message}"
     end
 
     def get_model_for_task(task_type)
       return @model_override if @model_override
+
       if @config['models'] && @config['models'][task_type]
         @config['models'][task_type]
       else
@@ -230,7 +232,7 @@ module BookCore
       messages << { role: 'user', content: prompt }
 
       parameters = build_api_parameters(model, messages, options, task_type)
-      
+
       debug_dump('request_parameters.json', JSON.pretty_generate(parameters))
       response = @client.chat(parameters: parameters)
       content = response.dig('choices', 0, 'message', 'content')
@@ -252,7 +254,7 @@ module BookCore
 
       parameters = build_api_parameters(model, messages, options, task_type)
       parameters[:response_format] = options[:response_format] if options[:response_format]
-      
+
       debug_dump('request_parameters.json', JSON.pretty_generate(parameters))
       response = @client.chat(parameters: parameters)
       content = response.dig('choices', 0, 'message', 'content')
@@ -269,17 +271,17 @@ module BookCore
         model: model,
         messages: messages
       }
-      
+
       # Get model-specific settings and add them to parameters
       model_settings = get_model_settings(model)
-      
+
       # Handle token limits with fallback to task options
       task_token_limit = get_task_options(task_type)[:max_tokens]
-      
+
       # Add each configured parameter, with options override
       model_settings.each do |param, value|
         param_key = param.to_sym
-        
+
         # Special handling for token parameters - use task limit if smaller
         if param.include?('tokens')
           final_value = [options[param_key] || value, task_token_limit].min
@@ -289,16 +291,14 @@ module BookCore
           parameters[param_key] = options[param_key] || value
         end
       end
-      
+
       parameters
     end
 
     def get_task_options(task_type, base_options = {})
       merged = (@config['default_options'] || {}).dup
-      if @config['task_options'] && @config['task_options'][task_type]
-        merged.merge!(@config['task_options'][task_type])
-      end
-      merged['max_tokens'] ||= ({ 'generation' => 8000, 'translation' => 12000, 'chat' => 4000 }[task_type] || 6000)
+      merged.merge!(@config['task_options'][task_type]) if @config['task_options'] && @config['task_options'][task_type]
+      merged['max_tokens'] ||= { 'generation' => 8000, 'translation' => 12_000, 'chat' => 4000 }[task_type] || 6000
       merged.merge(base_options).transform_keys(&:to_sym)
     end
 
@@ -313,10 +313,10 @@ module BookCore
       special_instructions = build_translation_rules(target_lang, book_metadata)
 
       glossary_block = if glossary && !glossary.to_s.empty?
-        "GLOSSARY OF PROPER NAMES (use exact translations shown below):\n\n#{glossary}"
-      else
-        ''
-      end
+                         "GLOSSARY OF PROPER NAMES (use exact translations shown below):\n\n#{glossary}"
+                       else
+                         ''
+                       end
 
       <<~PROMPT
         Translate the following programming comedy chapter from English to #{target_language_name}.
@@ -421,8 +421,9 @@ module BookCore
 
     def try_parse_json(text)
       return nil if text.to_s.strip.empty?
+
       begin
-        return JSON.parse(text)
+        JSON.parse(text)
       rescue JSON::ParserError
         # Try to extract JSON from code fences
         if (m = text.match(/```(?:json)?\s*(\{[\s\S]*\})\s*```/))
@@ -439,6 +440,7 @@ module BookCore
     def ensure_debug_dir
       return unless @debug
       return @debug_dir if @debug_dir
+
       project_root = File.expand_path(File.join(File.dirname(@config_path), '..'))
       dir = File.join(project_root, 'tmp', 'ai_debug')
       FileUtils.mkdir_p(dir)
@@ -449,8 +451,10 @@ module BookCore
 
     def debug_dump(filename, content)
       return unless @debug
+
       ensure_debug_dir
       return unless @debug_dir
+
       File.write(File.join(@debug_dir, filename), content.to_s)
     rescue StandardError
       # best effort only
@@ -458,67 +462,63 @@ module BookCore
 
     def build_translation_rules(target_lang, book_metadata = nil)
       return '' unless book_metadata
-      
+
       # Load translation rules from book configuration
       translation_rules = book_metadata.dig('generation', 'translation_rules', target_lang)
       return build_generic_translation_rules(target_lang) unless translation_rules
-      
+
       rules_text = []
       language_names = { 'ru' => 'RUSSIAN', 'es' => 'SPANISH', 'fr' => 'FRENCH', 'de' => 'GERMAN', 'zh' => 'CHINESE' }
       lang_name = language_names[target_lang] || target_lang.upcase
-      
+
       rules_text << "#{lang_name} TRANSLATION RULES:"
-      
+
       # Character name mappings
-      if translation_rules['character_mappings']
-        translation_rules['character_mappings'].each do |original, translated|
-          rules_text << "- \"#{original}\" → \"#{translated}\""
-        end
+      translation_rules['character_mappings']&.each do |original, translated|
+        rules_text << "- \"#{original}\" → \"#{translated}\""
       end
-      
+
       # Name style rules
       if translation_rules['name_style']
         case translation_rules['name_style']
         when 'japanese_transliteration'
-          rules_text << "- Keep real names in Japanese style: \"Satoru\" → \"Сатору\", \"Genki\" → \"Генки\""
+          rules_text << '- Keep real names in Japanese style: "Satoru" → "Сатору", "Genki" → "Генки"'
         when 'preserve_original'
-          rules_text << "- Preserve original character names without translation"
+          rules_text << '- Preserve original character names without translation'
         end
       end
-      
-      # Address form rules  
-      if translation_rules['address_forms']
-        translation_rules['address_forms'].each do |original, translated|
-          rules_text << "- Use respectful address: \"#{translated}\" for \"#{original}\""
-        end
+
+      # Address form rules
+      translation_rules['address_forms']&.each do |original, translated|
+        rules_text << "- Use respectful address: \"#{translated}\" for \"#{original}\""
       end
-      
+
       # Technical term rules
       if translation_rules['technical_terms']
         case translation_rules['technical_terms']
         when 'mixed_en_ru'
-          rules_text << "- Programming terms: mix English and Russian naturally (e.g., \"программист\", \"код\", but \"pull request\", \"git\")"
+          rules_text << '- Programming terms: mix English and Russian naturally (e.g., "программист", "код", but "pull request", "git")'
         when 'prefer_native'
-          rules_text << "- Use native language equivalents for technical terms when available"
+          rules_text << '- Use native language equivalents for technical terms when available'
         when 'preserve_english'
-          rules_text << "- Keep English technical terms in their original form"
+          rules_text << '- Keep English technical terms in their original form'
         end
       end
-      
+
       # Custom rules
-      if translation_rules['custom_rules'] && translation_rules['custom_rules'].is_a?(Array)
+      if translation_rules['custom_rules'].is_a?(Array)
         translation_rules['custom_rules'].each do |rule|
           rules_text << "- #{rule}"
         end
       end
-      
+
       rules_text.empty? ? build_generic_translation_rules(target_lang) : "\n#{rules_text.join("\n")}"
     end
-    
+
     def build_generic_translation_rules(target_lang)
       language_names = { 'ru' => 'RUSSIAN', 'es' => 'SPANISH', 'fr' => 'FRENCH', 'de' => 'GERMAN', 'zh' => 'CHINESE' }
       lang_name = language_names[target_lang] || target_lang.upcase
-      
+
       <<~GENERIC
 
         #{lang_name} TRANSLATION GUIDELINES:
@@ -532,4 +532,4 @@ module BookCore
 end
 
 # Backward compatibility alias
-::LLMService = BookCore::LLMService unless defined?(::LLMService)
+LLMService = BookCore::LLMService unless defined?(LLMService)

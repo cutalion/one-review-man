@@ -9,10 +9,10 @@ module BookCore
     def self.load_yaml(file_path)
       return {} unless File.exist?(file_path)
 
-      parsed = YAML.safe_load(File.read(file_path))
+      parsed = YAML.safe_load_file(file_path)
       parsed.is_a?(Hash) ? parsed : {}
     rescue Psych::SyntaxError
       {}
     end
   end
-end 
+end

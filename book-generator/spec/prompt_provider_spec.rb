@@ -35,4 +35,4 @@ RSpec.describe BookCore::PromptProvider do
       end
     end
   end
-end 
+end

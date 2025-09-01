@@ -6,13 +6,13 @@ module BookCore
     # Check if AI mocking is enabled
     # @return [Boolean] true if MOCK_AI environment variable is set to '1' or 'true'
     def self.mock_ai_enabled?
-      ENV['MOCK_AI'] == '1' || ENV['MOCK_AI'] == 'true'
+      %w[1 true].include?(ENV.fetch('MOCK_AI', nil))
     end
 
     # Check if debug mode is enabled for AI operations
     # @return [Boolean] true if DEBUG_AI environment variable is set to '1' or 'true'
     def self.debug_ai_enabled?
-      ENV['DEBUG_AI'] == '1' || ENV['DEBUG_AI'] == 'true'
+      %w[1 true].include?(ENV.fetch('DEBUG_AI', nil))
     end
 
     # Get OpenAI API key from environment or config

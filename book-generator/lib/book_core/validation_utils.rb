@@ -9,6 +9,7 @@ module BookCore
     def self.present?(value)
       return false if value.nil?
       return !value.empty? if value.respond_to?(:empty?)
+
       true
     end
 
@@ -19,6 +20,7 @@ module BookCore
       return true if value.nil?
       return true if value.respond_to?(:empty?) && value.empty?
       return true if value.is_a?(String) && value.strip.empty?
+
       false
     end
 
@@ -36,6 +38,7 @@ module BookCore
     # @return [Array<String>] List of missing fields
     def self.missing_required_fields(data, required_fields)
       return required_fields if data.nil?
+
       required_fields.select { |field| blank?(data[field]) }
     end
 
@@ -45,6 +48,7 @@ module BookCore
     # @return [String] String representation
     def self.safe_string(value, default = '')
       return default if value.nil?
+
       value.to_s
     end
 
@@ -54,6 +58,7 @@ module BookCore
     def self.safe_array(value)
       return [] if value.nil?
       return value if value.is_a?(Array)
+
       [value]
     end
 
@@ -63,6 +68,7 @@ module BookCore
     def self.safe_hash(value)
       return {} if value.nil?
       return value if value.is_a?(Hash)
+
       {}
     end
 
@@ -72,6 +78,7 @@ module BookCore
     def self.valid_slug?(slug)
       return false if blank?(slug)
       return false unless slug.is_a?(String)
+
       # Slug should contain only lowercase letters, numbers, and hyphens
       # Should not start or end with hyphen
       slug.match?(/\A[a-z0-9]+(?:-[a-z0-9]+)*\z/)
@@ -82,6 +89,7 @@ module BookCore
     # @return [String] Safe slug
     def self.slugify(name)
       return '' if blank?(name)
+
       name.to_s
           .downcase
           .strip

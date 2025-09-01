@@ -12,7 +12,7 @@ RSpec.describe 'book translation' do
   let(:test_dir) { Dir.mktmpdir('book_cli_test') }
 
   after do
-    FileUtils.rm_rf(test_dir) if Dir.exist?(test_dir)
+    FileUtils.rm_rf(test_dir)
   end
 
   describe 'integrated translation' do
@@ -34,7 +34,7 @@ RSpec.describe 'book translation' do
       expect_any_instance_of(Book::Translator).to receive(:translate_chapter_with_ai).with(1, 'ru')
 
       Dir.chdir(test_dir) do
-        env = { 'RUBYOPT' => rubyopt_injector }
+        { 'RUBYOPT' => rubyopt_injector }
         Book::CLI::Runner.start(%w[translate chapter 1 ru --model gpt-4o])
       end
     end
@@ -44,7 +44,7 @@ RSpec.describe 'book translation' do
       expect_any_instance_of(Book::Translator).to receive(:translate_character_with_ai).with('test_character', 'ru')
 
       Dir.chdir(test_dir) do
-        env = { 'RUBYOPT' => rubyopt_injector }
+        { 'RUBYOPT' => rubyopt_injector }
         Book::CLI::Runner.start(%w[translate character test_character ru --model gpt-4o])
       end
     end
@@ -54,7 +54,7 @@ RSpec.describe 'book translation' do
       expect_any_instance_of(Book::Translator).to receive(:translate_all_content).with('ru')
 
       Dir.chdir(test_dir) do
-        env = { 'RUBYOPT' => rubyopt_injector }
+        { 'RUBYOPT' => rubyopt_injector }
         Book::CLI::Runner.start(%w[translate all ru --model gpt-4o])
       end
     end

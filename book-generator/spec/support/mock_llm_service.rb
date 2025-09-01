@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 # lib/test_support/mock_llm_service.rb
 #
 # Deterministic replacement for LLMService used in tests and validation scripts.
@@ -26,9 +27,9 @@ class MockLLMService
   # Structured chapter generation used by ChapterGenerator
   def generate_chapter_structured(_prompt, *_)
     {
-      'title'          => 'Mock Title',
-      'summary'        => 'Mock Summary',
-      'content'        => @responses['chapter_1'] || '# Heading\nMock content.',
+      'title' => 'Mock Title',
+      'summary' => 'Mock Summary',
+      'content' => @responses['chapter_1'] || '# Heading\nMock content.',
       'new_characters' => []
     }
   end
@@ -44,13 +45,13 @@ class MockLLMService
 
   def translate_character_structured(name, description, *_)
     {
-      'name'               => name,
-      'description'        => description,
+      'name' => name,
+      'description' => description,
       'personality_traits' => [],
       'programming_skills' => '',
-      'catchphrase'        => '',
-      'backstory'          => '',
-      'quirks'             => ''
+      'catchphrase' => '',
+      'backstory' => '',
+      'quirks' => ''
     }
   end
 
@@ -59,4 +60,4 @@ class MockLLMService
   def extract_chapter_number(prompt)
     prompt.to_s.match(/chapter\s*(\d+)/i)&.captures&.first
   end
-end 
+end

@@ -12,4 +12,4 @@ RSpec.describe Book::Reset do
     # The method should exit cleanly without waiting for real user input.
     expect { reset.reset_characters }.not_to raise_error
   end
-end 
+end

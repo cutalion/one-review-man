@@ -21,6 +21,7 @@ module Book
         data_dir = File.join(candidate, 'data')
         metadata = File.join(data_dir, 'book_metadata.yml')
         return candidate if File.exist?(metadata)
+
         nil
       end
 
@@ -32,29 +33,27 @@ module Book
 
         return handle_missing_project_root(max_attempts) if explicit_path
 
-        $stderr.puts 'Not a book directory (missing data/book_metadata.yml).'
+        warn 'Not a book directory (missing data/book_metadata.yml).'
         path = ask('Path to book directory (leave empty to abort):')
         if path && !path.strip.empty?
           # Validate the path before expanding
           path_stripped = path.strip
           unless valid_path_input?(path_stripped)
-            $stderr.puts 'Invalid path provided.'
+            warn 'Invalid path provided.'
             return resolve_project_root!(nil, max_attempts - 1) if max_attempts > 1
           end
-          
+
           expanded_path = File.expand_path(path_stripped)
           return resolve_project_root!(expanded_path, max_attempts - 1) if max_attempts > 1
         end
 
-        $stderr.puts 'Aborted. Please run in a book directory or pass --book-dir.'
+        warn 'Aborted. Please run in a book directory or pass --book-dir.'
         exit 1
       end
 
-      private
-
       def handle_missing_project_root(max_attempts)
         if max_attempts <= 1
-          $stderr.puts 'Maximum attempts reached. Aborted.'
+          warn 'Maximum attempts reached. Aborted.'
           exit 1
         end
         resolve_project_root!(nil, max_attempts - 1)
@@ -63,7 +62,8 @@ module Book
       def valid_path_input?(path)
         # Basic validation: not empty, doesn't contain null bytes, reasonable length
         return false if path.nil? || path.empty? || path.include?("\0")
-        return false if path.length > 1000  # Reasonable path length limit
+        return false if path.length > 1000 # Reasonable path length limit
+
         true
       end
 
@@ -72,13 +72,13 @@ module Book
         # Load metadata
         metadata_path = File.join(abs_root, 'data', 'book_metadata.yml')
         metadata = if File.exist?(metadata_path)
-                     YAML.safe_load(File.read(metadata_path)) || {}
+                     YAML.safe_load_file(metadata_path) || {}
                    else
                      {}
                    end
 
         say "\n📚 Book Status Report", :cyan
-        say "=" * 50, :cyan
+        say '=' * 50, :cyan
 
         # Basic information
         title = metadata.dig('localized', 'en', 'title') || metadata['title'] || 'Untitled'
@@ -114,12 +114,10 @@ module Book
             else
               complete_fields << "#{display_name}: #{en_metadata.dig('themes', 'primary')}"
             end
+          elsif en_metadata[field].to_s.strip.empty?
+            missing_fields << display_name
           else
-            if en_metadata[field].to_s.strip.empty?
-              missing_fields << display_name
-            else
-              complete_fields << "#{display_name}: #{en_metadata[field]}"
-            end
+            complete_fields << "#{display_name}: #{en_metadata[field]}"
           end
         end
 
@@ -155,17 +153,17 @@ module Book
         # Generation readiness
         say "\n🚀 Generation Readiness:", :cyan
         if missing_fields.empty?
-          say "  ✅ Ready for chapter generation!", :green
-          say "  Run: book generate chapter", :blue
+          say '  ✅ Ready for chapter generation!', :green
+          say '  Run: book generate chapter', :blue
         else
-          say "  ❌ Missing required information for chapter generation", :red
-          say "  Fix by running: book init (in new directory) or update metadata manually", :yellow
+          say '  ❌ Missing required information for chapter generation', :red
+          say '  Fix by running: book init (in new directory) or update metadata manually', :yellow
         end
 
         # Show recent chapters
         chapters_dir = File.join(abs_root, 'content', 'chapters')
         if Dir.exist?(chapters_dir)
-          chapters = Dir.glob(File.join(chapters_dir, '*.md')).select { |f| !f.end_with?('.ru.md') }.sort
+          chapters = Dir.glob(File.join(chapters_dir, '*.md')).reject { |f| f.end_with?('.ru.md') }.sort
           if chapters.any?
             say "\n📝 Recent Chapters:", :cyan
             chapters.last(3).each do |chapter_file|
@@ -177,7 +175,7 @@ module Book
           end
         end
 
-        say "\n" + "=" * 50, :cyan
+        say "\n#{'=' * 50}", :cyan
       end
 
       def write_yaml_file(path, hash)
@@ -187,8 +185,9 @@ module Book
 
       def infer_genre_from_description(description)
         return 'fiction' if description.nil? || description.empty?
+
         desc_lower = description.downcase
-        
+
         # Look for genre keywords in description
         return 'fantasy' if desc_lower.match?(/magic|wizard|dragon|fantasy|realm|quest|enchant/i)
         return 'sci-fi' if desc_lower.match?(/space|universe|robot|future|alien|technology|cyber/i)
@@ -198,30 +197,32 @@ module Book
         return 'romance' if desc_lower.match?(/love|romance|relationship|heart|passion/i)
         return 'horror' if desc_lower.match?(/horror|scary|terror|fear|nightmare|ghost/i)
         return 'adventure' if desc_lower.match?(/adventure|journey|explore|discover|travel/i)
-        
+
         # Default based on common patterns
         'fiction'
       end
 
       def infer_style_from_description(description)
         return 'narrative' if description.nil? || description.empty?
+
         desc_lower = description.downcase
-        
+
         return 'humorous' if desc_lower.match?(/funny|comedy|hilarious|humor|laugh|joke|witty/i)
         return 'suspenseful' if desc_lower.match?(/thriller|suspense|mystery|danger|intense/i)
         return 'adventurous' if desc_lower.match?(/adventure|journey|explore|discover|epic|quest/i)
         return 'whimsical' if desc_lower.match?(/magic|fantasy|whimsical|wonder|enchant/i)
         return 'dramatic' if desc_lower.match?(/drama|emotional|intense|powerful|deep/i)
         return 'serious' if desc_lower.match?(/serious|important|critical|professional/i)
-        
+
         # Default
         'narrative'
       end
 
       def infer_setting_from_description(description)
         return 'contemporary setting' if description.nil? || description.empty?
+
         desc_lower = description.downcase
-        
+
         return 'magical realm' if desc_lower.match?(/magic|fantasy|realm|kingdom|wizard/i)
         return 'space station' if desc_lower.match?(/space|universe|station|galaxy|cosmos/i)
         return 'futuristic city' if desc_lower.match?(/future|cyber|robot|technology|digital/i)
@@ -229,15 +230,16 @@ module Book
         return 'parallel universe' if desc_lower.match?(/parallel|universe|dimension|alternate/i)
         return 'medieval world' if desc_lower.match?(/medieval|ancient|historical|past/i)
         return 'mysterious location' if desc_lower.match?(/mystery|secret|hidden|unknown/i)
-        
+
         # Default
         'contemporary setting'
       end
 
       def infer_theme_from_description(description)
         return 'adventure' if description.nil? || description.empty?
+
         desc_lower = description.downcase
-        
+
         return 'exploration' if desc_lower.match?(/explore|discover|journey|adventure|travel/i)
         return 'mystery' if desc_lower.match?(/mystery|secret|investigation|unknown|hidden/i)
         return 'magic' if desc_lower.match?(/magic|wizard|spell|enchant|fantasy/i)
@@ -245,11 +247,12 @@ module Book
         return 'discovery' if desc_lower.match?(/discover|find|reveal|uncover|learn/i)
         return 'friendship' if desc_lower.match?(/friend|together|team|companion|bond/i)
         return 'survival' if desc_lower.match?(/survive|danger|escape|threat|peril/i)
-        
+
         # Default
         'adventure'
       end
     end
+
     class Generate < Thor
       include Helpers
 
@@ -259,7 +262,7 @@ module Book
       class_option :book_dir, aliases: ['-b'], type: :string, desc: 'Path to the book directory (defaults to current directory)'
 
       desc 'chapter [NUMBER]', 'Generate a chapter'
-      def chapter(number = nil)
+      def chapter(_number = nil)
         model_name = options[:model]
         project_root = resolve_project_root!(options[:book_dir])
         abs_root = File.expand_path(project_root)
@@ -346,11 +349,9 @@ module Book
         end
 
         # Ask for confirmation if using current directory (no --book-dir specified)
-        unless options[:book_dir]
-          unless yes?("Create book in current directory (#{target})? [y/N]", :yellow)
-            say "Aborted.", :red
-            exit 1
-          end
+        if !options[:book_dir] && !yes?("Create book in current directory (#{target})? [y/N]", :yellow)
+          say 'Aborted.', :red
+          exit 1
         end
 
         # Basic book information
@@ -369,34 +370,34 @@ module Book
           primary_theme = infer_theme_from_description(description)
           secondary_themes = ''
           target_chapters = 10
-          
+
           say "\n🚀 Quick setup enabled - using intelligent defaults:", :cyan
           say "  📖 Genre: #{genre}", :blue
-          say "  ✍️ Style: #{style}", :blue  
+          say "  ✍️ Style: #{style}", :blue
           say "  🌍 Setting: #{setting}", :blue
           say "  🎭 Theme: #{primary_theme}", :blue
         else
           say "\n📚 Additional information needed for chapter generation:", :cyan
-          
+
           # Genre with suggestions
-          genre_examples = "fantasy, sci-fi, mystery, thriller, comedy, romance, adventure, horror"
+          genre_examples = 'fantasy, sci-fi, mystery, thriller, comedy, romance, adventure, horror'
           genre = ask("📖 What genre is your book? (#{genre_examples}):", default: 'fiction')
-          
-          # Style with suggestions  
-          style_examples = "humorous, serious, adventurous, suspenseful, whimsical, dramatic"
+
+          # Style with suggestions
+          style_examples = 'humorous, serious, adventurous, suspenseful, whimsical, dramatic'
           style = ask("✍️  What writing style? (#{style_examples}):", default: 'narrative')
-          
+
           # Setting
           setting = ask('🌍 What is the main setting/location of your story?', default: 'contemporary setting')
-          
+
           # Themes
           primary_theme = ask('🎭 What is the primary theme? (e.g., friendship, mystery, adventure):', default: 'adventure')
           secondary_themes = ask('🎨 Secondary themes (comma-separated, optional):', default: '')
-          
+
           # Target chapters
           target_chapters = ask('📊 Target number of chapters:', default: '10').to_i
         end
-        
+
         FileUtils.mkdir_p(target)
         FileUtils.mkdir_p(File.join(target, 'data'))
         # Only keep authored content and data in the book repo
@@ -405,7 +406,7 @@ module Book
 
         # Enhanced metadata structure
         secondary_themes_array = secondary_themes.strip.empty? ? [] : secondary_themes.split(',').map(&:strip)
-        
+
         metadata = {
           'book' => {
             'target_chapters' => target_chapters,
@@ -441,10 +442,10 @@ module Book
           'title' => title,
           'author' => author,
           'description' => description,
-          'languages' => (languages || 'en').split(',').map { |s| s.strip },
+          'languages' => (languages || 'en').split(',').map(&:strip),
           'default_language' => default_lang
         }
-        
+
         write_yaml_file(File.join(target, 'data', 'book_metadata.yml'), metadata)
 
         # Initialize characters with locale namespace and an empty map
@@ -483,7 +484,7 @@ module Book
             }
           }
         }
-        
+
         # Add Russian section if Russian is included
         if (languages || 'en').split(',').map(&:strip).include?('ru')
           world_data['ru'] = {
@@ -497,7 +498,7 @@ module Book
             }
           }
         end
-        
+
         write_yaml_file(File.join(target, 'data', 'world.yml'), world_data)
 
         # Create initial strings.yml for site translations
@@ -513,11 +514,11 @@ module Book
             }
           }
         }
-        
+
         # Add Russian translations if requested
         if (languages || 'en').split(',').map(&:strip).include?('ru')
           strings_data['ru'] = {
-            'site_title' => "#{title}",
+            'site_title' => title.to_s,
             'site_subtitle' => description,
             'nav' => {
               'home' => 'Главная',
@@ -527,7 +528,7 @@ module Book
             }
           }
         end
-        
+
         write_yaml_file(File.join(target, 'data', 'strings.yml'), strings_data)
 
         # Create default LLM settings file
@@ -538,25 +539,25 @@ module Book
             'temperature' => 0.7,
             'timeout' => 240,
             'default_options' => {
-              'max_tokens' => 12000
+              'max_tokens' => 12_000
             },
             'task_options' => {
               'generation' => {
                 'max_tokens' => 8000
               },
               'translation' => {
-                'max_tokens' => 12000
+                'max_tokens' => 12_000
               }
             }
           }
         }
-        
+
         write_yaml_file(File.join(target, 'data', 'settings.yml'), settings_data)
 
         # Do not create scripts/ or _chapters/_characters here; keep the book lean
 
         say "Initialised book at: #{target}", :green
-        say "✅ Book is ready for chapter generation!", :green
+        say '✅ Book is ready for chapter generation!', :green
       end
     end
 
@@ -579,24 +580,26 @@ module Book
 
         # Detect if this is an existing site with custom config BEFORE creating directory
         existing_site = is_existing_site?(dest_dir)
-        
+
         FileUtils.mkdir_p(dest_dir)
         if existing_site
-          say "Detected existing Jekyll site - preserving custom configuration", :blue
+          say 'Detected existing Jekyll site - preserving custom configuration', :blue
         else
-          say "Creating new Jekyll site from templates", :green
+          say 'Creating new Jekyll site from templates', :green
         end
 
         # Copy template (skip content dirs which we handle separately)
         Dir.children(template_root).each do |entry|
           next if %w[_chapters _characters _data].include?(entry)
+
           src = File.join(template_root, entry)
           dst = File.join(dest_dir, entry)
           if File.directory?(src)
             FileUtils.mkdir_p(dst)
             Dir.glob(File.join(src, '**', '*'), File::FNM_DOTMATCH).each do |path|
               next if ['.', '..'].include?(File.basename(path))
-              rel = path.delete_prefix(src + '/')
+
+              rel = path.delete_prefix("#{src}/")
               target = File.join(dst, rel)
               if File.directory?(path)
                 FileUtils.mkdir_p(target)
@@ -649,14 +652,13 @@ module Book
         # Check for key indicators of an existing custom Jekyll site
         config_file = File.join(dest_dir, '_config.yml')
         return false unless File.exist?(config_file)
-        
+
         # Check if _config.yml contains hardcoded values (not template placeholders like {{BOOK_TITLE}})
         config_content = File.read(config_file)
         has_title = config_content.include?('title:')
         # Check for our specific template placeholders, not Jekyll's {{ site.* }} syntax
         has_template_placeholders = config_content.match(/\{\{[A-Z_]+\}\}/)
-        
-        
+
         has_title && !has_template_placeholders
       end
 
@@ -680,85 +682,87 @@ module Book
       end
 
       def process_and_copy_template(src_path, dst_path, book_root)
-        begin
-          # Read template content
-          template_content = File.read(src_path)
-          
-          # Build placeholders from book metadata
-          placeholders = build_jekyll_placeholders(book_root)
-          
-          # Special handling for CNAME file - skip if SITE_DOMAIN is empty
-          if File.basename(src_path) == 'CNAME'
-            site_domain = placeholders['SITE_DOMAIN'].to_s.strip
-            if site_domain.empty?
-              say "⚠️  Skipping CNAME file - no site domain configured", :yellow
-              return
-            end
+        # Read template content
+        template_content = File.read(src_path)
+
+        # Build placeholders from book metadata
+        placeholders = build_jekyll_placeholders(book_root)
+
+        # Special handling for CNAME file - skip if SITE_DOMAIN is empty
+        if File.basename(src_path) == 'CNAME'
+          site_domain = placeholders['SITE_DOMAIN'].to_s.strip
+          if site_domain.empty?
+            say '⚠️  Skipping CNAME file - no site domain configured', :yellow
+            return
           end
-          
-          # Process template through PromptUtils
-          processed_content = PromptUtils.build_prompt(template_content, placeholders, warn_unused: false)
-          
-          # Write processed content
-          FileUtils.mkdir_p(File.dirname(dst_path))
-          File.write(dst_path, processed_content)
-        rescue StandardError => e
-          # Fallback to direct copy if processing fails
-          say "⚠️  Warning: Failed to process template #{File.basename(src_path)}: #{e.message}", :yellow
-          FileUtils.cp(src_path, dst_path)
         end
+
+        # Process template through PromptUtils
+        processed_content = PromptUtils.build_prompt(template_content, placeholders, warn_unused: false)
+
+        # Write processed content
+        FileUtils.mkdir_p(File.dirname(dst_path))
+        File.write(dst_path, processed_content)
+      rescue StandardError => e
+        # Fallback to direct copy if processing fails
+        say "⚠️  Warning: Failed to process template #{File.basename(src_path)}: #{e.message}", :yellow
+        FileUtils.cp(src_path, dst_path)
       end
 
       def build_jekyll_placeholders(book_root)
         placeholders = {}
-        
+
         # Load book metadata
         metadata_path = File.join(book_root, 'data', 'book_metadata.yml')
         if File.exist?(metadata_path)
-          book_metadata = YAML.safe_load(File.read(metadata_path))
-          
+          book_metadata = YAML.safe_load_file(metadata_path)
+
           if book_metadata && book_metadata['localized']
             # English placeholders
             if book_metadata['localized']['en']
               en_data = book_metadata['localized']['en']
               placeholders.merge!({
-                'BOOK_TITLE' => en_data['title'] || 'Untitled Book',
-                'BOOK_AUTHOR' => en_data['author'] || 'Unknown Author',
-                'BOOK_GENRE' => en_data['genre'] || 'Fiction',
-                'BOOK_SUBTITLE' => en_data['subtitle'] || ''
-              })
-              
+                                    'BOOK_TITLE' => en_data['title'] || 'Untitled Book',
+                                    'BOOK_AUTHOR' => en_data['author'] || 'Unknown Author',
+                                    'BOOK_GENRE' => en_data['genre'] || 'Fiction',
+                                    'BOOK_SUBTITLE' => en_data['subtitle'] || ''
+                                  })
+
               # Additional site configuration placeholders
               placeholders.merge!({
-                'AUTHOR_EMAIL' => en_data['author_email'] || 'author@example.com',
-                'BOOK_DESCRIPTION' => en_data['description'] || book_metadata['description'] || 'An AI-generated book',
-                'SITE_URL' => book_metadata['site_url'] || 'http://example.com',
-                'TWITTER_USERNAME' => book_metadata['twitter_username'] || '',
-                'GITHUB_USERNAME' => book_metadata['github_username'] || ''
-              })
+                                    'AUTHOR_EMAIL' => en_data['author_email'] || 'author@example.com',
+                                    'BOOK_DESCRIPTION' => en_data['description'] || book_metadata['description'] || 'An AI-generated book',
+                                    'SITE_URL' => book_metadata['site_url'] || 'http://example.com',
+                                    'TWITTER_USERNAME' => book_metadata['twitter_username'] || '',
+                                    'GITHUB_USERNAME' => book_metadata['github_username'] || ''
+                                  })
             end
-            
-            # Russian placeholders (with fallback to English data)  
+
+            # Russian placeholders (with fallback to English data)
             ru_data = book_metadata['localized'] && book_metadata['localized']['ru'] ? book_metadata['localized']['ru'] : {}
             placeholders.merge!({
-              'BOOK_TITLE_RU' => ru_data['title'] || placeholders['BOOK_TITLE'] || 'Untitled Book',
-              'BOOK_AUTHOR_RU' => ru_data['author'] || placeholders['BOOK_AUTHOR'] || 'Unknown Author', 
-              'BOOK_GENRE_RU' => ru_data['genre'] || placeholders['BOOK_GENRE'] || 'Fiction',
-              'BOOK_SUBTITLE_RU' => ru_data['subtitle'] || '',
-              'BOOK_GENRE_DESCRIPTION_RU' => ru_data['genre_description'] || (ru_data['genre'] ? "#{ru_data['genre']} истории" : (placeholders['BOOK_GENRE'] ? "#{placeholders['BOOK_GENRE']} истории" : 'истории'))
-            })
-            
+                                  'BOOK_TITLE_RU' => ru_data['title'] || placeholders['BOOK_TITLE'] || 'Untitled Book',
+                                  'BOOK_AUTHOR_RU' => ru_data['author'] || placeholders['BOOK_AUTHOR'] || 'Unknown Author',
+                                  'BOOK_GENRE_RU' => ru_data['genre'] || placeholders['BOOK_GENRE'] || 'Fiction',
+                                  'BOOK_SUBTITLE_RU' => ru_data['subtitle'] || '',
+                                  'BOOK_GENRE_DESCRIPTION_RU' => ru_data['genre_description'] || (if ru_data['genre']
+                                                                                                    "#{ru_data['genre']} истории"
+                                                                                                  else
+                                                                                                    (placeholders['BOOK_GENRE'] ? "#{placeholders['BOOK_GENRE']} истории" : 'истории')
+                                                                                                  end)
+                                })
+
             # Add English genre description placeholder
             if book_metadata['localized']['en']
               en_data = book_metadata['localized']['en']
               placeholders['BOOK_GENRE_DESCRIPTION'] = en_data['genre_description'] || (en_data['genre'] ? "#{en_data['genre']} story" : 'story')
             end
-            
+
             # Add site configuration placeholders (optional)
             placeholders['SITE_DOMAIN'] = book_metadata['site_domain'] || ''
           end
         end
-        
+
         placeholders
       rescue StandardError => e
         say "⚠️  Warning: Failed to load book metadata for Jekyll placeholders: #{e.message}", :yellow
@@ -808,7 +812,7 @@ module Book
 
     class Status < Thor
       include Helpers
-      
+
       class_option :book_dir, aliases: ['-b'], type: :string, desc: 'Path to the book directory (defaults to current directory)'
 
       desc 'show', 'Show current book configuration and status'
@@ -826,7 +830,7 @@ module Book
 
     class Runner < Thor
       include Helpers
-      
+
       desc 'generate SUBCOMMAND ...ARGS', 'Generate content'
       subcommand 'generate', Generate
 
@@ -846,11 +850,9 @@ module Book
         end
 
         # Ask for confirmation if using current directory (no --book-dir specified)
-        unless options[:book_dir]
-          unless yes?("Create book in current directory (#{target})? [y/N]", :yellow)
-            say "Aborted.", :red
-            exit 1
-          end
+        if !options[:book_dir] && !yes?("Create book in current directory (#{target})? [y/N]", :yellow)
+          say 'Aborted.', :red
+          exit 1
         end
 
         # Basic book information
@@ -869,34 +871,34 @@ module Book
           primary_theme = infer_theme_from_description(description)
           secondary_themes = ''
           target_chapters = 10
-          
+
           say "\n🚀 Quick setup enabled - using intelligent defaults:", :cyan
           say "  📖 Genre: #{genre}", :blue
-          say "  ✍️ Style: #{style}", :blue  
+          say "  ✍️ Style: #{style}", :blue
           say "  🌍 Setting: #{setting}", :blue
           say "  🎭 Theme: #{primary_theme}", :blue
         else
           say "\n📚 Additional information needed for chapter generation:", :cyan
-          
+
           # Genre with suggestions
-          genre_examples = "fantasy, sci-fi, mystery, thriller, comedy, romance, adventure, horror"
+          genre_examples = 'fantasy, sci-fi, mystery, thriller, comedy, romance, adventure, horror'
           genre = ask("📖 What genre is your book? (#{genre_examples}):", default: 'fiction')
-          
-          # Style with suggestions  
-          style_examples = "humorous, serious, adventurous, suspenseful, whimsical, dramatic"
+
+          # Style with suggestions
+          style_examples = 'humorous, serious, adventurous, suspenseful, whimsical, dramatic'
           style = ask("✍️  What writing style? (#{style_examples}):", default: 'narrative')
-          
+
           # Setting
           setting = ask('🌍 What is the main setting/location of your story?', default: 'contemporary setting')
-          
+
           # Themes
           primary_theme = ask('🎭 What is the primary theme? (e.g., friendship, mystery, adventure):', default: 'adventure')
           secondary_themes = ask('🎨 Secondary themes (comma-separated, optional):', default: '')
-          
+
           # Target chapters
           target_chapters = ask('📊 Target number of chapters:', default: '10').to_i
         end
-        
+
         FileUtils.mkdir_p(target)
         FileUtils.mkdir_p(File.join(target, 'data'))
         # Only keep authored content and data in the book repo
@@ -905,7 +907,7 @@ module Book
 
         # Enhanced metadata structure
         secondary_themes_array = secondary_themes.strip.empty? ? [] : secondary_themes.split(',').map(&:strip)
-        
+
         metadata = {
           'book' => {
             'target_chapters' => target_chapters,
@@ -941,10 +943,10 @@ module Book
           'title' => title,
           'author' => author,
           'description' => description,
-          'languages' => (languages || 'en').split(',').map { |s| s.strip },
+          'languages' => (languages || 'en').split(',').map(&:strip),
           'default_language' => default_lang
         }
-        
+
         write_yaml_file(File.join(target, 'data', 'book_metadata.yml'), metadata)
 
         # Initialize characters with locale namespace and an empty map
@@ -983,7 +985,7 @@ module Book
             }
           }
         }
-        
+
         # Add Russian section if Russian is included
         if (languages || 'en').split(',').map(&:strip).include?('ru')
           world_data['ru'] = {
@@ -997,7 +999,7 @@ module Book
             }
           }
         end
-        
+
         write_yaml_file(File.join(target, 'data', 'world.yml'), world_data)
 
         # Create initial strings.yml for site translations
@@ -1013,11 +1015,11 @@ module Book
             }
           }
         }
-        
+
         # Add Russian translations if requested
         if (languages || 'en').split(',').map(&:strip).include?('ru')
           strings_data['ru'] = {
-            'site_title' => "#{title}",
+            'site_title' => title.to_s,
             'site_subtitle' => description,
             'nav' => {
               'home' => 'Главная',
@@ -1027,7 +1029,7 @@ module Book
             }
           }
         end
-        
+
         write_yaml_file(File.join(target, 'data', 'strings.yml'), strings_data)
 
         # Create default LLM settings file
@@ -1038,25 +1040,25 @@ module Book
             'temperature' => 0.7,
             'timeout' => 240,
             'default_options' => {
-              'max_tokens' => 12000
+              'max_tokens' => 12_000
             },
             'task_options' => {
               'generation' => {
                 'max_tokens' => 8000
               },
               'translation' => {
-                'max_tokens' => 12000
+                'max_tokens' => 12_000
               }
             }
           }
         }
-        
+
         write_yaml_file(File.join(target, 'data', 'settings.yml'), settings_data)
 
         # Do not create scripts/ or _chapters/_characters here; keep the book lean
 
         say "Initialised book at: #{target}", :green
-        say "✅ Book is ready for chapter generation!", :green
+        say '✅ Book is ready for chapter generation!', :green
       end
 
       desc 'jekyll SUBCOMMAND ...ARGS', 'Jekyll site operations'
@@ -1064,7 +1066,7 @@ module Book
 
       desc 'reset SUBCOMMAND ...ARGS', 'Reset generated content'
       subcommand 'reset', Reset
-      
+
       # Replace subcommand with a top-level status command
       desc 'status', 'Show current book configuration and status'
       method_option :book_dir, aliases: ['-b'], type: :string, desc: 'Path to the book directory (defaults to current directory)'

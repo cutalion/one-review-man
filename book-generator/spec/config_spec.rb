@@ -18,4 +18,4 @@ RSpec.describe BookCore::Config do
       end
     end
   end
-end 
+end

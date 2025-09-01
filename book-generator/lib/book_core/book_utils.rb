@@ -74,7 +74,7 @@ module BookUtils
   def load_world_data(lang = 'en')
     file_path = File.join(DATA_DIR, 'world.yml')
     data = load_yaml_file(file_path) || {}
-    
+
     if lang && data[lang] && data[lang]['world']
       data[lang]['world']
     elsif data['en'] && data['en']['world']

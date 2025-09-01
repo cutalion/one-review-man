@@ -7,7 +7,7 @@ require 'yaml'
 
 RSpec.describe BookCore::LLMService do
   let(:temp_settings_file) { Tempfile.new(['settings', '.yml']) }
-  
+
   after do
     temp_settings_file.unlink
   end
@@ -22,7 +22,7 @@ RSpec.describe BookCore::LLMService do
             'temperature' => 0.5,
             'timeout' => 300,
             'default_options' => {
-              'max_tokens' => 10000
+              'max_tokens' => 10_000
             },
             'task_options' => {
               'generation' => {
@@ -43,7 +43,7 @@ RSpec.describe BookCore::LLMService do
 
       it 'loads configuration from the llm section' do
         service = described_class.new(temp_settings_file.path)
-        
+
         # Test that the config was loaded correctly
         expect(service.send(:get_model_for_task, 'generation')).to eq('gpt-4')
         expect(service.send(:get_task_options, 'generation')[:max_tokens]).to eq(6000)
@@ -72,12 +72,12 @@ RSpec.describe BookCore::LLMService do
 
       it 'falls back to default configuration' do
         service = described_class.new(temp_settings_file.path)
-        
+
         # Should use default model
         expect(service.send(:get_model_for_task, 'generation')).to eq('gpt-4o-mini')
         # Should use default token limits
         expect(service.send(:get_task_options, 'generation')[:max_tokens]).to eq(8000)
-        expect(service.send(:get_task_options, 'translation')[:max_tokens]).to eq(12000)
+        expect(service.send(:get_task_options, 'translation')[:max_tokens]).to eq(12_000)
       end
     end
 
@@ -86,12 +86,12 @@ RSpec.describe BookCore::LLMService do
 
       it 'falls back to default configuration' do
         service = described_class.new(nonexistent_path)
-        
+
         # Should use default model
         expect(service.send(:get_model_for_task, 'generation')).to eq('gpt-4o-mini')
         # Should use default token limits
         expect(service.send(:get_task_options, 'generation')[:max_tokens]).to eq(8000)
-        expect(service.send(:get_task_options, 'translation')[:max_tokens]).to eq(12000)
+        expect(service.send(:get_task_options, 'translation')[:max_tokens]).to eq(12_000)
       end
     end
   end
@@ -110,7 +110,7 @@ RSpec.describe BookCore::LLMService do
               'temperature' => 0.8
             },
             'translation' => {
-              'max_tokens' => 15000,
+              'max_tokens' => 15_000,
               'temperature' => 0.2
             }
           }
@@ -125,20 +125,20 @@ RSpec.describe BookCore::LLMService do
 
     it 'uses task-specific models when configured' do
       service = described_class.new(temp_settings_file.path)
-      
+
       expect(service.send(:get_model_for_task, 'generation')).to eq('gpt-4')
       expect(service.send(:get_model_for_task, 'translation')).to eq('gpt-4o-mini')
     end
 
     it 'uses task-specific options when configured' do
       service = described_class.new(temp_settings_file.path)
-      
+
       gen_options = service.send(:get_task_options, 'generation')
       expect(gen_options[:max_tokens]).to eq(5000)
       expect(gen_options[:temperature]).to eq(0.8)
-      
+
       trans_options = service.send(:get_task_options, 'translation')
-      expect(trans_options[:max_tokens]).to eq(15000)
+      expect(trans_options[:max_tokens]).to eq(15_000)
       expect(trans_options[:temperature]).to eq(0.2)
     end
   end
@@ -146,10 +146,10 @@ RSpec.describe BookCore::LLMService do
   describe 'mock mode' do
     it 'returns mock responses when MOCK_AI is enabled' do
       allow(BookCore::EnvUtils).to receive(:mock_ai_enabled?).and_return(true)
-      
+
       service = described_class.new(temp_settings_file.path)
       result = service.generate_text(prompt: 'Test prompt', context: { chapter_number: 5 })
-      
+
       expect(result).to eq('Mock chapter content for Chapter 5')
     end
   end

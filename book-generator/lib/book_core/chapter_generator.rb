@@ -3,7 +3,6 @@
 require 'yaml'
 require 'date'
 require 'fileutils'
-require 'set'
 require 'book_core/llm_service'
 require 'book_core/prompt_provider'
 require 'book_core/world_utils'
@@ -28,16 +27,16 @@ module BookCore
       @llm_service = kwargs[:llm_service] || BookCore::LLMService.new(settings_path, model_override)
 
       # Ensure adapter is configured with project root if provided
-      if @output_adapter.respond_to?(:setup_project)
-         @output_adapter.setup_project(@project_root)
-      end
+      return unless @output_adapter.respond_to?(:setup_project)
+
+      @output_adapter.setup_project(@project_root)
     end
 
     def generate_next_chapter(auto_generate: false)
       next_chapter = determine_next_chapter_number
       @current_chapter_number = next_chapter
 
-      # Auto-migrate world.yml to story_facts.yml if needed  
+      # Auto-migrate world.yml to story_facts.yml if needed
       migrate_world_data_to_story_facts
 
       puts "Generating Chapter #{next_chapter} using model #{@llm_service.get_model_for_task('generation')}..."
@@ -68,39 +67,39 @@ module BookCore
       if data.is_a?(Hash)
         %w[title summary content].each do |key|
           next unless data[key]
+
           content = data[key].to_s
           content = content.gsub('{CHAPTER_NUMBER}', chapter_number.to_s)
-          
+
           # Replace character name placeholders
           book_metadata = load_book_metadata_abs
           chars = load_characters_abs
           main_character_placeholders = build_main_character_placeholders(book_metadata, chars)
-          if main_character_placeholders
-            main_character_placeholders.each do |placeholder_key, replacement_value|
-              content = content.gsub("{#{placeholder_key}}", replacement_value.to_s)
-            end
+          main_character_placeholders&.each do |placeholder_key, replacement_value|
+            content = content.gsub("{#{placeholder_key}}", replacement_value.to_s)
           end
-          
+
           # Replace world context placeholders
           world_ctx = Dir.chdir(@project_root) { build_world_context('en') }
-          if world_ctx
-            world_ctx.each do |placeholder_key, replacement_value|
-              content = content.gsub("{#{placeholder_key}}", replacement_value.to_s) if replacement_value
-            end
+          world_ctx&.each do |placeholder_key, replacement_value|
+            content = content.gsub("{#{placeholder_key}}", replacement_value.to_s) if replacement_value
           end
-          
+
           data[key] = content
         end
       end
-      unless EnvUtils.mock_ai_enabled?
-        raise BookCore::LLMService::LLMError, 'Generated content too short' if data['content'].to_s.strip.length < 50
-      end
+      raise BookCore::LLMService::LLMError, 'Generated content too short' if !EnvUtils.mock_ai_enabled? && (data['content'].to_s.strip.length < 50)
+
       data
     end
 
     def build_chapter_prompt(chapter_number, auto_generate: false)
       # Load template matching main branch (explicit filename)
-      template = @prompt_provider.load('chapter_prompts.txt') rescue "Write Chapter {CHAPTER_NUMBER} of a programming comedy story"
+      template = begin
+        @prompt_provider.load('chapter_prompts.txt')
+      rescue StandardError
+        'Write Chapter {CHAPTER_NUMBER} of a programming comedy story'
+      end
       # Fail-safe: pre-fill the chapter number in case template contains extra occurrences
       template = template.to_s.gsub('{CHAPTER_NUMBER}', chapter_number.to_s)
 
@@ -122,9 +121,9 @@ module BookCore
       world_ctx = Dir.chdir(@project_root) { build_world_context('en') }
 
       # Build dynamic placeholders based on book metadata and prompt requirements
-      placeholders = build_chapter_placeholders(chapter_number, book_metadata, chars, 
-                                               character_context, used_devices, previous_summary)
-                                               
+      placeholders = build_chapter_placeholders(chapter_number, book_metadata, chars,
+                                                character_context, used_devices, previous_summary)
+
       # Add world context
       placeholders.merge!(world_ctx || {})
 
@@ -134,9 +133,13 @@ module BookCore
       if attempt_interactive_metadata_collection(e.unfilled_placeholders, auto_generate: auto_generate)
         # Retry with updated metadata - but only once to prevent infinite recursion
         begin
-          template = @prompt_provider.load('chapter_prompts.txt') rescue "Write Chapter {CHAPTER_NUMBER} of a programming comedy story"
+          template = begin
+            @prompt_provider.load('chapter_prompts.txt')
+          rescue StandardError
+            'Write Chapter {CHAPTER_NUMBER} of a programming comedy story'
+          end
           template = template.to_s.gsub('{CHAPTER_NUMBER}', chapter_number.to_s)
-          
+
           # Rebuild placeholders with fresh data
           book_metadata = load_book_metadata_abs
           previous_summary = build_previous_chapters_summary(chapter_number)
@@ -145,10 +148,10 @@ module BookCore
           character_context = build_character_context(selected_chars)
           used_devices = load_generation_log_abs['used_plot_devices'] || []
           world_ctx = Dir.chdir(@project_root) { build_world_context('en') }
-          placeholders = build_chapter_placeholders(chapter_number, book_metadata, chars, 
-                                                   character_context, used_devices, previous_summary)
+          placeholders = build_chapter_placeholders(chapter_number, book_metadata, chars,
+                                                    character_context, used_devices, previous_summary)
           placeholders.merge!(world_ctx || {})
-          
+
           return PromptUtils.build_prompt(template, placeholders, warn_unused: false, context: "chapter #{chapter_number} generation (retry)")
         rescue PromptUtils::UnfilledPlaceholdersError => retry_error
           # If it still fails after metadata collection, fall back to error message
@@ -156,40 +159,32 @@ module BookCore
         end
       end
       # Fall back to detailed error message
-      puts ""
-      puts "❌ Missing Information Required for Chapter Generation"
-      puts ""
-      puts "Your book needs additional information before chapters can be generated."
+      puts ''
+      puts '❌ Missing Information Required for Chapter Generation'
+      puts ''
+      puts 'Your book needs additional information before chapters can be generated.'
       puts "Missing: #{e.unfilled_placeholders.join(', ')}"
-      puts ""
-      puts "💡 To fix this issue:"
-      puts "1. Update your book metadata with the missing information"
+      puts ''
+      puts '💡 To fix this issue:'
+      puts '1. Update your book metadata with the missing information'
       puts "2. Or run 'book init' again in a new directory with complete setup"
-      puts ""
-      puts "📖 Missing Information Guide:"
-      if e.unfilled_placeholders.include?('BOOK_GENRE')
-        puts "  • BOOK_GENRE: What type of story is this? (fantasy, sci-fi, mystery, etc.)"
-      end
-      if e.unfilled_placeholders.include?('BOOK_STYLE') || e.unfilled_placeholders.include?('BOOK_HUMOR_STYLE')
-        puts "  • Writing Style: How should the story be told? (humorous, serious, adventurous, etc.)"
-      end
-      if e.unfilled_placeholders.include?('BOOK_SETTING') || e.unfilled_placeholders.include?('PRIMARY_LOCATION')
-        puts "  • Setting: Where does your story take place? (medieval castle, space station, modern city, etc.)"
-      end
-      if e.unfilled_placeholders.include?('WORLD_DETAILS')
-        puts "  • World Details: What makes your story world unique?"
-      end
-      puts ""
-      puts "🔧 For immediate help, contact support or check documentation"
-      puts ""
-      raise BookCore::LLMService::LLMError, "Book setup incomplete - missing required metadata for chapter generation"
+      puts ''
+      puts '📖 Missing Information Guide:'
+      puts '  • BOOK_GENRE: What type of story is this? (fantasy, sci-fi, mystery, etc.)' if e.unfilled_placeholders.include?('BOOK_GENRE')
+      puts '  • Writing Style: How should the story be told? (humorous, serious, adventurous, etc.)' if e.unfilled_placeholders.include?('BOOK_STYLE') || e.unfilled_placeholders.include?('BOOK_HUMOR_STYLE')
+      puts '  • Setting: Where does your story take place? (medieval castle, space station, modern city, etc.)' if e.unfilled_placeholders.include?('BOOK_SETTING') || e.unfilled_placeholders.include?('PRIMARY_LOCATION')
+      puts '  • World Details: What makes your story world unique?' if e.unfilled_placeholders.include?('WORLD_DETAILS')
+      puts ''
+      puts '🔧 For immediate help, contact support or check documentation'
+      puts ''
+      raise BookCore::LLMService::LLMError, 'Book setup incomplete - missing required metadata for chapter generation'
     end
 
     def write_chapter_file(chapter_number, chapter_data, character_slugs = [])
       if @output_adapter
         content = chapter_data['content']
         word_count = content.split(/\s+/).length
-        chapter_slug = format('%03d', chapter_number) + '-chapter'
+        chapter_slug = "#{format('%03d', chapter_number)}-chapter"
         permalink = "/chapters/#{chapter_slug}/"
         metadata = {
           title: chapter_data['title'] || "Chapter #{chapter_number}",
@@ -215,7 +210,7 @@ module BookCore
         filename = File.join(chapters_dir, "#{format('%03d', chapter_number)}-chapter.md")
         content = chapter_data['content']
         word_count = content.split(/\s+/).length
-        chapter_slug = format('%03d', chapter_number) + '-chapter'
+        chapter_slug = "#{format('%03d', chapter_number)}-chapter"
         permalink = "/chapters/#{chapter_slug}/"
         front_matter_hash = {
           'layout' => 'chapter',
@@ -241,7 +236,7 @@ module BookCore
 
     def update_book_progress(chapter_number)
       metadata_path = File.join(@project_root, 'data', 'book_metadata.yml')
-      metadata = File.exist?(metadata_path) ? (YAML.safe_load(File.read(metadata_path)) || {}) : {}
+      metadata = File.exist?(metadata_path) ? (YAML.safe_load_file(metadata_path) || {}) : {}
       metadata['book'] ||= {}
       metadata['book']['current_chapter'] = chapter_number
       FileUtils.mkdir_p(File.dirname(metadata_path))
@@ -251,7 +246,7 @@ module BookCore
 
       # Simple summary
       puts "\n📊 Chapter Generation Summary"
-      puts "=" * 40
+      puts '=' * 40
       # Best-effort print: read back the file and count words
       filename = File.join(preferred_chapters_dir, "#{format('%03d', chapter_number)}-chapter.md")
       wc = 0
@@ -261,9 +256,9 @@ module BookCore
         wc = parts.length >= 3 ? parts[2].split(/\s+/).length : 0
       end
       puts "Title: #{chapter_data_title_for_print(chapter_number)}"
-      puts "Word Count: #{wc > 0 ? wc : 'Not specified'}"
-      puts "Difficulty: #{'Not specified'}"
-      puts "=" * 40
+      puts "Word Count: #{wc.positive? ? wc : 'Not specified'}"
+      puts 'Difficulty: Not specified'
+      puts '=' * 40
     end
 
     def chapter_data_title_for_print(chapter_number)
@@ -287,7 +282,7 @@ module BookCore
       metadata_path = File.join(@project_root, 'data', 'book_metadata.yml')
       current_in_metadata = 0
       if File.exist?(metadata_path)
-        md = YAML.safe_load(File.read(metadata_path)) || {}
+        md = YAML.safe_load_file(metadata_path) || {}
         current_in_metadata = md.dig('book', 'current_chapter').to_i if md.dig('book', 'current_chapter')
       end
 
@@ -330,7 +325,7 @@ module BookCore
       return if new_characters.nil? || new_characters.empty?
 
       chars_data_path = File.join(@project_root, 'data', 'characters.yml')
-      characters_yaml = File.exist?(chars_data_path) ? (YAML.safe_load(File.read(chars_data_path)) || {}) : {}
+      characters_yaml = File.exist?(chars_data_path) ? (YAML.safe_load_file(chars_data_path) || {}) : {}
       # Normalize to structure with 'characters' nested under 'en' if present
       if characters_yaml['en']
         characters_yaml['en']['characters'] ||= {}
@@ -347,25 +342,27 @@ module BookCore
           puts "⚠️  Warning: Could not generate valid slug for character '#{name}', skipping"
           next
         end
-        
+
         # Check for slug uniqueness and generate alternative if needed
         original_slug = slug
         counter = 1
         while store['characters'].key?(slug)
           slug = "#{original_slug}-#{counter}"
           counter += 1
-          if counter > 100  # Prevent infinite loops
+          if counter > 100 # Prevent infinite loops
             puts "⚠️  Warning: Could not generate unique slug for character '#{name}', skipping"
             next
           end
         end
-        
-        if slug != original_slug
-          puts "ℹ️  Info: Character '#{name}' slug changed from '#{original_slug}' to '#{slug}' to avoid conflict"
-        end
+
+        puts "ℹ️  Info: Character '#{name}' slug changed from '#{original_slug}' to '#{slug}' to avoid conflict" if slug != original_slug
 
         # Build rich character prompt from template if available
-        template = @prompt_provider.load('new_character_creation_prompt.txt') rescue nil
+        template = begin
+          @prompt_provider.load('new_character_creation_prompt.txt')
+        rescue StandardError
+          nil
+        end
         character_prompt = nil
         if template
           chars = load_characters_abs
@@ -392,7 +389,7 @@ module BookCore
           }.compact
         rescue StandardError => e
           puts "⚠️  Warning: Failed to generate character details for '#{name}': #{e.message}"
-          puts "   Using fallback character data instead."
+          puts '   Using fallback character data instead.'
           character_data = {
             'name' => name,
             'description' => c['description'] || 'New character',
@@ -404,9 +401,7 @@ module BookCore
         end
 
         store['characters'][slug] = character_data
-        if @output_adapter.respond_to?(:write_character_page)
-          @output_adapter.write_character_page(slug, character_data)
-        end
+        @output_adapter.write_character_page(slug, character_data) if @output_adapter.respond_to?(:write_character_page)
       end
 
       # Persist characters.yml
@@ -422,8 +417,8 @@ module BookCore
       return if story_facts.nil? || story_facts.empty?
 
       facts_path = File.join(@project_root, 'data', 'story_facts.yml')
-      facts_data = File.exist?(facts_path) ? (YAML.safe_load(File.read(facts_path)) || {}) : {}
-      
+      facts_data = File.exist?(facts_path) ? (YAML.safe_load_file(facts_path) || {}) : {}
+
       # Ensure structure
       facts_data['en'] ||= {}
       facts_data['en']['facts'] ||= {}
@@ -432,14 +427,14 @@ module BookCore
       # Process each fact type
       %w[locations events world_rules relationships].each do |fact_type|
         next unless story_facts[fact_type].is_a?(Array) && !story_facts[fact_type].empty?
-        
+
         store[fact_type] ||= {}
         story_facts[fact_type].each do |fact|
           next if fact.nil? || !fact.is_a?(Hash)
-          
+
           fact_key = generate_fact_key(fact, fact_type)
           next if ValidationUtils.blank?(fact_key)
-          
+
           # Avoid duplicates - check if fact already exists
           unless store[fact_type].key?(fact_key)
             normalized_fact = normalize_fact(fact, fact_type, chapter_number)
@@ -458,14 +453,17 @@ module BookCore
       when 'locations'
         name = fact['name']&.to_s&.strip
         return nil if ValidationUtils.blank?(name)
+
         ValidationUtils.slugify(name)
       when 'events'
         name = fact['name']&.to_s&.strip
         return nil if ValidationUtils.blank?(name)
+
         ValidationUtils.slugify(name)
       when 'world_rules'
         rule = fact['rule']&.to_s&.strip
         return nil if ValidationUtils.blank?(rule)
+
         # Create a short slug from the first few words of the rule
         rule_words = rule.split.first(3).join(' ')
         ValidationUtils.slugify(rule_words)
@@ -473,11 +471,10 @@ module BookCore
         char1 = fact['character1']&.to_s&.strip
         char2 = fact['character2']&.to_s&.strip
         return nil if ValidationUtils.blank?(char1) || ValidationUtils.blank?(char2)
+
         # Create a consistent key regardless of order
         names = [ValidationUtils.slugify(char1), ValidationUtils.slugify(char2)].sort
         "#{names[0]}_#{names[1]}"
-      else
-        nil
       end
     end
 
@@ -512,58 +509,56 @@ module BookCore
           'status' => fact['status']&.to_s&.strip || 'established',
           'first_chapter' => chapter_number
         }.compact.reject { |_, v| ValidationUtils.blank?(v) }
-      else
-        nil
       end
     end
 
     def build_story_facts_context
       story_facts = load_story_facts
       return {} unless story_facts&.dig('en', 'facts')
-      
+
       facts = story_facts['en']['facts']
       placeholders = {}
-      
+
       # Build locations context
       if facts['locations'] && !facts['locations'].empty?
-        location_list = facts['locations'].map do |key, location|
+        location_list = facts['locations'].map do |_key, location|
           "- #{location['name']}: #{location['description']} (#{location['type']})"
         end
         placeholders['ESTABLISHED_LOCATIONS'] = location_list.join("\n")
       end
-      
+
       # Build events context
       if facts['events'] && !facts['events'].empty?
-        event_list = facts['events'].map do |key, event|
+        event_list = facts['events'].map do |_key, event|
           "- #{event['name']} (Chapter #{event['chapter']}): #{event['description']}"
         end
         placeholders['ESTABLISHED_EVENTS'] = event_list.join("\n")
       end
-      
+
       # Build world rules context
       if facts['world_rules'] && !facts['world_rules'].empty?
-        rules_list = facts['world_rules'].map do |key, rule|
+        rules_list = facts['world_rules'].map do |_key, rule|
           "- #{rule['rule']} (#{rule['category']})"
         end
         placeholders['WORLD_RULES'] = rules_list.join("\n")
       end
-      
+
       # Build relationships context
       if facts['relationships'] && !facts['relationships'].empty?
-        relationship_list = facts['relationships'].map do |key, rel|
+        relationship_list = facts['relationships'].map do |_key, rel|
           "- #{rel['character1']} and #{rel['character2']}: #{rel['relationship']}"
         end
         placeholders['CHARACTER_RELATIONSHIPS'] = relationship_list.join("\n")
       end
-      
+
       placeholders
     end
 
     def load_story_facts
       facts_path = File.join(@project_root, 'data', 'story_facts.yml')
       return {} unless File.exist?(facts_path)
-      
-      YAML.safe_load(File.read(facts_path)) || {}
+
+      YAML.safe_load_file(facts_path) || {}
     rescue StandardError => e
       puts "⚠️  Warning: Failed to load story facts: #{e.message}"
       {}
@@ -571,93 +566,87 @@ module BookCore
 
     def build_content_rules_context(book_metadata)
       return {} unless book_metadata
-      
+
       content_rules = book_metadata.dig('generation', 'content_rules')
       return {} unless content_rules
-      
+
       placeholders = {}
-      
+
       # World physics rules
-      if content_rules['world_physics'] && content_rules['world_physics'].is_a?(Array)
+      if content_rules['world_physics'].is_a?(Array)
         physics_list = content_rules['world_physics'].map { |rule| "- #{rule}" }
         placeholders['WORLD_PHYSICS_RULES'] = physics_list.join("\n")
       end
-      
+
       # Style guidelines
-      if content_rules['style_guidelines'] && content_rules['style_guidelines'].is_a?(Array)
+      if content_rules['style_guidelines'].is_a?(Array)
         style_list = content_rules['style_guidelines'].map { |rule| "- #{rule}" }
         placeholders['STYLE_GUIDELINES'] = style_list.join("\n")
       end
-      
+
       # Content requirements
-      if content_rules['content_requirements'] && content_rules['content_requirements'].is_a?(Array)
+      if content_rules['content_requirements'].is_a?(Array)
         requirements_list = content_rules['content_requirements'].map { |rule| "- #{rule}" }
         placeholders['CONTENT_REQUIREMENTS'] = requirements_list.join("\n")
       end
-      
+
       # Character dynamics
       if content_rules['character_dynamics']
         dynamics = content_rules['character_dynamics']
         dynamics_text = []
-        
+
         if dynamics['protagonist_addressing']
           case dynamics['protagonist_addressing']
           when 'real_names_in_dialogue'
-            dynamics_text << "- Characters use real names when speaking directly to the protagonist"
+            dynamics_text << '- Characters use real names when speaking directly to the protagonist'
           when 'professional_titles'
-            dynamics_text << "- Characters use professional titles when addressing the protagonist"
+            dynamics_text << '- Characters use professional titles when addressing the protagonist'
           end
         end
-        
+
         if dynamics['mentor_student_pattern']
           case dynamics['mentor_student_pattern']
           when 'sensei_usage'
             dynamics_text << "- Student characters address mentor as 'sensei' or by real name"
           end
         end
-        
-        if dynamics['colleague_dismissal_theme']
-          dynamics_text << "- Colleagues consistently dismiss protagonist's abilities as luck"
-        end
-        
+
+        dynamics_text << "- Colleagues consistently dismiss protagonist's abilities as luck" if dynamics['colleague_dismissal_theme']
+
         if dynamics['underestimation_pattern']
           case dynamics['underestimation_pattern']
           when 'consistent_dismissal'
-            dynamics_text << "- Others always underestimate protagonist until proven wrong"
+            dynamics_text << '- Others always underestimate protagonist until proven wrong'
           end
         end
-        
+
         placeholders['CHARACTER_DYNAMICS'] = dynamics_text.join("\n") unless dynamics_text.empty?
       end
-      
+
       # Parody and humor style
-      if content_rules['parody_source']
-        placeholders['PARODY_SOURCE'] = content_rules['parody_source']
-      end
-      
-      if content_rules['humor_style']
-        placeholders['HUMOR_STYLE'] = content_rules['humor_style']
-      end
-      
+      placeholders['PARODY_SOURCE'] = content_rules['parody_source'] if content_rules['parody_source']
+
+      placeholders['HUMOR_STYLE'] = content_rules['humor_style'] if content_rules['humor_style']
+
       placeholders
     end
 
     def migrate_world_data_to_story_facts
       world_path = File.join(@project_root, 'data', 'world.yml')
       facts_path = File.join(@project_root, 'data', 'story_facts.yml')
-      
+
       # Skip if no world.yml or story_facts.yml already exists
       return false unless File.exist?(world_path)
       return false if File.exist?(facts_path)
-      
+
       begin
-        world_data = YAML.safe_load(File.read(world_path))
+        world_data = YAML.safe_load_file(world_path)
         return false unless world_data&.dig('en', 'world')
-        
+
         world = world_data['en']['world']
         story_facts = { 'en' => { 'facts' => {} } }
         facts = story_facts['en']['facts']
-        
+
         # Migrate locations
         if world['locations']
           facts['locations'] = {}
@@ -671,7 +660,7 @@ module BookCore
             }.compact
           end
         end
-        
+
         # Migrate company info as a location
         if world['company']
           facts['locations'] ||= {}
@@ -683,7 +672,7 @@ module BookCore
             'status' => 'established'
           }.compact
         end
-        
+
         # Migrate meetings as events
         if world['meetings']
           facts['events'] ||= {}
@@ -696,7 +685,7 @@ module BookCore
             }.compact
           end
         end
-        
+
         # Migrate infrastructure as world rules
         if world['infrastructure']
           facts['world_rules'] ||= {}
@@ -708,7 +697,7 @@ module BookCore
             }.compact
           end
         end
-        
+
         # Migrate culture as world rules
         if world['culture']
           facts['world_rules'] ||= {}
@@ -720,9 +709,9 @@ module BookCore
             }.compact
           end
         end
-        
+
         # Migrate established_facts as world rules
-        if world['established_facts'] && world['established_facts'].is_a?(Array)
+        if world['established_facts'].is_a?(Array)
           facts['world_rules'] ||= {}
           world['established_facts'].each_with_index do |fact, index|
             facts['world_rules']["established_fact_#{index + 1}"] = {
@@ -732,16 +721,16 @@ module BookCore
             }
           end
         end
-        
+
         # Write new story_facts.yml
         FileUtils.mkdir_p(File.dirname(facts_path))
         File.write(facts_path, story_facts.to_yaml)
-        
-        puts "✅ Migrated world.yml to story_facts.yml"
+
+        puts '✅ Migrated world.yml to story_facts.yml'
         puts "   Locations: #{facts['locations']&.size || 0}"
         puts "   Events: #{facts['events']&.size || 0}"
         puts "   World Rules: #{facts['world_rules']&.size || 0}"
-        
+
         true
       rescue StandardError => e
         puts "⚠️  Warning: Failed to migrate world.yml: #{e.message}"
@@ -756,27 +745,25 @@ module BookCore
 
       # Check for new-style main character configuration
       main_characters = book_metadata.dig('generation', 'main_characters')
-      if main_characters && main_characters.is_a?(Array)
+      if main_characters.is_a?(Array)
         # New generic approach: iterate through configured main characters
         main_characters.each do |char_config|
           display_name = char_config['display_name']
           placeholder_key = char_config['placeholder_key']
-          
+
           next unless display_name && placeholder_key
-          
+
           real_name = find_character_real_name(chars, display_name) || '[to be generated]'
           placeholders[placeholder_key] = real_name
         end
-      else
+      elsif is_one_review_man_book?(book_metadata)
         # Fallback: backward compatibility for OneReviewMan book
-        if is_one_review_man_book?(book_metadata)
-          one_review_man_real = find_character_real_name(chars, 'One Review Man') || '[to be generated]'
-          quantum_android_real = find_character_real_name(chars, 'Quantum Android') || '[to be generated]'
-          placeholders.merge!({
-            'ONE_REVIEW_MAN_REAL_NAME' => one_review_man_real,
-            'QUANTUM_ANDROID_REAL_NAME' => quantum_android_real
-          })
-        end
+        one_review_man_real = find_character_real_name(chars, 'One Review Man') || '[to be generated]'
+        quantum_android_real = find_character_real_name(chars, 'Quantum Android') || '[to be generated]'
+        placeholders.merge!({
+                              'ONE_REVIEW_MAN_REAL_NAME' => one_review_man_real,
+                              'QUANTUM_ANDROID_REAL_NAME' => quantum_android_real
+                            })
       end
 
       placeholders
@@ -803,14 +790,17 @@ module BookCore
       Dir.glob(File.join(preferred_chapters_dir, '*.md')).each do |path|
         basename = File.basename(path)
         next unless basename =~ /^(\d{3})-chapter\.md$/
+
         num = Regexp.last_match(1).to_i
         next unless num < chapter_num
+
         fm = extract_front_matter(path)
         title = (fm['title'] || "Chapter #{num}").to_s.gsub('{CHAPTER_NUMBER}', num.to_s)
         summary = (fm['summary'] || 'Summary not available').to_s.gsub('{CHAPTER_NUMBER}', num.to_s)
         prev << "Chapter #{num}: #{title} - #{summary}"
       end
       return 'This is the first chapter.' if prev.empty?
+
       prev.sort_by { |line| line[/Chapter\s+(\d+)/, 1].to_i }.join("\n")
     end
 
@@ -827,12 +817,12 @@ module BookCore
 
     def load_book_metadata_abs
       path = File.join(@project_root, 'data', 'book_metadata.yml')
-      File.exist?(path) ? (YAML.safe_load(File.read(path)) || {}) : {}
+      File.exist?(path) ? (YAML.safe_load_file(path) || {}) : {}
     end
 
     def load_characters_abs
       path = File.join(@project_root, 'data', 'characters.yml')
-      data = File.exist?(path) ? (YAML.safe_load(File.read(path)) || {}) : {}
+      data = File.exist?(path) ? (YAML.safe_load_file(path) || {}) : {}
       if data['en']
         data['en']
       elsif data['characters']
@@ -844,7 +834,7 @@ module BookCore
 
     def load_generation_log_abs
       path = File.join(@project_root, 'data', 'generation_log.yml')
-      File.exist?(path) ? (YAML.safe_load(File.read(path)) || {}) : {}
+      File.exist?(path) ? (YAML.safe_load_file(path) || {}) : {}
     end
 
     def find_character_real_name(chars_data, display_name)
@@ -855,7 +845,7 @@ module BookCore
     def build_chapter_placeholders(chapter_number, book_metadata, chars, character_context, used_devices, previous_summary)
       placeholders = {
         'CHAPTER_NUMBER' => chapter_number.to_s,
-        'TARGET_LENGTH' => (book_metadata.dig('generation', 'chapter_length_target') || '1500-3000 words'),
+        'TARGET_LENGTH' => book_metadata.dig('generation', 'chapter_length_target') || '1500-3000 words',
         'PREVIOUS_CHAPTERS_SUMMARY' => previous_summary,
         'CHARACTER_CONTEXT' => character_context.empty? ? 'No existing characters.' : "Existing characters:\n#{character_context}",
         'USED_PLOT_DEVICES' => used_devices.join(', '),
@@ -871,15 +861,15 @@ module BookCore
       if book_metadata && book_metadata['localized'] && book_metadata['localized']['en']
         en_metadata = book_metadata['localized']['en']
         placeholders.merge!({
-          'BOOK_TITLE' => en_metadata['title'] || 'Untitled Book',
-          'BOOK_GENRE' => en_metadata['genre'] || 'Fiction',
-          'BOOK_SETTING' => determine_book_setting(en_metadata),
-          'BOOK_STYLE' => en_metadata['humor_style'] || 'narrative',
-          'PRIMARY_LOCATION' => extract_primary_location(en_metadata),
-          'WORLD_DETAILS' => build_world_details_summary(en_metadata),
-          'CHARACTER_GUIDELINES' => build_character_guidelines(en_metadata),
-          'GENRE_GUIDELINES' => build_genre_guidelines(en_metadata)
-        })
+                              'BOOK_TITLE' => en_metadata['title'] || 'Untitled Book',
+                              'BOOK_GENRE' => en_metadata['genre'] || 'Fiction',
+                              'BOOK_SETTING' => determine_book_setting(en_metadata),
+                              'BOOK_STYLE' => en_metadata['humor_style'] || 'narrative',
+                              'PRIMARY_LOCATION' => extract_primary_location(en_metadata),
+                              'WORLD_DETAILS' => build_world_details_summary(en_metadata),
+                              'CHARACTER_GUIDELINES' => build_character_guidelines(en_metadata),
+                              'GENRE_GUIDELINES' => build_genre_guidelines(en_metadata)
+                            })
       end
 
       # Add story facts context to placeholders
@@ -914,6 +904,7 @@ module BookCore
 
     def is_one_review_man_book?(book_metadata)
       return false unless book_metadata
+
       title = book_metadata.dig('localized', 'en', 'title')
       title&.include?('One Review Man') || title&.include?('Ванревьюмэн')
     end
@@ -922,12 +913,14 @@ module BookCore
       themes = en_metadata['themes']
       return 'Modern tech company/startup environment' if themes&.dig('primary') == 'workplace comedy'
       return 'Contemporary setting' if en_metadata['genre']&.downcase&.include?('comedy')
+
       'Generic setting'
     end
 
     def extract_primary_location(en_metadata)
       themes = en_metadata['themes']
       return 'Corporate office' if themes&.dig('primary') == 'workplace comedy'
+
       'Main setting'
     end
 
@@ -935,7 +928,7 @@ module BookCore
       details = []
       details << "Genre: #{en_metadata['genre']}" if en_metadata['genre']
       details << "Style: #{en_metadata['humor_style']}" if en_metadata['humor_style']
-      if themes = en_metadata['themes']
+      if (themes = en_metadata['themes'])
         details << "Primary theme: #{themes['primary']}" if themes['primary']
         details << "Secondary themes: #{themes['secondary']&.join(', ')}" if themes['secondary']&.any?
       end
@@ -944,29 +937,29 @@ module BookCore
 
     def build_character_guidelines(en_metadata)
       return 'Characters should fit the genre and established world' unless en_metadata
-      
+
       guidelines = []
       if en_metadata['genre']&.downcase&.include?('comedy')
         guidelines << 'Characters should have comedic elements and quirks'
         guidelines << 'Dialogue should be humorous and character-appropriate'
       end
-      
+
       if en_metadata.dig('themes', 'primary') == 'workplace comedy'
         guidelines << 'Characters should fit a professional workplace environment'
         guidelines << 'Include workplace-appropriate personalities and roles'
       end
-      
+
       guidelines.empty? ? 'Characters should serve the story and be well-developed' : guidelines.join('; ')
     end
 
     def build_genre_guidelines(en_metadata)
       return 'Follow general fiction conventions' unless en_metadata
-      
+
       genre = en_metadata['genre']&.downcase
       return 'Focus on humor, character comedy, and amusing situations' if genre&.include?('comedy')
       return 'Build suspense and include mystery elements' if genre&.include?('mystery')
       return 'Include fantastical elements and world-building' if genre&.include?('fantasy')
-      
+
       'Follow conventions appropriate to the established genre and style'
     end
 
@@ -974,26 +967,26 @@ module BookCore
       # Check if we're in auto mode or if STDIN is not available for interaction
       return false if auto_generate || ENV['CI'] || !$stdin.tty? || missing_placeholders.empty?
 
-      puts ""
-      puts "🤔 I notice some information is missing for chapter generation."
-      puts "Would you like to provide this information now? (y/n)"
-      
+      puts ''
+      puts '🤔 I notice some information is missing for chapter generation.'
+      puts 'Would you like to provide this information now? (y/n)'
+
       begin
         response = $stdin.gets&.chomp&.downcase
-        return false unless response == 'y' || response == 'yes'
+        return false unless %w[y yes].include?(response)
       rescue Interrupt
         puts "\nOperation cancelled."
         return false
       end
 
-      puts ""
+      puts ''
       puts "📝 Let's fill in the missing information:"
-      puts ""
+      puts ''
 
       # Load current metadata
       metadata_path = File.join(@project_root, 'data', 'book_metadata.yml')
       metadata = if File.exist?(metadata_path)
-                   YAML.safe_load(File.read(metadata_path)) || {}
+                   YAML.safe_load_file(metadata_path) || {}
                  else
                    {}
                  end
@@ -1007,50 +1000,50 @@ module BookCore
       updated = false
 
       if missing_placeholders.include?('BOOK_GENRE') && en_metadata['genre'].to_s.strip.empty?
-        puts "📖 What genre is your book?"
-        puts "   Examples: fantasy, sci-fi, mystery, thriller, comedy, romance, adventure, horror"
-        print "   Genre: "
+        puts '📖 What genre is your book?'
+        puts '   Examples: fantasy, sci-fi, mystery, thriller, comedy, romance, adventure, horror'
+        print '   Genre: '
         genre = $stdin.gets&.chomp&.strip
-        if !genre.empty?
+        unless genre.empty?
           en_metadata['genre'] = genre
           updated = true
         end
       end
 
-      if (missing_placeholders.include?('BOOK_STYLE') || missing_placeholders.include?('BOOK_HUMOR_STYLE')) && 
+      if (missing_placeholders.include?('BOOK_STYLE') || missing_placeholders.include?('BOOK_HUMOR_STYLE')) &&
          en_metadata['humor_style'].to_s.strip.empty?
-        puts ""
-        puts "✍️ What writing style should I use?"
-        puts "   Examples: humorous, serious, adventurous, suspenseful, whimsical, dramatic"
-        print "   Style: "
+        puts ''
+        puts '✍️ What writing style should I use?'
+        puts '   Examples: humorous, serious, adventurous, suspenseful, whimsical, dramatic'
+        print '   Style: '
         style = $stdin.gets&.chomp&.strip
-        if !style.empty?
+        unless style.empty?
           en_metadata['humor_style'] = style
           updated = true
         end
       end
 
-      if (missing_placeholders.include?('BOOK_SETTING') || missing_placeholders.include?('PRIMARY_LOCATION')) && 
+      if (missing_placeholders.include?('BOOK_SETTING') || missing_placeholders.include?('PRIMARY_LOCATION')) &&
          en_metadata['setting'].to_s.strip.empty?
-        puts ""
-        puts "🌍 What is the main setting/location of your story?"
-        puts "   Examples: medieval castle, space station, modern city, magical school, etc."
-        print "   Setting: "
+        puts ''
+        puts '🌍 What is the main setting/location of your story?'
+        puts '   Examples: medieval castle, space station, modern city, magical school, etc.'
+        print '   Setting: '
         setting = $stdin.gets&.chomp&.strip
-        if !setting.empty?
+        unless setting.empty?
           en_metadata['setting'] = setting
           updated = true
         end
       end
 
-      if missing_placeholders.include?('WORLD_DETAILS') && 
+      if missing_placeholders.include?('WORLD_DETAILS') &&
          (en_metadata['themes'].nil? || en_metadata['themes']['primary'].to_s.strip.empty?)
-        puts ""
-        puts "🎭 What is the primary theme of your story?"
-        puts "   Examples: friendship, mystery, adventure, love, betrayal, discovery, etc."
-        print "   Primary theme: "
+        puts ''
+        puts '🎭 What is the primary theme of your story?'
+        puts '   Examples: friendship, mystery, adventure, love, betrayal, discovery, etc.'
+        print '   Primary theme: '
         theme = $stdin.gets&.chomp&.strip
-        if !theme.empty?
+        unless theme.empty?
           en_metadata['themes'] ||= {}
           en_metadata['themes']['primary'] = theme
           updated = true
@@ -1060,18 +1053,18 @@ module BookCore
       if updated
         # Save updated metadata
         File.write(metadata_path, metadata.to_yaml)
-        
+
         # Also update world.yml if it exists
         world_path = File.join(@project_root, 'data', 'world.yml')
         if File.exist?(world_path) && en_metadata['setting']
-          world_data = YAML.safe_load(File.read(world_path)) || {}
+          world_data = YAML.safe_load_file(world_path) || {}
           world_data['en'] ||= {}
           world_data['en']['world'] ||= {}
           world_data['en']['world']['main_setting'] ||= {}
           world_data['en']['world']['main_setting']['name'] = en_metadata['setting']
-          world_data['en']['world']['main_setting']['description'] = "The primary location where the story unfolds"
+          world_data['en']['world']['main_setting']['description'] = 'The primary location where the story unfolds'
           world_data['en']['world']['established_facts'] ||= []
-          
+
           # Update facts with new information
           facts = world_data['en']['world']['established_facts']
           facts.clear # Remove old facts
@@ -1079,26 +1072,25 @@ module BookCore
           facts << "Genre focuses on #{en_metadata['genre']} elements" if en_metadata['genre']
           facts << "Primary theme is #{en_metadata.dig('themes', 'primary')}" if en_metadata.dig('themes', 'primary')
           facts << "Writing style is #{en_metadata['humor_style']}" if en_metadata['humor_style']
-          
+
           File.write(world_path, world_data.to_yaml)
         end
 
-        puts ""
-        puts "✅ Information saved! Continuing with chapter generation..."
-        puts ""
-        return true
+        puts ''
+        puts '✅ Information saved! Continuing with chapter generation...'
+        puts ''
+        true
       else
-        puts ""
-        puts "ℹ️ No information was provided. Chapter generation cannot continue."
-        return false
+        puts ''
+        puts 'ℹ️ No information was provided. Chapter generation cannot continue.'
+        false
       end
-
     rescue Interrupt
       puts "\nOperation cancelled."
-      return false
+      false
     rescue StandardError => e
       puts "\n❌ Error collecting information: #{e.message}"
-      return false
+      false
     end
 
     def extract_front_matter(file_path)
