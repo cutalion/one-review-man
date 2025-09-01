@@ -13,3 +13,8 @@ Layout/LineLength:
   AllowedPatterns:
     - '\s*#.*'
     - '^\s*PROMPT.*'
+
+# Disable block length metrics for RSpec specs since they naturally have long describe/it blocks
+Metrics/BlockLength:
+  Exclude:
+    - 'spec/**/*'
