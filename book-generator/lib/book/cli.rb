@@ -69,31 +69,48 @@ module Book
 
       # Renders a concise status report for a book at the given absolute root.
       def render_status_report(abs_root)
-        # Load metadata
-        metadata_path = File.join(abs_root, 'data', 'book_metadata.yml')
-        metadata = if File.exist?(metadata_path)
-                     YAML.safe_load_file(metadata_path) || {}
-                   else
-                     {}
-                   end
+        metadata = load_book_metadata(abs_root)
 
         say "\n📚 Book Status Report", :cyan
         say '=' * 50, :cyan
 
-        # Basic information
+        show_basic_info(metadata)
+        show_progress_info(metadata)
+        missing_fields = show_configuration_status(metadata)
+        show_file_structure_status(abs_root)
+        show_generation_readiness(missing_fields)
+        show_recent_chapters(abs_root)
+
+        say "\n#{'=' * 50}", :cyan
+      end
+
+      private
+
+      def load_book_metadata(abs_root)
+        metadata_path = File.join(abs_root, 'data', 'book_metadata.yml')
+        if File.exist?(metadata_path)
+          YAML.safe_load_file(metadata_path) || {}
+        else
+          {}
+        end
+      end
+
+      def show_basic_info(metadata)
         title = metadata.dig('localized', 'en', 'title') || metadata['title'] || 'Untitled'
         author = metadata.dig('localized', 'en', 'author') || metadata['author'] || 'Unknown'
         say "📖 Title: #{title}", :green
         say "✍️  Author: #{author}", :green
+      end
 
-        # Progress information
-        if metadata['book']
-          current = metadata.dig('book', 'current_chapter') || 0
-          target = metadata.dig('book', 'target_chapters') || 'Not set'
-          say "📊 Progress: #{current}/#{target} chapters", :yellow
-        end
+      def show_progress_info(metadata)
+        return unless metadata['book']
 
-        # Check configuration completeness
+        current = metadata.dig('book', 'current_chapter') || 0
+        target = metadata.dig('book', 'target_chapters') || 'Not set'
+        say "📊 Progress: #{current}/#{target} chapters", :yellow
+      end
+
+      def show_configuration_status(metadata)
         say "\n🔧 Configuration Status:", :cyan
         en_metadata = metadata.dig('localized', 'en') || {}
 
@@ -104,6 +121,15 @@ module Book
           'themes' => '🎭 Themes'
         }
 
+        missing_fields, complete_fields = check_required_fields(en_metadata, required_fields)
+
+        complete_fields.each { |field| say "  ✅ #{field}", :green }
+        missing_fields.each { |field| say "  ❌ #{field}: Not set", :red }
+
+        missing_fields
+      end
+
+      def check_required_fields(en_metadata, required_fields)
         missing_fields = []
         complete_fields = []
 
@@ -121,17 +147,10 @@ module Book
           end
         end
 
-        # Show complete fields
-        complete_fields.each do |field|
-          say "  ✅ #{field}", :green
-        end
+        [missing_fields, complete_fields]
+      end
 
-        # Show missing fields
-        missing_fields.each do |field|
-          say "  ❌ #{field}: Not set", :red
-        end
-
-        # Check file structure
+      def show_file_structure_status(abs_root)
         say "\n📁 File Structure:", :cyan
         files_to_check = {
           'data/book_metadata.yml' => 'Book metadata',
@@ -149,8 +168,9 @@ module Book
             say "  ❌ #{description}: Missing", :red
           end
         end
+      end
 
-        # Generation readiness
+      def show_generation_readiness(missing_fields)
         say "\n🚀 Generation Readiness:", :cyan
         if missing_fields.empty?
           say '  ✅ Ready for chapter generation!', :green
@@ -159,24 +179,25 @@ module Book
           say '  ❌ Missing required information for chapter generation', :red
           say '  Fix by running: book init (in new directory) or update metadata manually', :yellow
         end
-
-        # Show recent chapters
-        chapters_dir = File.join(abs_root, 'content', 'chapters')
-        if Dir.exist?(chapters_dir)
-          chapters = Dir.glob(File.join(chapters_dir, '*.md')).reject { |f| f.end_with?('.ru.md') }.sort
-          if chapters.any?
-            say "\n📝 Recent Chapters:", :cyan
-            chapters.last(3).each do |chapter_file|
-              chapter_name = File.basename(chapter_file, '.md')
-              say "  📄 #{chapter_name}", :blue
-            end
-          else
-            say "\n📝 No chapters generated yet", :yellow
-          end
-        end
-
-        say "\n#{'=' * 50}", :cyan
       end
+
+      def show_recent_chapters(abs_root)
+        chapters_dir = File.join(abs_root, 'content', 'chapters')
+        return unless Dir.exist?(chapters_dir)
+
+        chapters = Dir.glob(File.join(chapters_dir, '*.md')).reject { |f| f.end_with?('.ru.md') }.sort
+        if chapters.any?
+          say "\n📝 Recent Chapters:", :cyan
+          chapters.last(3).each do |chapter_file|
+            chapter_name = File.basename(chapter_file, '.md')
+            say "  📄 #{chapter_name}", :blue
+          end
+        else
+          say "\n📝 No chapters generated yet", :yellow
+        end
+      end
+
+      public
 
       def write_yaml_file(path, hash)
         FileUtils.mkdir_p(File.dirname(path))
@@ -713,63 +734,83 @@ module Book
 
       def build_jekyll_placeholders(book_root)
         placeholders = {}
+        book_metadata = load_jekyll_metadata(book_root)
 
-        # Load book metadata
-        metadata_path = File.join(book_root, 'data', 'book_metadata.yml')
-        if File.exist?(metadata_path)
-          book_metadata = YAML.safe_load_file(metadata_path)
+        return placeholders unless book_metadata && book_metadata['localized']
 
-          if book_metadata && book_metadata['localized']
-            # English placeholders
-            if book_metadata['localized']['en']
-              en_data = book_metadata['localized']['en']
-              placeholders.merge!({
-                                    'BOOK_TITLE' => en_data['title'] || 'Untitled Book',
-                                    'BOOK_AUTHOR' => en_data['author'] || 'Unknown Author',
-                                    'BOOK_GENRE' => en_data['genre'] || 'Fiction',
-                                    'BOOK_SUBTITLE' => en_data['subtitle'] || ''
-                                  })
-
-              # Additional site configuration placeholders
-              placeholders.merge!({
-                                    'AUTHOR_EMAIL' => en_data['author_email'] || 'author@example.com',
-                                    'BOOK_DESCRIPTION' => en_data['description'] || book_metadata['description'] || 'An AI-generated book',
-                                    'SITE_URL' => book_metadata['site_url'] || 'http://example.com',
-                                    'TWITTER_USERNAME' => book_metadata['twitter_username'] || '',
-                                    'GITHUB_USERNAME' => book_metadata['github_username'] || ''
-                                  })
-            end
-
-            # Russian placeholders (with fallback to English data)
-            ru_data = book_metadata['localized'] && book_metadata['localized']['ru'] ? book_metadata['localized']['ru'] : {}
-            placeholders.merge!({
-                                  'BOOK_TITLE_RU' => ru_data['title'] || placeholders['BOOK_TITLE'] || 'Untitled Book',
-                                  'BOOK_AUTHOR_RU' => ru_data['author'] || placeholders['BOOK_AUTHOR'] || 'Unknown Author',
-                                  'BOOK_GENRE_RU' => ru_data['genre'] || placeholders['BOOK_GENRE'] || 'Fiction',
-                                  'BOOK_SUBTITLE_RU' => ru_data['subtitle'] || '',
-                                  'BOOK_GENRE_DESCRIPTION_RU' => ru_data['genre_description'] || (if ru_data['genre']
-                                                                                                    "#{ru_data['genre']} истории"
-                                                                                                  else
-                                                                                                    (placeholders['BOOK_GENRE'] ? "#{placeholders['BOOK_GENRE']} истории" : 'истории')
-                                                                                                  end)
-                                })
-
-            # Add English genre description placeholder
-            if book_metadata['localized']['en']
-              en_data = book_metadata['localized']['en']
-              placeholders['BOOK_GENRE_DESCRIPTION'] = en_data['genre_description'] || (en_data['genre'] ? "#{en_data['genre']} story" : 'story')
-            end
-
-            # Add site configuration placeholders (optional)
-            placeholders['SITE_DOMAIN'] = book_metadata['site_domain'] || ''
-          end
-        end
+        add_english_placeholders(placeholders, book_metadata)
+        add_russian_placeholders(placeholders, book_metadata)
+        add_genre_description_placeholders(placeholders, book_metadata)
+        add_site_configuration_placeholders(placeholders, book_metadata)
 
         placeholders
       rescue StandardError => e
         say "⚠️  Warning: Failed to load book metadata for Jekyll placeholders: #{e.message}", :yellow
         {}
       end
+
+      private
+
+      def load_jekyll_metadata(book_root)
+        metadata_path = File.join(book_root, 'data', 'book_metadata.yml')
+        return nil unless File.exist?(metadata_path)
+
+        YAML.safe_load_file(metadata_path)
+      end
+
+      def add_english_placeholders(placeholders, book_metadata)
+        en_data = book_metadata.dig('localized', 'en')
+        return unless en_data
+
+        placeholders.merge!({
+          'BOOK_TITLE' => en_data['title'] || 'Untitled Book',
+          'BOOK_AUTHOR' => en_data['author'] || 'Unknown Author',
+          'BOOK_GENRE' => en_data['genre'] || 'Fiction',
+          'BOOK_SUBTITLE' => en_data['subtitle'] || '',
+          'AUTHOR_EMAIL' => en_data['author_email'] || 'author@example.com',
+          'BOOK_DESCRIPTION' => en_data['description'] || book_metadata['description'] || 'An AI-generated book'
+        })
+      end
+
+      def add_russian_placeholders(placeholders, book_metadata)
+        ru_data = book_metadata.dig('localized', 'ru') || {}
+
+        placeholders.merge!({
+          'BOOK_TITLE_RU' => ru_data['title'] || placeholders['BOOK_TITLE'] || 'Untitled Book',
+          'BOOK_AUTHOR_RU' => ru_data['author'] || placeholders['BOOK_AUTHOR'] || 'Unknown Author',
+          'BOOK_GENRE_RU' => ru_data['genre'] || placeholders['BOOK_GENRE'] || 'Fiction',
+          'BOOK_SUBTITLE_RU' => ru_data['subtitle'] || '',
+          'BOOK_GENRE_DESCRIPTION_RU' => build_russian_genre_description(ru_data, placeholders)
+        })
+      end
+
+      def build_russian_genre_description(ru_data, placeholders)
+        return ru_data['genre_description'] if ru_data['genre_description']
+        return "#{ru_data['genre']} истории" if ru_data['genre']
+        return "#{placeholders['BOOK_GENRE']} истории" if placeholders['BOOK_GENRE']
+
+        'истории'
+      end
+
+      def add_genre_description_placeholders(placeholders, book_metadata)
+        en_data = book_metadata.dig('localized', 'en')
+        return unless en_data
+
+        genre_desc = en_data['genre_description']
+        genre_desc ||= en_data['genre'] ? "#{en_data['genre']} story" : 'story'
+        placeholders['BOOK_GENRE_DESCRIPTION'] = genre_desc
+      end
+
+      def add_site_configuration_placeholders(placeholders, book_metadata)
+        placeholders.merge!({
+          'SITE_URL' => book_metadata['site_url'] || 'http://example.com',
+          'TWITTER_USERNAME' => book_metadata['twitter_username'] || '',
+          'GITHUB_USERNAME' => book_metadata['github_username'] || '',
+          'SITE_DOMAIN' => book_metadata['site_domain'] || ''
+        })
+      end
+
+      public
     end
 
     # CLI commands for resetting book project content
