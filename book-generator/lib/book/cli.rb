@@ -84,8 +84,6 @@ module Book
         say "\n#{'=' * 50}", :cyan
       end
 
-      private
-
       def load_book_metadata(abs_root)
         metadata_path = File.join(abs_root, 'data', 'book_metadata.yml')
         if File.exist?(metadata_path)
@@ -365,11 +363,11 @@ module Book
       desc 'here', 'Initialise a new book (use --book-dir to specify location)'
       def here
         target = File.expand_path(options[:book_dir] || Dir.pwd)
-        
+
         validate_target_directory(target)
         book_info = collect_book_information
         create_book_structure(target, book_info)
-        
+
         say "Initialised book at: #{target}", :green
         say '✅ Book is ready for chapter generation!', :green
       end
@@ -384,10 +382,10 @@ module Book
         end
 
         # Ask for confirmation if using current directory (no --book-dir specified)
-        if !options[:book_dir] && !yes?("Create book in current directory (#{target})? [y/N]", :yellow)
-          say 'Aborted.', :red
-          exit 1
-        end
+        return unless !options[:book_dir] && !yes?("Create book in current directory (#{target})? [y/N]", :yellow)
+
+        say 'Aborted.', :red
+        exit 1
       end
 
       def collect_book_information
@@ -645,8 +643,6 @@ module Book
       def includes_russian?(languages)
         (languages || 'en').split(',').map(&:strip).include?('ru')
       end
-
-      public
     end
 
     # CLI commands for Jekyll site generation
@@ -813,8 +809,6 @@ module Book
         {}
       end
 
-      private
-
       def load_jekyll_metadata(book_root)
         metadata_path = File.join(book_root, 'data', 'book_metadata.yml')
         return nil unless File.exist?(metadata_path)
@@ -827,25 +821,25 @@ module Book
         return unless en_data
 
         placeholders.merge!({
-          'BOOK_TITLE' => en_data['title'] || 'Untitled Book',
-          'BOOK_AUTHOR' => en_data['author'] || 'Unknown Author',
-          'BOOK_GENRE' => en_data['genre'] || 'Fiction',
-          'BOOK_SUBTITLE' => en_data['subtitle'] || '',
-          'AUTHOR_EMAIL' => en_data['author_email'] || 'author@example.com',
-          'BOOK_DESCRIPTION' => en_data['description'] || book_metadata['description'] || 'An AI-generated book'
-        })
+                              'BOOK_TITLE' => en_data['title'] || 'Untitled Book',
+                              'BOOK_AUTHOR' => en_data['author'] || 'Unknown Author',
+                              'BOOK_GENRE' => en_data['genre'] || 'Fiction',
+                              'BOOK_SUBTITLE' => en_data['subtitle'] || '',
+                              'AUTHOR_EMAIL' => en_data['author_email'] || 'author@example.com',
+                              'BOOK_DESCRIPTION' => en_data['description'] || book_metadata['description'] || 'An AI-generated book'
+                            })
       end
 
       def add_russian_placeholders(placeholders, book_metadata)
         ru_data = book_metadata.dig('localized', 'ru') || {}
 
         placeholders.merge!({
-          'BOOK_TITLE_RU' => ru_data['title'] || placeholders['BOOK_TITLE'] || 'Untitled Book',
-          'BOOK_AUTHOR_RU' => ru_data['author'] || placeholders['BOOK_AUTHOR'] || 'Unknown Author',
-          'BOOK_GENRE_RU' => ru_data['genre'] || placeholders['BOOK_GENRE'] || 'Fiction',
-          'BOOK_SUBTITLE_RU' => ru_data['subtitle'] || '',
-          'BOOK_GENRE_DESCRIPTION_RU' => build_russian_genre_description(ru_data, placeholders)
-        })
+                              'BOOK_TITLE_RU' => ru_data['title'] || placeholders['BOOK_TITLE'] || 'Untitled Book',
+                              'BOOK_AUTHOR_RU' => ru_data['author'] || placeholders['BOOK_AUTHOR'] || 'Unknown Author',
+                              'BOOK_GENRE_RU' => ru_data['genre'] || placeholders['BOOK_GENRE'] || 'Fiction',
+                              'BOOK_SUBTITLE_RU' => ru_data['subtitle'] || '',
+                              'BOOK_GENRE_DESCRIPTION_RU' => build_russian_genre_description(ru_data, placeholders)
+                            })
       end
 
       def build_russian_genre_description(ru_data, placeholders)
@@ -867,14 +861,12 @@ module Book
 
       def add_site_configuration_placeholders(placeholders, book_metadata)
         placeholders.merge!({
-          'SITE_URL' => book_metadata['site_url'] || 'http://example.com',
-          'TWITTER_USERNAME' => book_metadata['twitter_username'] || '',
-          'GITHUB_USERNAME' => book_metadata['github_username'] || '',
-          'SITE_DOMAIN' => book_metadata['site_domain'] || ''
-        })
+                              'SITE_URL' => book_metadata['site_url'] || 'http://example.com',
+                              'TWITTER_USERNAME' => book_metadata['twitter_username'] || '',
+                              'GITHUB_USERNAME' => book_metadata['github_username'] || '',
+                              'SITE_DOMAIN' => book_metadata['site_domain'] || ''
+                            })
       end
-
-      public
     end
 
     # CLI commands for resetting book project content

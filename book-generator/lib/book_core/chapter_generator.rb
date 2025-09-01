@@ -95,17 +95,13 @@ module BookCore
     end
 
     def build_chapter_prompt(chapter_number, auto_generate: false)
-      begin
-        template = load_chapter_template(chapter_number)
-        placeholders = build_chapter_context(chapter_number)
-        
-        PromptUtils.build_prompt(template, placeholders, warn_unused: false, context: "chapter #{chapter_number} generation")
-      rescue PromptUtils::UnfilledPlaceholdersError => e
-        handle_unfilled_placeholders(e, chapter_number, auto_generate)
-      end
-    end
+      template = load_chapter_template(chapter_number)
+      placeholders = build_chapter_context(chapter_number)
 
-    private
+      PromptUtils.build_prompt(template, placeholders, warn_unused: false, context: "chapter #{chapter_number} generation")
+    rescue PromptUtils::UnfilledPlaceholdersError => e
+      handle_unfilled_placeholders(e, chapter_number, auto_generate)
+    end
 
     def load_chapter_template(chapter_number)
       template = begin
@@ -133,23 +129,22 @@ module BookCore
 
     def handle_unfilled_placeholders(error, chapter_number, auto_generate)
       return handle_retry_after_collection(error, chapter_number) if attempt_interactive_metadata_collection(error.unfilled_placeholders, auto_generate: auto_generate)
-      
+
       show_missing_information_error(error)
       raise BookCore::LLMService::LLMError, 'Book setup incomplete - missing required metadata for chapter generation'
     end
 
-    def handle_retry_after_collection(original_error, chapter_number)
+    def handle_retry_after_collection(_original_error, chapter_number)
       # Retry with updated metadata - but only once to prevent infinite recursion
-      begin
-        template = load_chapter_template(chapter_number)
-        placeholders = build_chapter_context(chapter_number)
-        
-        return PromptUtils.build_prompt(template, placeholders, warn_unused: false, context: "chapter #{chapter_number} generation (retry)")
-      rescue PromptUtils::UnfilledPlaceholdersError => retry_error
-        # If it still fails after metadata collection, fall back to error message
-        show_missing_information_error(retry_error)
-        raise BookCore::LLMService::LLMError, 'Book setup incomplete - missing required metadata for chapter generation'
-      end
+
+      template = load_chapter_template(chapter_number)
+      placeholders = build_chapter_context(chapter_number)
+
+      PromptUtils.build_prompt(template, placeholders, warn_unused: false, context: "chapter #{chapter_number} generation (retry)")
+    rescue PromptUtils::UnfilledPlaceholdersError => e
+      # If it still fails after metadata collection, fall back to error message
+      show_missing_information_error(e)
+      raise BookCore::LLMService::LLMError, 'Book setup incomplete - missing required metadata for chapter generation'
     end
 
     def show_missing_information_error(error)
@@ -336,7 +331,7 @@ module BookCore
       return if new_characters.nil? || new_characters.empty?
 
       characters_yaml, store = load_characters_data
-      
+
       new_characters.each do |c|
         character_data = process_character(c, store)
         next unless character_data
@@ -353,7 +348,7 @@ module BookCore
     def load_characters_data
       chars_data_path = File.join(@project_root, 'data', 'characters.yml')
       characters_yaml = File.exist?(chars_data_path) ? (YAML.safe_load_file(chars_data_path) || {}) : {}
-      
+
       # Normalize to structure with 'characters' nested under 'en' if present
       if characters_yaml['en']
         characters_yaml['en']['characters'] ||= {}
@@ -459,7 +454,7 @@ module BookCore
     def save_characters_data(characters_yaml, store)
       chars_data_path = File.join(@project_root, 'data', 'characters.yml')
       FileUtils.mkdir_p(File.dirname(chars_data_path))
-      
+
       data_to_save = characters_yaml['en'] ? characters_yaml : store
       File.write(chars_data_path, data_to_save.to_yaml)
     end
@@ -1068,8 +1063,8 @@ module BookCore
       begin
         metadata, en_metadata = load_metadata_for_interaction
         updated = collect_missing_metadata(missing_placeholders, en_metadata)
-        
-        return handle_interaction_result(metadata, en_metadata, updated)
+
+        handle_interaction_result(metadata, en_metadata, updated)
       rescue Interrupt
         puts "\nOperation cancelled."
         false
@@ -1081,6 +1076,7 @@ module BookCore
 
     def interaction_possible?(missing_placeholders, auto_generate)
       return false if auto_generate || ENV['CI'] || !$stdin.tty? || missing_placeholders.empty?
+
       true
     end
 
@@ -1091,10 +1087,10 @@ module BookCore
 
       begin
         response = $stdin.gets&.chomp&.downcase
-        return %w[y yes].include?(response)
+        %w[y yes].include?(response)
       rescue Interrupt
         puts "\nOperation cancelled."
-        return false
+        false
       end
     end
 
@@ -1123,8 +1119,7 @@ module BookCore
       updated = collect_genre_info(missing_placeholders, en_metadata) || updated
       updated = collect_style_info(missing_placeholders, en_metadata) || updated
       updated = collect_setting_info(missing_placeholders, en_metadata) || updated
-      updated = collect_theme_info(missing_placeholders, en_metadata) || updated
-      updated
+      collect_theme_info(missing_placeholders, en_metadata) || updated
     end
 
     def collect_genre_info(missing_placeholders, en_metadata)
@@ -1214,10 +1209,10 @@ module BookCore
       world_data = YAML.safe_load_file(world_path) || {}
       world_data['en'] ||= {}
       world_data['en']['world'] ||= {}
-      
+
       update_world_setting(world_data, en_metadata)
       update_world_facts(world_data, en_metadata)
-      
+
       File.write(world_path, world_data.to_yaml)
     end
 
