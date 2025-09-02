@@ -498,12 +498,7 @@ module BookCore
 
     def generate_fact_key(fact, fact_type)
       case fact_type
-      when 'locations'
-        name = fact['name']&.to_s&.strip
-        return nil if ValidationUtils.blank?(name)
-
-        ValidationUtils.slugify(name)
-      when 'events'
+      when 'locations', 'events'
         name = fact['name']&.to_s&.strip
         return nil if ValidationUtils.blank?(name)
 
