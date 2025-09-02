@@ -636,63 +636,80 @@ module BookCore
 
       placeholders = {}
 
-      # World physics rules
-      if content_rules['world_physics'].is_a?(Array)
-        physics_list = content_rules['world_physics'].map { |rule| "- #{rule}" }
-        placeholders['WORLD_PHYSICS_RULES'] = physics_list.join("\n")
-      end
-
-      # Style guidelines
-      if content_rules['style_guidelines'].is_a?(Array)
-        style_list = content_rules['style_guidelines'].map { |rule| "- #{rule}" }
-        placeholders['STYLE_GUIDELINES'] = style_list.join("\n")
-      end
-
-      # Content requirements
-      if content_rules['content_requirements'].is_a?(Array)
-        requirements_list = content_rules['content_requirements'].map { |rule| "- #{rule}" }
-        placeholders['CONTENT_REQUIREMENTS'] = requirements_list.join("\n")
-      end
-
-      # Character dynamics
-      if content_rules['character_dynamics']
-        dynamics = content_rules['character_dynamics']
-        dynamics_text = []
-
-        if dynamics['protagonist_addressing']
-          case dynamics['protagonist_addressing']
-          when 'real_names_in_dialogue'
-            dynamics_text << '- Characters use real names when speaking directly to the protagonist'
-          when 'professional_titles'
-            dynamics_text << '- Characters use professional titles when addressing the protagonist'
-          end
-        end
-
-        if dynamics['mentor_student_pattern']
-          case dynamics['mentor_student_pattern']
-          when 'sensei_usage'
-            dynamics_text << "- Student characters address mentor as 'sensei' or by real name"
-          end
-        end
-
-        dynamics_text << "- Colleagues consistently dismiss protagonist's abilities as luck" if dynamics['colleague_dismissal_theme']
-
-        if dynamics['underestimation_pattern']
-          case dynamics['underestimation_pattern']
-          when 'consistent_dismissal'
-            dynamics_text << '- Others always underestimate protagonist until proven wrong'
-          end
-        end
-
-        placeholders['CHARACTER_DYNAMICS'] = dynamics_text.join("\n") unless dynamics_text.empty?
-      end
-
-      # Parody and humor style
-      placeholders['PARODY_SOURCE'] = content_rules['parody_source'] if content_rules['parody_source']
-
-      placeholders['HUMOR_STYLE'] = content_rules['humor_style'] if content_rules['humor_style']
+      build_rules_placeholders(placeholders, content_rules)
+      build_character_dynamics_placeholders(placeholders, content_rules)
+      build_style_placeholders(placeholders, content_rules)
 
       placeholders
+    end
+
+    private
+
+    def build_rules_placeholders(placeholders, content_rules)
+      build_array_placeholder(placeholders, content_rules, 'world_physics', 'WORLD_PHYSICS_RULES')
+      build_array_placeholder(placeholders, content_rules, 'style_guidelines', 'STYLE_GUIDELINES')
+      build_array_placeholder(placeholders, content_rules, 'content_requirements', 'CONTENT_REQUIREMENTS')
+    end
+
+    def build_array_placeholder(placeholders, content_rules, key, placeholder_key)
+      return unless content_rules[key].is_a?(Array)
+
+      rules_list = content_rules[key].map { |rule| "- #{rule}" }
+      placeholders[placeholder_key] = rules_list.join("\n")
+    end
+
+    def build_character_dynamics_placeholders(placeholders, content_rules)
+      dynamics = content_rules['character_dynamics']
+      return unless dynamics
+
+      dynamics_text = []
+
+      add_protagonist_addressing_rules(dynamics_text, dynamics)
+      add_mentor_student_rules(dynamics_text, dynamics)
+      add_colleague_dismissal_rules(dynamics_text, dynamics)
+      add_underestimation_rules(dynamics_text, dynamics)
+
+      placeholders['CHARACTER_DYNAMICS'] = dynamics_text.join("\n") unless dynamics_text.empty?
+    end
+
+    def add_protagonist_addressing_rules(dynamics_text, dynamics)
+      return unless dynamics['protagonist_addressing']
+
+      case dynamics['protagonist_addressing']
+      when 'real_names_in_dialogue'
+        dynamics_text << '- Characters use real names when speaking directly to the protagonist'
+      when 'professional_titles'
+        dynamics_text << '- Characters use professional titles when addressing the protagonist'
+      end
+    end
+
+    def add_mentor_student_rules(dynamics_text, dynamics)
+      return unless dynamics['mentor_student_pattern']
+
+      case dynamics['mentor_student_pattern']
+      when 'sensei_usage'
+        dynamics_text << "- Student characters address mentor as 'sensei' or by real name"
+      end
+    end
+
+    def add_colleague_dismissal_rules(dynamics_text, dynamics)
+      return unless dynamics['colleague_dismissal_theme']
+
+      dynamics_text << "- Colleagues consistently dismiss protagonist's abilities as luck"
+    end
+
+    def add_underestimation_rules(dynamics_text, dynamics)
+      return unless dynamics['underestimation_pattern']
+
+      case dynamics['underestimation_pattern']
+      when 'consistent_dismissal'
+        dynamics_text << '- Others always underestimate protagonist until proven wrong'
+      end
+    end
+
+    def build_style_placeholders(placeholders, content_rules)
+      placeholders['PARODY_SOURCE'] = content_rules['parody_source'] if content_rules['parody_source']
+      placeholders['HUMOR_STYLE'] = content_rules['humor_style'] if content_rules['humor_style']
     end
 
     def migrate_world_data_to_story_facts
