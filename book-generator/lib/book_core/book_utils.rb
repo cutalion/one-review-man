@@ -176,10 +176,12 @@ module BookUtils
                 "#{CHAPTERS_DIR}/*.md"
               end
 
-    chapters = Dir.glob(pattern).reject do |file|
+    files = Dir.glob(pattern).reject do |file|
       # Skip files with language suffixes when looking for English/base chapters
       lang.nil? && File.basename(file, '.md').include?('.')
-    end.map do |file|
+    end
+
+    chapters = files.map do |file|
       parse_chapter_file(file)
     end
 
