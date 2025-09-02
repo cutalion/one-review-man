@@ -8,6 +8,7 @@ require 'book/translator'
 require 'book_core/reset'
 require 'book_core/chapter_generator'
 require 'book_core/env_utils'
+require 'book_core/book_config'
 
 module Book
   module CLI
@@ -69,14 +70,19 @@ module Book
 
       # Renders a concise status report for a book at the given absolute root.
       def render_status_report(abs_root)
-        metadata = load_book_metadata(abs_root)
+        begin
+          config = BookCore::BookConfig.load_from_project(abs_root)
+        rescue BookCore::BookConfig::NotFoundError
+          say "❌ No book metadata found. Run 'book init' to create a new book.", :red
+          return
+        end
 
         say "\n📚 Book Status Report", :cyan
         say '=' * 50, :cyan
 
-        show_basic_info(metadata)
-        show_progress_info(metadata)
-        missing_fields = show_configuration_status(metadata)
+        show_basic_info(config)
+        show_progress_info(config)
+        missing_fields = show_configuration_status(config)
         show_file_structure_status(abs_root)
         show_generation_readiness(missing_fields)
         show_recent_chapters(abs_root)
@@ -93,24 +99,19 @@ module Book
         end
       end
 
-      def show_basic_info(metadata)
-        title = metadata.dig('localized', 'en', 'title') || metadata['title'] || 'Untitled'
-        author = metadata.dig('localized', 'en', 'author') || metadata['author'] || 'Unknown'
-        say "📖 Title: #{title}", :green
-        say "✍️  Author: #{author}", :green
+      def show_basic_info(config)
+        say "📖 Title: #{config.title}", :green
+        say "✍️  Author: #{config.author}", :green
       end
 
-      def show_progress_info(metadata)
-        return unless metadata['book']
-
-        current = metadata.dig('book', 'current_chapter') || 0
-        target = metadata.dig('book', 'target_chapters') || 'Not set'
+      def show_progress_info(config)
+        current = config.current_chapter
+        target = config.get('book')&.dig('target_chapters') || 'Not set'
         say "📊 Progress: #{current}/#{target} chapters", :yellow
       end
 
-      def show_configuration_status(metadata)
+      def show_configuration_status(config)
         say "\n🔧 Configuration Status:", :cyan
-        en_metadata = metadata.dig('localized', 'en') || {}
 
         required_fields = {
           'genre' => '📖 Genre',
@@ -119,7 +120,7 @@ module Book
           'themes' => '🎭 Themes'
         }
 
-        missing_fields, complete_fields = check_required_fields(en_metadata, required_fields)
+        missing_fields, complete_fields = check_required_fields_config(config, required_fields)
 
         complete_fields.each { |field| say "  ✅ #{field}", :green }
         missing_fields.each { |field| say "  ❌ #{field}: Not set", :red }
@@ -142,6 +143,42 @@ module Book
             missing_fields << display_name
           else
             complete_fields << "#{display_name}: #{en_metadata[field]}"
+          end
+        end
+
+        [missing_fields, complete_fields]
+      end
+
+      def check_required_fields_config(config, required_fields)
+        missing_fields = []
+        complete_fields = []
+
+        required_fields.each do |field, display_name|
+          case field
+          when 'themes'
+            if config.primary_theme.to_s.strip.empty?
+              missing_fields << display_name
+            else
+              complete_fields << "#{display_name}: #{config.primary_theme}"
+            end
+          when 'genre'
+            if config.genre.to_s.strip.empty?
+              missing_fields << display_name
+            else
+              complete_fields << "#{display_name}: #{config.genre}"
+            end
+          when 'humor_style'
+            if config.humor_style.to_s.strip.empty?
+              missing_fields << display_name
+            else
+              complete_fields << "#{display_name}: #{config.humor_style}"
+            end
+          when 'setting'
+            if config.setting.to_s.strip.empty?
+              missing_fields << display_name
+            else
+              complete_fields << "#{display_name}: #{config.setting}"
+            end
           end
         end
 

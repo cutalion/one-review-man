@@ -9,6 +9,7 @@ require 'book_core/world_utils'
 require 'book_core/prompt_utils'
 require 'book_core/env_utils'
 require 'book_core/validation_utils'
+require 'book_core/book_config'
 
 module BookCore
   # Main engine for generating book chapters using AI models
@@ -23,6 +24,13 @@ module BookCore
       @generation_log = kwargs[:generation_log] || {}
       @prompt_provider = kwargs[:prompt_provider] || default_prompt_provider
       @output_adapter = kwargs[:output_adapter] || default_output_adapter
+
+      # Initialize BookConfig - can be injected for testing or loaded from project
+      @config = kwargs[:config] || begin
+        BookCore::BookConfig.load_from_project(@project_root)
+      rescue BookCore::BookConfig::NotFoundError
+        BookCore::BookConfig.new
+      end
 
       settings_path = File.join(@project_root, 'data/settings.yml')
       @llm_service = kwargs[:llm_service] || BookCore::LLMService.new(settings_path, model_override)
@@ -73,9 +81,8 @@ module BookCore
           content = content.gsub('{CHAPTER_NUMBER}', chapter_number.to_s)
 
           # Replace character name placeholders
-          book_metadata = load_book_metadata_abs
           chars = load_characters_abs
-          main_character_placeholders = build_main_character_placeholders(book_metadata, chars)
+          main_character_placeholders = build_main_character_placeholders(@config, chars)
           main_character_placeholders&.each do |placeholder_key, replacement_value|
             content = content.gsub("{#{placeholder_key}}", replacement_value.to_s)
           end
@@ -114,7 +121,6 @@ module BookCore
     end
 
     def build_chapter_context(chapter_number)
-      book_metadata = load_book_metadata_abs
       previous_summary = build_previous_chapters_summary(chapter_number)
       chars = load_characters_abs
       selected_chars = select_characters_for_chapter(chapter_number, chars)
@@ -122,7 +128,7 @@ module BookCore
       used_devices = load_generation_log_abs['used_plot_devices'] || []
       world_ctx = Dir.chdir(@project_root) { build_world_context('en') }
 
-      placeholders = build_chapter_placeholders(chapter_number, book_metadata, chars,
+      placeholders = build_chapter_placeholders(chapter_number, chars,
                                                 character_context, used_devices, previous_summary)
       placeholders.merge!(world_ctx || {})
     end
@@ -241,12 +247,7 @@ module BookCore
     end
 
     def update_book_progress(chapter_number)
-      metadata_path = File.join(@project_root, 'data', 'book_metadata.yml')
-      metadata = File.exist?(metadata_path) ? (YAML.safe_load_file(metadata_path) || {}) : {}
-      metadata['book'] ||= {}
-      metadata['book']['current_chapter'] = chapter_number
-      FileUtils.mkdir_p(File.dirname(metadata_path))
-      File.write(metadata_path, metadata.to_yaml)
+      @config.update_current_chapter(chapter_number).save!
 
       puts "📈 Updated book progress: Chapter #{chapter_number} completed"
 
@@ -285,12 +286,7 @@ module BookCore
         end
       end
 
-      metadata_path = File.join(@project_root, 'data', 'book_metadata.yml')
-      current_in_metadata = 0
-      if File.exist?(metadata_path)
-        md = YAML.safe_load_file(metadata_path) || {}
-        current_in_metadata = md.dig('book', 'current_chapter').to_i if md.dig('book', 'current_chapter')
-      end
+      current_in_metadata = @config.current_chapter
 
       next_num = [max_from_files, current_in_metadata].max + 1
       puts "[debug] Chapters dir: #{chapters_dir} | highest: #{max_from_files} | metadata: #{current_in_metadata} | next: #{next_num}"
@@ -623,11 +619,8 @@ module BookCore
       {}
     end
 
-    def build_content_rules_context(book_metadata)
-      return {} unless book_metadata
-
-      content_rules = book_metadata.dig('generation', 'content_rules')
-      return {} unless content_rules
+    def build_content_rules_context(content_rules)
+      return {} if content_rules.empty?
 
       placeholders = {}
 
@@ -843,14 +836,12 @@ module BookCore
       puts "   World Rules: #{facts['world_rules']&.size || 0}"
     end
 
-    def build_main_character_placeholders(book_metadata, chars)
-      return {} unless book_metadata
-
+    def build_main_character_placeholders(config, chars)
       placeholders = {}
 
       # Check for new-style main character configuration
-      main_characters = book_metadata.dig('generation', 'main_characters')
-      if main_characters.is_a?(Array)
+      main_characters = config.main_characters
+      if main_characters.is_a?(Array) && !main_characters.empty?
         # New generic approach: iterate through configured main characters
         main_characters.each do |char_config|
           display_name = char_config['display_name']
@@ -861,7 +852,7 @@ module BookCore
           real_name = find_character_real_name(chars, display_name) || '[to be generated]'
           placeholders[placeholder_key] = real_name
         end
-      elsif one_review_man_book?(book_metadata)
+      elsif config.one_review_man_book?
         # Fallback: backward compatibility for OneReviewMan book
         one_review_man_real = find_character_real_name(chars, 'One Review Man') || '[to be generated]'
         quantum_android_real = find_character_real_name(chars, 'Quantum Android') || '[to be generated]'
@@ -920,11 +911,6 @@ module BookCore
       end.join("\n")
     end
 
-    def load_book_metadata_abs
-      path = File.join(@project_root, 'data', 'book_metadata.yml')
-      File.exist?(path) ? (YAML.safe_load_file(path) || {}) : {}
-    end
-
     def load_characters_abs
       path = File.join(@project_root, 'data', 'characters.yml')
       data = File.exist?(path) ? (YAML.safe_load_file(path) || {}) : {}
@@ -947,10 +933,10 @@ module BookCore
       values.find { |c| c['name'] == display_name }&.dig('real_name')
     end
 
-    def build_chapter_placeholders(chapter_number, book_metadata, chars, character_context, used_devices, previous_summary)
+    def build_chapter_placeholders(chapter_number, chars, character_context, used_devices, previous_summary)
       placeholders = {
         'CHAPTER_NUMBER' => chapter_number.to_s,
-        'TARGET_LENGTH' => book_metadata.dig('generation', 'chapter_length_target') || '1500-3000 words',
+        'TARGET_LENGTH' => @config.chapter_length_target,
         'PREVIOUS_CHAPTERS_SUMMARY' => previous_summary,
         'CHARACTER_CONTEXT' => character_context.empty? ? 'No existing characters.' : "Existing characters:\n#{character_context}",
         'USED_PLOT_DEVICES' => used_devices.join(', '),
@@ -963,13 +949,13 @@ module BookCore
       }
 
       # Add generic book metadata placeholders
-      if book_metadata && book_metadata['localized'] && book_metadata['localized']['en']
-        en_metadata = book_metadata['localized']['en']
+      if @config.has_localized_structure?
+        en_metadata = @config.en_metadata
         placeholders.merge!({
-                              'BOOK_TITLE' => en_metadata['title'] || 'Untitled Book',
-                              'BOOK_GENRE' => en_metadata['genre'] || 'Fiction',
+                              'BOOK_TITLE' => @config.title,
+                              'BOOK_GENRE' => @config.genre,
                               'BOOK_SETTING' => determine_book_setting(en_metadata),
-                              'BOOK_STYLE' => en_metadata['humor_style'] || 'narrative',
+                              'BOOK_STYLE' => @config.humor_style,
                               'PRIMARY_LOCATION' => extract_primary_location(en_metadata),
                               'WORLD_DETAILS' => build_world_details_summary(en_metadata),
                               'CHARACTER_GUIDELINES' => build_character_guidelines(en_metadata),
@@ -982,11 +968,11 @@ module BookCore
       placeholders.merge!(story_facts_placeholders) if story_facts_placeholders
 
       # Add content generation rules to placeholders
-      content_rules_placeholders = build_content_rules_context(book_metadata)
+      content_rules_placeholders = build_content_rules_context(@config.content_rules)
       placeholders.merge!(content_rules_placeholders) if content_rules_placeholders
 
       # Add main character placeholders based on book configuration
-      main_character_placeholders = build_main_character_placeholders(book_metadata, chars)
+      main_character_placeholders = build_main_character_placeholders(@config, chars)
       placeholders.merge!(main_character_placeholders) if main_character_placeholders
 
       placeholders
@@ -1000,18 +986,10 @@ module BookCore
       }
 
       # Add only the main character placeholders that are actually used in the template
-      book_metadata = load_book_metadata_abs
-      main_character_placeholders = build_main_character_placeholders(book_metadata, chars)
+      main_character_placeholders = build_main_character_placeholders(@config, chars)
       placeholders.merge!(main_character_placeholders) if main_character_placeholders
 
       placeholders
-    end
-
-    def one_review_man_book?(book_metadata)
-      return false unless book_metadata
-
-      title = book_metadata.dig('localized', 'en', 'title')
-      title&.include?('One Review Man') || title&.include?('Ванревьюмэн')
     end
 
     def determine_book_setting(en_metadata)
@@ -1073,10 +1051,10 @@ module BookCore
       return false unless user_wants_to_provide_info?
 
       begin
-        metadata, en_metadata = load_metadata_for_interaction
-        updated = collect_missing_metadata(missing_placeholders, en_metadata)
+        config, en_metadata = load_metadata_for_interaction
+        updated = collect_missing_metadata(missing_placeholders, config)
 
-        save_interaction_result(metadata, en_metadata, updated)
+        save_interaction_result(config, en_metadata, updated)
       rescue Interrupt
         puts "\nOperation cancelled."
         false
@@ -1111,34 +1089,25 @@ module BookCore
       puts "📝 Let's fill in the missing information:"
       puts ''
 
-      metadata_path = File.join(@project_root, 'data', 'book_metadata.yml')
-      metadata = if File.exist?(metadata_path)
-                   YAML.safe_load_file(metadata_path) || {}
-                 else
-                   {}
-                 end
+      # Ensure localized structure exists in config
+      @config.set('localized', { 'en' => {} }) unless @config.has_localized_structure?
 
-      # Ensure localized structure exists
-      metadata['localized'] ||= {}
-      metadata['localized']['en'] ||= {}
-      en_metadata = metadata['localized']['en']
-
-      [metadata, en_metadata]
+      [@config, @config.en_metadata]
     end
 
-    def collect_missing_metadata(missing_placeholders, en_metadata)
-      initial_state = en_metadata.dup
+    def collect_missing_metadata(missing_placeholders, config)
+      initial_dirty_state = config.dirty?
 
-      collect_genre_info(missing_placeholders, en_metadata)
-      collect_style_info(missing_placeholders, en_metadata)
-      collect_setting_info(missing_placeholders, en_metadata)
-      collect_theme_info(missing_placeholders, en_metadata)
+      collect_genre_info(missing_placeholders, config)
+      collect_style_info(missing_placeholders, config)
+      collect_setting_info(missing_placeholders, config)
+      collect_theme_info(missing_placeholders, config)
 
-      en_metadata != initial_state
+      config.dirty? || !initial_dirty_state
     end
 
-    def collect_genre_info(missing_placeholders, en_metadata)
-      return unless missing_placeholders.include?('BOOK_GENRE') && en_metadata['genre'].to_s.strip.empty?
+    def collect_genre_info(missing_placeholders, config)
+      return unless missing_placeholders.include?('BOOK_GENRE') && config.genre.to_s.strip.empty?
 
       puts '📖 What genre is your book?'
       puts '   Examples: fantasy, sci-fi, mystery, thriller, comedy, romance, adventure, horror'
@@ -1146,12 +1115,12 @@ module BookCore
       genre = $stdin.gets&.chomp&.strip
       return if genre.empty?
 
-      en_metadata['genre'] = genre
+      config.update_localized('en', 'genre' => genre)
     end
 
-    def collect_style_info(missing_placeholders, en_metadata)
+    def collect_style_info(missing_placeholders, config)
       style_missing = missing_placeholders.include?('BOOK_STYLE') || missing_placeholders.include?('BOOK_HUMOR_STYLE')
-      return unless style_missing && en_metadata['humor_style'].to_s.strip.empty?
+      return unless style_missing && config.humor_style.to_s.strip.empty?
 
       puts ''
       puts '✍️ What writing style should I use?'
@@ -1160,12 +1129,12 @@ module BookCore
       style = $stdin.gets&.chomp&.strip
       return if style.empty?
 
-      en_metadata['humor_style'] = style
+      config.update_localized('en', 'humor_style' => style)
     end
 
-    def collect_setting_info(missing_placeholders, en_metadata)
+    def collect_setting_info(missing_placeholders, config)
       setting_missing = missing_placeholders.include?('BOOK_SETTING') || missing_placeholders.include?('PRIMARY_LOCATION')
-      return unless setting_missing && en_metadata['setting'].to_s.strip.empty?
+      return unless setting_missing && config.setting.to_s.strip.empty?
 
       puts ''
       puts '🌍 What is the main setting/location of your story?'
@@ -1174,12 +1143,12 @@ module BookCore
       setting = $stdin.gets&.chomp&.strip
       return if setting.empty?
 
-      en_metadata['setting'] = setting
+      config.update_localized('en', 'setting' => setting)
     end
 
-    def collect_theme_info(missing_placeholders, en_metadata)
+    def collect_theme_info(missing_placeholders, config)
       theme_missing = missing_placeholders.include?('WORLD_DETAILS')
-      theme_empty = en_metadata['themes'].nil? || en_metadata['themes']['primary'].to_s.strip.empty?
+      theme_empty = config.primary_theme.to_s.strip.empty?
       return unless theme_missing && theme_empty
 
       puts ''
@@ -1189,13 +1158,15 @@ module BookCore
       theme = $stdin.gets&.chomp&.strip
       return if theme.empty?
 
-      en_metadata['themes'] ||= {}
-      en_metadata['themes']['primary'] = theme
+      current_themes = config.themes
+      current_themes['primary'] = theme
+      config.update_localized('en', 'themes' => current_themes)
     end
 
-    def save_interaction_result(metadata, en_metadata, updated)
+    def save_interaction_result(config, en_metadata, updated)
       if updated
-        save_collected_metadata(metadata, en_metadata)
+        config.save!
+        update_world_data_if_exists(en_metadata)
         puts ''
         puts '✅ Information saved! Continuing with chapter generation...'
         puts ''
@@ -1205,12 +1176,6 @@ module BookCore
       end
 
       updated
-    end
-
-    def save_collected_metadata(metadata, en_metadata)
-      metadata_path = File.join(@project_root, 'data', 'book_metadata.yml')
-      File.write(metadata_path, metadata.to_yaml)
-      update_world_data_if_exists(en_metadata)
     end
 
     def update_world_data_if_exists(en_metadata)
