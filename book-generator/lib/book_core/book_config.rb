@@ -187,7 +187,7 @@ module BookCore
       title.include?('One Review Man') || title.include?('Ванревьюмэн')
     end
 
-    def has_language?(lang)
+    def language?(lang)
       localized_lang_data = @data.dig('localized', lang.to_s)
       return false unless localized_lang_data.is_a?(Hash)
 
@@ -199,8 +199,8 @@ module BookCore
     end
 
     # Check if localized structure exists
-    def has_localized_structure?
-      @data['localized']&.is_a?(Hash)
+    def localized_structure?
+      @data['localized'].is_a?(Hash)
     end
 
     private
@@ -212,7 +212,7 @@ module BookCore
     def deep_dup(obj)
       case obj
       when Hash
-        obj.each_with_object({}) { |(k, v), h| h[k] = deep_dup(v) }
+        obj.transform_values { |v| deep_dup(v) }
       when Array
         obj.map { |v| deep_dup(v) }
       else
@@ -239,7 +239,8 @@ module BookCore
     def validate_required_fields!
       # For now, just ensure basic structure is present
       # Could add more specific validation rules here if needed
-      true
+      # This method will raise exceptions if validation fails, otherwise returns nil
+      nil
     end
   end
 end

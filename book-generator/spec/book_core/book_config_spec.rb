@@ -428,14 +428,14 @@ RSpec.describe BookCore::BookConfig do
       end
     end
 
-    describe '#has_language?' do
+    describe '#language?' do
       it 'returns true for languages with data' do
-        expect(config.has_language?('en')).to be true
-        expect(config.has_language?('ru')).to be true
+        expect(config.language?('en')).to be true
+        expect(config.language?('ru')).to be true
       end
 
       it 'returns false for languages without data' do
-        expect(config.has_language?('fr')).to be false
+        expect(config.language?('fr')).to be false
       end
     end
 
@@ -450,14 +450,14 @@ RSpec.describe BookCore::BookConfig do
       end
     end
 
-    describe '#has_localized_structure?' do
+    describe '#localized_structure?' do
       it 'returns true when localized structure exists' do
-        expect(config).to have_localized_structure
+        expect(config.localized_structure?).to be true
       end
 
       it 'returns false when no localized structure' do
         config = described_class.new({})
-        expect(config).not_to have_localized_structure
+        expect(config.localized_structure?).to be false
       end
     end
   end

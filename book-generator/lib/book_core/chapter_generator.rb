@@ -949,7 +949,7 @@ module BookCore
       }
 
       # Add generic book metadata placeholders
-      if @config.has_localized_structure?
+      if @config.localized_structure?
         en_metadata = @config.en_metadata
         placeholders.merge!({
                               'BOOK_TITLE' => @config.title,
@@ -1052,7 +1052,7 @@ module BookCore
 
       begin
         config, en_metadata = load_metadata_for_interaction
-        updated = collect_missing_metadata(missing_placeholders, config)
+        updated = metadata_updated?(missing_placeholders, config)
 
         save_interaction_result(config, en_metadata, updated)
       rescue Interrupt
@@ -1090,12 +1090,12 @@ module BookCore
       puts ''
 
       # Ensure localized structure exists in config
-      @config.set('localized', { 'en' => {} }) unless @config.has_localized_structure?
+      @config.set('localized', { 'en' => {} }) unless @config.localized_structure?
 
       [@config, @config.en_metadata]
     end
 
-    def collect_missing_metadata(missing_placeholders, config)
+    def metadata_updated?(missing_placeholders, config)
       initial_dirty_state = config.dirty?
 
       collect_genre_info(missing_placeholders, config)
