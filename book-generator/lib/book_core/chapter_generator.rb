@@ -1115,71 +1115,70 @@ module BookCore
     end
 
     def collect_missing_metadata(missing_placeholders, en_metadata)
-      updated = false
-      updated = collect_genre_info_needed(missing_placeholders, en_metadata) || updated
-      updated = collect_style_info_needed(missing_placeholders, en_metadata) || updated
-      updated = collect_setting_info_needed(missing_placeholders, en_metadata) || updated
-      collect_theme_info_needed(missing_placeholders, en_metadata) || updated
+      initial_state = en_metadata.dup
+
+      collect_genre_info(missing_placeholders, en_metadata)
+      collect_style_info(missing_placeholders, en_metadata)
+      collect_setting_info(missing_placeholders, en_metadata)
+      collect_theme_info(missing_placeholders, en_metadata)
+
+      en_metadata != initial_state
     end
 
-    def collect_genre_info_needed(missing_placeholders, en_metadata)
-      return false unless missing_placeholders.include?('BOOK_GENRE') && en_metadata['genre'].to_s.strip.empty?
+    def collect_genre_info(missing_placeholders, en_metadata)
+      return unless missing_placeholders.include?('BOOK_GENRE') && en_metadata['genre'].to_s.strip.empty?
 
       puts '📖 What genre is your book?'
       puts '   Examples: fantasy, sci-fi, mystery, thriller, comedy, romance, adventure, horror'
       print '   Genre: '
       genre = $stdin.gets&.chomp&.strip
-      return false if genre.empty?
+      return if genre.empty?
 
       en_metadata['genre'] = genre
-      true
     end
 
-    def collect_style_info_needed(missing_placeholders, en_metadata)
+    def collect_style_info(missing_placeholders, en_metadata)
       style_missing = missing_placeholders.include?('BOOK_STYLE') || missing_placeholders.include?('BOOK_HUMOR_STYLE')
-      return false unless style_missing && en_metadata['humor_style'].to_s.strip.empty?
+      return unless style_missing && en_metadata['humor_style'].to_s.strip.empty?
 
       puts ''
       puts '✍️ What writing style should I use?'
       puts '   Examples: humorous, serious, adventurous, suspenseful, whimsical, dramatic'
       print '   Style: '
       style = $stdin.gets&.chomp&.strip
-      return false if style.empty?
+      return if style.empty?
 
       en_metadata['humor_style'] = style
-      true
     end
 
-    def collect_setting_info_needed(missing_placeholders, en_metadata)
+    def collect_setting_info(missing_placeholders, en_metadata)
       setting_missing = missing_placeholders.include?('BOOK_SETTING') || missing_placeholders.include?('PRIMARY_LOCATION')
-      return false unless setting_missing && en_metadata['setting'].to_s.strip.empty?
+      return unless setting_missing && en_metadata['setting'].to_s.strip.empty?
 
       puts ''
       puts '🌍 What is the main setting/location of your story?'
       puts '   Examples: medieval castle, space station, modern city, magical school, etc.'
       print '   Setting: '
       setting = $stdin.gets&.chomp&.strip
-      return false if setting.empty?
+      return if setting.empty?
 
       en_metadata['setting'] = setting
-      true
     end
 
-    def collect_theme_info_needed(missing_placeholders, en_metadata)
+    def collect_theme_info(missing_placeholders, en_metadata)
       theme_missing = missing_placeholders.include?('WORLD_DETAILS')
       theme_empty = en_metadata['themes'].nil? || en_metadata['themes']['primary'].to_s.strip.empty?
-      return false unless theme_missing && theme_empty
+      return unless theme_missing && theme_empty
 
       puts ''
       puts '🎭 What is the primary theme of your story?'
       puts '   Examples: friendship, mystery, adventure, love, betrayal, discovery, etc.'
       print '   Primary theme: '
       theme = $stdin.gets&.chomp&.strip
-      return false if theme.empty?
+      return if theme.empty?
 
       en_metadata['themes'] ||= {}
       en_metadata['themes']['primary'] = theme
-      true
     end
 
     def save_interaction_result(metadata, en_metadata, updated)
@@ -1188,12 +1187,12 @@ module BookCore
         puts ''
         puts '✅ Information saved! Continuing with chapter generation...'
         puts ''
-        true
       else
         puts ''
         puts 'ℹ️ No information was provided. Chapter generation cannot continue.'
-        false
       end
+
+      updated
     end
 
     def save_collected_metadata(metadata, en_metadata)
