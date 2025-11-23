@@ -34,12 +34,25 @@ en:
         type: tech_startup
         first_mentioned: Chapter 1
         status: established
+      legendary-merge-conflict-arena:
+        name: Legendary Merge Conflict Arena
+        description: A secret underground arena where developers duel using cursed
+          branches and impossible Git diffs.
+        type: room
+        first_mentioned: Chapter 7
+        status: established
     events:
       standup:
         name: Morning Stand-up
         description: Daily morning meeting led by Project Manager Alice
         chapter: 1
         impact: minor
+      the-eternal-conflict-resolved:
+        name: The Eternal Conflict Resolved
+        description: Kenji instantly resolves an impossible merge conflict that defeated
+          countless engineers.
+        chapter: 7
+        impact: major
     world_rules:
       legacy_system:
         rule: 'Ancient Legacy Codebase: Pre-Git legacy system with COBOL, Perl, VB6,
@@ -94,3 +107,21 @@ en:
         rule: Year 2024 setting (with TODO comment warning about 2024)
         category: culture
         established: Chapter 1
+      git-conflicts-can:
+        rule: Git conflicts can take on mythical, almost supernatural qualities when
+          neglected for long enough.
+        category: technology
+        established: Chapter 7
+    relationships:
+      kai-nakamura_kenji-yamamoto:
+        character1: Kenji Yamamoto
+        character2: Kai Nakamura
+        relationship: mentor
+        status: established
+        first_chapter: 7
+      kenji-yamamoto_lorenzo-takeda:
+        character1: Kenji Yamamoto
+        character2: Lorenzo Takeda
+        relationship: rival
+        status: established
+        first_chapter: 7

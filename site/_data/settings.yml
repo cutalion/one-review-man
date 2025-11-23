@@ -12,3 +12,21 @@ llm:
       max_tokens: 8000
     translation:
       max_tokens: 12000
+  # Model-specific default parameters - only specified parameters are passed to API
+  model_settings:
+    gpt-5:
+      max_completion_tokens: 8000  # Lower limit for faster generation
+      reasoning_effort: "low"      # Optimize for speed over deep reasoning
+      # temperature omitted - not supported by gpt-5
+    gpt-4o:
+      temperature: 0.7
+      max_tokens: 12000
+    gpt-4o-mini:
+      temperature: 0.7
+      max_tokens: 12000
+    o3:
+      max_completion_tokens: 12000
+      # temperature omitted - not supported by o3
+    o3-mini:
+      max_completion_tokens: 8000
+      # temperature omitted - not supported by o3-mini
