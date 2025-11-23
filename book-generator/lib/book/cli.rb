@@ -35,7 +35,12 @@ module Book
         return handle_missing_project_root(max_attempts) if explicit_path
 
         warn 'Not a book directory (missing data/book_metadata.yml).'
-        path = ask('Path to book directory (leave empty to abort):')
+        begin
+          path = ask('Path to book directory (leave empty to abort):')
+        rescue Interrupt
+          warn "\nAborted by user."
+          exit 1
+        end
         if path && !path.strip.empty?
           # Validate the path before expanding
           path_stripped = path.strip
