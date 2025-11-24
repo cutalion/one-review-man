@@ -1,0 +1,75 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "LLM Settings",
+  "type": "object",
+  "required": [
+    "llm"
+  ],
+  "properties": {
+    "llm": {
+      "type": "object",
+      "required": [
+        "provider",
+        "model"
+      ],
+      "properties": {
+        "provider": {
+          "type": "string"
+        },
+        "model": {
+          "type": "string"
+        },
+        "temperature": {
+          "type": "number"
+        },
+        "timeout": {
+          "type": "integer"
+        },
+        "default_options": {
+          "type": "object",
+          "properties": {
+            "max_tokens": {
+              "type": "integer"
+            }
+          }
+        },
+        "task_options": {
+          "type": "object",
+          "patternProperties": {
+            "^[a-z_]+$": {
+              "type": "object",
+              "properties": {
+                "max_tokens": {
+                  "type": "integer"
+                },
+                "timeout": {
+                  "type": "integer"
+                },
+                "temperature": {
+                  "type": "number"
+                }
+              }
+            }
+          }
+        },
+        "retry": {
+          "type": "object",
+          "properties": {
+            "max_attempts": {
+              "type": "integer"
+            },
+            "backoff_multiplier": {
+              "type": "number"
+            }
+          }
+        },
+        "strict_model": {
+          "type": "boolean"
+        },
+        "budget_limit": {
+          "type": "number"
+        }
+      }
+    }
+  }
+}

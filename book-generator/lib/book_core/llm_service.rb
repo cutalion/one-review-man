@@ -189,6 +189,26 @@ module BookCore
       end
     end
 
+    def with_retries
+      retries = 0
+      max_retries = @config.dig('retry', 'max_attempts') || 3
+      backoff = @config.dig('retry', 'backoff_multiplier') || 2
+
+      begin
+        yield
+      rescue Faraday::Error => e
+        if retries < max_retries
+          sleep_time = backoff**retries
+          # Log retry (puts for now, could be logger)
+          puts "⚠️  LLM Request failed. Retrying in #{sleep_time}s... (Attempt #{retries + 1}/#{max_retries})" if @debug
+          sleep(sleep_time)
+          retries += 1
+          retry
+        end
+        raise
+      end
+    end
+
     private
 
     def load_config(config_file)
@@ -235,7 +255,11 @@ module BookCore
       parameters = build_api_parameters(model, messages, options, task_type)
 
       debug_dump('request_parameters.json', JSON.pretty_generate(parameters))
-      response = @client.chat(parameters: parameters)
+      
+      response = with_retries do
+        @client.chat(parameters: parameters)
+      end
+      
       content = response.dig('choices', 0, 'message', 'content')
       debug_dump('response_raw.json', content)
       { 'content' => content }
@@ -257,7 +281,11 @@ module BookCore
       parameters[:response_format] = options[:response_format] if options[:response_format]
 
       debug_dump('request_parameters.json', JSON.pretty_generate(parameters))
-      response = @client.chat(parameters: parameters)
+      
+      response = with_retries do
+        @client.chat(parameters: parameters)
+      end
+      
       content = response.dig('choices', 0, 'message', 'content')
       debug_dump('response_raw.json', content)
       { 'content' => content }

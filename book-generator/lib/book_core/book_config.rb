@@ -5,96 +5,124 @@ require 'fileutils'
 
 module BookCore
   # Encapsulates book metadata configuration with clean access patterns
-  # Eliminates the need to pass around raw metadata hashes
+  # Handles split configuration (static config vs dynamic state)
   class BookConfig
     class ValidationError < StandardError; end
     class NotFoundError < StandardError; end
 
-    def initialize(data = {}, file_path = nil)
-      @data = data.dup
-      @file_path = file_path
-      @dirty = false
+    attr_reader :config_path, :state_path
+
+    def initialize(config_data, state_data, config_path = nil, state_path = nil)
+      @config_data = config_data.dup
+      @state_data = state_data.dup
+      @config_path = config_path
+      @state_path = state_path
+      @dirty_config = false
+      @dirty_state = false
       validate_structure!
     end
 
     # Factory methods
-    def self.load_from_file(path)
-      raise NotFoundError, "Config file not found: #{path}" unless File.exist?(path)
+    def self.load_from_project(project_root)
+      config_path = File.join(project_root, 'data', 'book_config.yml')
+      state_path = File.join(project_root, 'data', 'book_state.yml')
+      legacy_path = File.join(project_root, 'data', 'book_metadata.yml')
 
-      data = YAML.safe_load_file(path) || {}
-      new(data, path)
+      if File.exist?(config_path) || File.exist?(state_path)
+        load_split_config(config_path, state_path)
+      elsif File.exist?(legacy_path)
+        load_legacy_config(legacy_path)
+      else
+        new({}, {}, config_path, state_path)
+      end
     end
 
-    def self.load_from_project(project_root)
-      path = File.join(project_root, 'data', 'book_metadata.yml')
-      load_from_file(path)
+    def self.load_split_config(config_path, state_path)
+      config_data = File.exist?(config_path) ? YAML.safe_load_file(config_path) : {}
+      state_data = File.exist?(state_path) ? YAML.safe_load_file(state_path) : {}
+      new(config_data, state_data, config_path, state_path)
+    end
+
+    def self.load_legacy_config(path)
+      data = YAML.safe_load_file(path) || {}
+      # Split in memory for consistent internal API
+      state_keys = %w[book status]
+      state_data = data.slice(*state_keys)
+      config_data = data.except(*state_keys)
+      
+      # We store the legacy path in both to indicate where to save back to
+      # (special handling in save! will be needed if we want to support legacy saving,
+      # but ideally we migrate)
+      instance = new(config_data, state_data, path, path)
+      instance.instance_variable_set(:@legacy_mode, true)
+      instance
     end
 
     # Language-specific data access
     def en_metadata
-      @data.dig('localized', 'en') || {}
+      @config_data.dig('localized', 'en') || {}
     end
 
     def ru_metadata
-      @data.dig('localized', 'ru') || {}
+      @config_data.dig('localized', 'ru') || {}
     end
 
     def localized_data(lang)
-      @data.dig('localized', lang.to_s) || {}
+      @config_data.dig('localized', lang.to_s) || {}
     end
 
     def update_localized(lang, updates)
-      @data['localized'] ||= {}
-      @data['localized'][lang.to_s] ||= {}
-      @data['localized'][lang.to_s].merge!(updates)
-      mark_dirty!
+      @config_data['localized'] ||= {}
+      @config_data['localized'][lang.to_s] ||= {}
+      @config_data['localized'][lang.to_s].merge!(updates)
+      mark_config_dirty!
       self
     end
 
     # Generation configuration
     def content_rules
-      @data.dig('generation', 'content_rules') || {}
+      @config_data.dig('generation', 'content_rules') || {}
     end
 
     def main_characters
-      @data.dig('generation', 'main_characters') || []
+      @config_data.dig('generation', 'main_characters') || []
     end
 
     def chapter_length_target
-      @data.dig('generation', 'chapter_length_target') || '1500-3000 words'
+      @config_data.dig('generation', 'chapter_length_target') || '1500-3000 words'
     end
 
     def translation_rules_for(lang)
-      @data.dig('generation', 'translation_rules', lang.to_s) || {}
+      @config_data.dig('generation', 'translation_rules', lang.to_s) || {}
     end
 
     def generation_config
-      @data['generation'] || {}
+      @config_data['generation'] || {}
     end
 
-    # Book status management
+    # Book status management (State)
     def current_chapter
-      @data.dig('book', 'current_chapter') || 0
+      @state_data.dig('book', 'current_chapter') || 0
     end
 
     def update_current_chapter(chapter_num)
-      @data['book'] ||= {}
-      @data['book']['current_chapter'] = chapter_num.to_i
-      mark_dirty!
+      @state_data['book'] ||= {}
+      @state_data['book']['current_chapter'] = chapter_num.to_i
+      mark_state_dirty!
       self
     end
 
     def book_status
-      @data['book'] || {}
+      @state_data['book'] || {}
     end
 
-    # Convenient accessors
+    # Convenient accessors (Config)
     def title(lang = 'en')
-      localized_data(lang)['title'] || @data['title'] || 'Untitled'
+      localized_data(lang)['title'] || @config_data['title'] || 'Untitled'
     end
 
     def author(lang = 'en')
-      localized_data(lang)['author'] || @data['author'] || 'Unknown'
+      localized_data(lang)['author'] || @config_data['author'] || 'Unknown'
     end
 
     def genre(lang = 'en')
@@ -118,49 +146,80 @@ module BookCore
     end
 
     def description(lang = 'en')
-      localized_data(lang)['description'] || @data['description']
+      localized_data(lang)['description'] || @config_data['description']
     end
 
-    # Site configuration
+    # Site configuration (Config)
     def site_url
-      @data['site_url']
+      @config_data['site_url']
     end
 
     def twitter_username
-      @data['twitter_username']
+      @config_data['twitter_username']
     end
 
     def github_username
-      @data['github_username']
+      @config_data['github_username']
     end
 
     def site_domain
-      @data['site_domain']
+      @config_data['site_domain']
     end
 
     # Direct access for edge cases
+    # Note: This is ambiguous now, defaulting to config for read, but we should deprecate this usage
     def get(key)
-      @data[key.to_s]
+      @config_data[key.to_s] || @state_data[key.to_s]
     end
 
     def set(key, value)
-      @data[key.to_s] = value
-      mark_dirty!
+      # Heuristic to decide where to put it
+      if %w[book status].include?(key.to_s)
+        @state_data[key.to_s] = value
+        mark_state_dirty!
+      else
+        @config_data[key.to_s] = value
+        mark_config_dirty!
+      end
       self
     end
 
     # Persistence
     def save!
-      raise NotFoundError, 'No file path specified for save' unless @file_path
-
-      FileUtils.mkdir_p(File.dirname(@file_path))
-      File.write(@file_path, @data.to_yaml)
-      @dirty = false
+      if @legacy_mode
+        save_legacy!
+      else
+        save_split!
+      end
       self
     end
 
+    def save_split!
+      if @dirty_config && @config_path
+        FileUtils.mkdir_p(File.dirname(@config_path))
+        File.write(@config_path, @config_data.to_yaml)
+        @dirty_config = false
+      end
+
+      if @dirty_state && @state_path
+        FileUtils.mkdir_p(File.dirname(@state_path))
+        File.write(@state_path, @state_data.to_yaml)
+        @dirty_state = false
+      end
+    end
+
+    def save_legacy!
+      return unless @config_path # In legacy mode, both paths are the same
+
+      merged_data = @config_data.merge(@state_data)
+      FileUtils.mkdir_p(File.dirname(@config_path))
+      File.write(@config_path, merged_data.to_yaml)
+      @dirty_config = false
+      @dirty_state = false
+    end
+
     def dirty?
-      @dirty
+      @dirty_config || @dirty_state
     end
 
     # Validation
@@ -179,7 +238,8 @@ module BookCore
 
     # Access to raw data for compatibility during migration
     def raw_data
-      deep_dup(@data)
+      # Return merged view
+      deep_dup(@config_data).merge(deep_dup(@state_data))
     end
 
     # Useful predicates
@@ -188,25 +248,28 @@ module BookCore
     end
 
     def language?(lang)
-      localized_lang_data = @data.dig('localized', lang.to_s)
+      localized_lang_data = @config_data.dig('localized', lang.to_s)
       return false unless localized_lang_data.is_a?(Hash)
 
       localized_lang_data.any? { |_, v| !v.to_s.strip.empty? }
     end
 
     def multilingual?
-      (@data['localized'] || {}).keys.length > 1
+      (@config_data['localized'] || {}).keys.length > 1
     end
 
-    # Check if localized structure exists
     def localized_structure?
-      @data['localized'].is_a?(Hash)
+      @config_data['localized'].is_a?(Hash)
     end
 
     private
 
-    def mark_dirty!
-      @dirty = true
+    def mark_config_dirty!
+      @dirty_config = true
+    end
+
+    def mark_state_dirty!
+      @dirty_state = true
     end
 
     def deep_dup(obj)
@@ -226,14 +289,15 @@ module BookCore
 
     def validate_structure!
       # Basic structure validation
-      raise ValidationError, 'Data must be a Hash' unless @data.is_a?(Hash)
+      raise ValidationError, 'Config data must be a Hash' unless @config_data.is_a?(Hash)
+      raise ValidationError, 'State data must be a Hash' unless @state_data.is_a?(Hash)
 
-      raise ValidationError, 'localized must be a Hash' if @data['localized'] && !@data['localized'].is_a?(Hash)
+      raise ValidationError, 'localized must be a Hash' if @config_data['localized'] && !@config_data['localized'].is_a?(Hash)
 
-      raise ValidationError, 'generation must be a Hash' if @data['generation'] && !@data['generation'].is_a?(Hash)
+      raise ValidationError, 'generation must be a Hash' if @config_data['generation'] && !@config_data['generation'].is_a?(Hash)
 
-      return unless @data['book']
-      raise ValidationError, 'book must be a Hash' unless @data['book'].is_a?(Hash)
+      return unless @state_data['book']
+      raise ValidationError, 'book state must be a Hash' unless @state_data['book'].is_a?(Hash)
     end
 
     def validate_required_fields!

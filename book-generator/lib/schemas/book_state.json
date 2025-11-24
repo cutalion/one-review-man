@@ -1,0 +1,51 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Book State",
+  "type": "object",
+  "required": [
+    "book",
+    "status"
+  ],
+  "properties": {
+    "book": {
+      "type": "object",
+      "required": [
+        "current_chapter",
+        "target_chapters"
+      ],
+      "properties": {
+        "current_chapter": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "target_chapters": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "status": {
+      "type": "object",
+      "properties": {
+        "last_generated": {
+          "type": "string"
+        },
+        "generation_count": {
+          "type": "integer"
+        },
+        "characters_created": {
+          "type": "integer"
+        },
+        "chapters_written": {
+          "type": "integer"
+        },
+        "active_storylines": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

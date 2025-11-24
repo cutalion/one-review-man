@@ -1,0 +1,74 @@
+---
+generation:
+  chapter_length_target: 1500-3000 words
+  complexity_level: medium
+  character_consistency: true
+  main_characters:
+  - display_name: One Review Man
+    placeholder_key: ONE_REVIEW_MAN_REAL_NAME
+    role: protagonist
+  - display_name: Quantum Android
+    placeholder_key: QUANTUM_ANDROID_REAL_NAME
+    role: companion
+  translation_rules:
+    ru:
+      character_mappings:
+        One Review Man: Ванревьюмен
+        AI-Enhanced Disciple: ИИ-Усиленный Ученик
+        Quantum Android: Квантовый Андроид
+      name_style: japanese_transliteration
+      technical_terms: mixed_en_ru
+      address_forms:
+        sensei: сенсей
+      custom_rules:
+      - 'Use respectful address: "Сатору-сенсей" for "Satoru-sensei"'
+      - Preserve the parody nature of One-Punch Man references
+  content_rules:
+    parody_source: One-Punch Man
+    humor_style: absurdist_programming
+    world_physics:
+    - Perfect code can be written instantly by the protagonist
+    - Code reviews are always approved immediately for protagonist's PRs
+    - Programming abilities work like superpowers
+    - Technical problems can be solved with superhuman ease
+    character_dynamics:
+      protagonist_addressing: real_names_in_dialogue
+      mentor_student_pattern: sensei_usage
+      colleague_dismissal_theme: true
+      underestimation_pattern: consistent_dismissal
+    style_guidelines:
+    - Colleagues consistently underestimate protagonist's abilities
+    - Success attributed to luck rather than skill by others
+    - Maintain humble, unassuming protagonist demeanor
+    - Include programming humor (bugs, code reviews, deployments, etc.)
+    - Reference One-Punch Man tropes adapted to programming context
+    content_requirements:
+    - Follow professional PR workflow (no self-merging)
+    - Include tech industry absurdities (standups, sprint planning, etc.)
+    - Show gap between actual abilities and others' perceptions
+    - End chapters with setup for next programming comedy scenario
+localized:
+  en:
+    title: One Review Man
+    subtitle: An AI-Generated Comedy of Errors
+    author: AI Collective
+    genre: Humor/Comedy
+    humor_style: absurdist
+    themes:
+      primary: workplace comedy
+      secondary:
+      - mistaken identity
+      - bureaucratic absurdity
+      - everyday situations gone wrong
+  ru:
+    title: Ванревьюмэн
+    subtitle: ИИ-генерируемая Комедия Ошибок
+    author: ИИ Коллектив
+    genre: Юмор/Комедия
+    humor_style: абсурдистский
+    themes:
+      primary: рабочая комедия
+      secondary:
+      - ошибочная идентичность
+      - бюрократический абсурд
+      - обычные ситуации, которые идут не так

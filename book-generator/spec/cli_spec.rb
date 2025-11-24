@@ -61,6 +61,10 @@ RSpec.describe 'book CLI' do
       expect(settings['llm']['default_options']['max_tokens']).to eq(12_000)
       expect(settings['llm']['task_options']['generation']['max_tokens']).to eq(8000)
       expect(settings['llm']['task_options']['translation']['max_tokens']).to eq(12_000)
+      
+      # Check new fields
+      expect(settings['llm']['retry']['max_attempts']).to eq(3)
+      expect(settings['llm']['strict_model']).to eq(true)
     end
 
     it 'creates all required data files' do
@@ -71,7 +75,8 @@ RSpec.describe 'book CLI' do
 
       # Check all expected files exist
       expected_files = [
-        'data/book_metadata.yml',
+        'data/book_config.yml',
+        'data/book_state.yml',
         'data/characters.yml',
         'data/generation_log.yml',
         'data/world.yml',

@@ -20,8 +20,8 @@ module Book
       def resolve_project_root(candidate = nil)
         candidate ||= Dir.pwd
         data_dir = File.join(candidate, 'data')
-        metadata = File.join(data_dir, 'book_metadata.yml')
-        return candidate if File.exist?(metadata)
+        # Check for either new config or legacy metadata
+        return candidate if File.exist?(File.join(data_dir, 'book_config.yml')) || File.exist?(File.join(data_dir, 'book_metadata.yml'))
 
         nil
       end
@@ -29,12 +29,12 @@ module Book
       def resolve_project_root!(explicit_path = nil, max_attempts = 3)
         candidate = explicit_path || Dir.pwd
         data_dir = File.join(candidate, 'data')
-        metadata = File.join(data_dir, 'book_metadata.yml')
-        return candidate if File.exist?(metadata)
+        # Check for either new config or legacy metadata
+        return candidate if File.exist?(File.join(data_dir, 'book_config.yml')) || File.exist?(File.join(data_dir, 'book_metadata.yml'))
 
         return handle_missing_project_root(max_attempts) if explicit_path
 
-        warn 'Not a book directory (missing data/book_metadata.yml).'
+        warn 'Not a book directory (missing data/book_config.yml or data/book_metadata.yml).'
         begin
           path = ask('Path to book directory (leave empty to abort):')
         rescue Interrupt
@@ -193,12 +193,20 @@ module Book
       def show_file_structure_status(abs_root)
         say "\n📁 File Structure:", :cyan
         files_to_check = {
-          'data/book_metadata.yml' => 'Book metadata',
+          'data/book_config.yml' => 'Book configuration',
+          'data/book_state.yml' => 'Book state',
           'data/characters.yml' => 'Characters data',
           'data/generation_log.yml' => 'Generation log',
           'data/world.yml' => 'World data',
           'data/strings.yml' => 'Site strings'
         }
+
+        # Legacy check
+        if File.exist?(File.join(abs_root, 'data/book_metadata.yml')) && !File.exist?(File.join(abs_root, 'data/book_config.yml'))
+           files_to_check['data/book_metadata.yml'] = 'Legacy Book metadata'
+           files_to_check.delete('data/book_config.yml')
+           files_to_check.delete('data/book_state.yml')
+        end
 
         files_to_check.each do |file_path, description|
           full_path = File.join(abs_root, file_path)
@@ -524,7 +532,12 @@ module Book
         secondary_themes_array = book_info[:secondary_themes].strip.empty? ? [] : book_info[:secondary_themes].split(',').map(&:strip)
 
         metadata = build_book_metadata(book_info, secondary_themes_array)
-        write_yaml_file(File.join(target, 'data', 'book_metadata.yml'), metadata)
+        
+        # Split metadata into config and state
+        config_data, state_data = split_metadata(metadata)
+        
+        write_yaml_file(File.join(target, 'data', 'book_config.yml'), config_data)
+        write_yaml_file(File.join(target, 'data', 'book_state.yml'), state_data)
 
         # Initialize characters with locale namespace and an empty map
         write_yaml_file(
@@ -671,12 +684,19 @@ module Book
             },
             'task_options' => {
               'generation' => {
-                'max_tokens' => 8000
+                'max_tokens' => 8000,
+                'timeout' => 300
               },
               'translation' => {
-                'max_tokens' => 12_000
+                'max_tokens' => 12_000,
+                'timeout' => 120
               }
-            }
+            },
+            'retry' => {
+              'max_attempts' => 3,
+              'backoff_multiplier' => 2
+            },
+            'strict_model' => true
           }
         }
         write_yaml_file(File.join(target, 'data', 'settings.yml'), settings_data)
@@ -684,6 +704,13 @@ module Book
 
       def includes_russian?(languages)
         (languages || 'en').split(',').map(&:strip).include?('ru')
+      end
+
+      def split_metadata(data)
+        state_keys = %w[book status]
+        state_data = data.slice(*state_keys)
+        config_data = data.except(*state_keys)
+        [config_data, state_data]
       end
     end
 
@@ -1007,6 +1034,53 @@ module Book
 
         abs_root = File.expand_path(book_root)
         render_status_report(abs_root)
+      end
+
+      desc 'migrate', 'Migrate legacy configuration to new format'
+      method_option :book_dir, aliases: ['-b'], type: :string, desc: 'Path to the book directory (defaults to current directory)'
+      def migrate
+        book_root = resolve_project_root(options[:book_dir])
+        unless book_root
+          say "Not in a book directory.", :red
+          return
+        end
+
+        abs_root = File.expand_path(book_root)
+        legacy_path = File.join(abs_root, 'data', 'book_metadata.yml')
+        config_path = File.join(abs_root, 'data', 'book_config.yml')
+        state_path = File.join(abs_root, 'data', 'book_state.yml')
+
+        if File.exist?(config_path) || File.exist?(state_path)
+          say "New configuration files already exist. Migration skipped.", :yellow
+          return
+        end
+
+        unless File.exist?(legacy_path)
+          say "No legacy metadata found at #{legacy_path}.", :red
+          return
+        end
+
+        say "Migrating #{legacy_path}...", :blue
+        
+        # Load legacy data
+        data = YAML.safe_load_file(legacy_path)
+        
+        # Split data
+        state_keys = %w[book status]
+        state_data = data.slice(*state_keys)
+        config_data = data.except(*state_keys)
+
+        # Write new files
+        write_yaml_file(config_path, config_data)
+        write_yaml_file(state_path, state_data)
+        
+        say "✅ Created data/book_config.yml", :green
+        say "✅ Created data/book_state.yml", :green
+        
+        # Rename legacy file to backup
+        backup_path = "#{legacy_path}.bak"
+        FileUtils.mv(legacy_path, backup_path)
+        say "📦 Archived legacy file to #{backup_path}", :green
       end
 
       desc 'version', 'Show version'

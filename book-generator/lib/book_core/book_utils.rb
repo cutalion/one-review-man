@@ -12,8 +12,22 @@ module BookUtils
 
   # Data file loading methods - support both simple and language-specific patterns
   def load_book_data(lang = nil)
-    file_path = File.join(DATA_DIR, 'book_metadata.yml')
-    data = load_yaml_file(file_path)
+    # Use BookConfig to load data (handles split config/state transparently)
+    unless defined?(BookCore::Config)
+      core_lib = File.expand_path('../../../../book-generator/lib', __dir__)
+      $LOAD_PATH.unshift(core_lib) unless $LOAD_PATH.include?(core_lib)
+      require 'book_core/book_config'
+    end
+
+    # Assuming we are in a project root or can find it. 
+    # For now, we'll try to find the project root from the current directory or DATA_DIR
+    project_root = File.expand_path('..', DATA_DIR) # Assuming DATA_DIR is relative to project root
+    
+    # If DATA_DIR is just 'data', then project root is current dir
+    project_root = Dir.pwd if DATA_DIR == 'data'
+
+    config = BookCore::BookConfig.load_from_project(project_root)
+    data = config.raw_data
 
     if lang && data['localized'] && data['localized'][lang]
       # Return merged structure: shared data + localized content

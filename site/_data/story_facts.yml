@@ -41,6 +41,19 @@ en:
         type: room
         first_mentioned: Chapter 7
         status: established
+      herotech-solutions-main-developer-area:
+        name: HeroTech Solutions Main Developer Area
+        description: Open floor plan space where developers panic in sync whenever
+          production breaks.
+        type: office
+        first_mentioned: Chapter 8
+        status: established
+      ci-dashboard-console:
+        name: CI Dashboard Console
+        description: Where Jenkins displays its cryptic prophecies and taunts developers.
+        type: room
+        first_mentioned: Chapter 8
+        status: established
     events:
       standup:
         name: Morning Stand-up
@@ -52,6 +65,18 @@ en:
         description: Kenji instantly resolves an impossible merge conflict that defeated
           countless engineers.
         chapter: 7
+        impact: major
+      runaway-ci-pipeline-incident:
+        name: Runaway CI Pipeline Incident
+        description: The Jenkins pipeline spiraled into recursive chaos until Kenji
+          fixed it instantly.
+        chapter: 8
+        impact: major
+      reawakening-of-legacybuildexe:
+        name: Reawakening of LegacyBuild.exe
+        description: An ancient pre-Git build artifact became active, setting up the
+          next challenge.
+        chapter: 8
         impact: major
     world_rules:
       legacy_system:
@@ -112,6 +137,14 @@ en:
           neglected for long enough.
         category: technology
         established: Chapter 7
+      jenkins-may-behave:
+        rule: Jenkins may behave unpredictably when corrupted by stale lock files.
+        category: technology
+        established: Chapter 8
+      kenjis-solutions-are:
+        rule: Kenji’s solutions are always dismissed as luck regardless of evidence.
+        category: culture
+        established: Chapter 8
     relationships:
       kai-nakamura_kenji-yamamoto:
         character1: Kenji Yamamoto
