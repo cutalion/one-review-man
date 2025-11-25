@@ -35,6 +35,14 @@ The book's content is stored in `books/one-review-man`, and the Jekyll website i
 
 #### Setup
 ```bash
+# Jules Setup
+./setup_jules.sh
+
+# Docker Setup
+docker compose build
+docker compose up -d
+
+# Manual Setup
 # Install dependencies for the CLI
 cd book-generator
 bundle install
