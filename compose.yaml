@@ -1,0 +1,10 @@
+services:
+  app:
+    build: .
+    volumes:
+      - .:/app
+    ports:
+      - "4000:4000"
+    tty: true
+    stdin_open: true
+    command: /bin/bash
