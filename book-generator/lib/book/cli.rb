@@ -7,6 +7,7 @@ require 'book/cli/version'
 require 'book/translator'
 require 'book_core/reset'
 require 'book_core/chapter_generator'
+require 'book_core/illustration_generator'
 require 'book_core/env_utils'
 require 'book_core/book_config'
 
@@ -357,6 +358,19 @@ module Book
           chapter_number = number ? number.to_i : generator.send(:determine_next_chapter_number)
           prompt = generator.send(:build_chapter_prompt, chapter_number)
           puts prompt
+        end
+      end
+
+      desc 'illustration CHAPTER_NUMBER "PROMPT"', 'Generate an illustration for a chapter'
+      method_option :anchor, type: :string, desc: 'Anchor text to embed the illustration after'
+      def illustration(chapter_number, prompt)
+        project_root = resolve_project_root!(options[:book_dir])
+        abs_root = File.expand_path(project_root)
+        Dir.chdir(abs_root) do
+          ENV['DEBUG_AI'] = '1' if options[:debug]
+          config = BookCore::BookConfig.load_from_project(abs_root)
+          generator = BookCore::IllustrationGenerator.new(project_root: abs_root, config: config)
+          generator.generate(prompt: prompt, chapter_number: chapter_number, anchor_text: options[:anchor])
         end
       end
     end
