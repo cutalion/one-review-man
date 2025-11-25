@@ -9,6 +9,7 @@ require 'book_core/reset'
 require 'book_core/chapter_generator'
 require 'book_core/env_utils'
 require 'book_core/book_config'
+require 'book_core/illustration_generator'
 
 module Book
   module CLI
@@ -357,6 +358,43 @@ module Book
           chapter_number = number ? number.to_i : generator.send(:determine_next_chapter_number)
           prompt = generator.send(:build_chapter_prompt, chapter_number)
           puts prompt
+        end
+
+      end
+
+      desc 'illustration CHAPTER_NUMBER PROMPT', 'Generate an illustration for a chapter'
+      method_option :style, type: :string, desc: 'Style of the illustration (e.g., "comic book", "oil painting")'
+      method_option :orientation, type: :string, default: 'landscape', desc: 'Orientation: landscape, portrait, or square'
+      method_option :anchor, type: :string, desc: 'Text snippet to anchor the illustration to'
+      method_option :debug, type: :boolean, default: false, desc: 'Enable debug mode for AI calls'
+      method_option :model, type: :string, desc: 'Specify the LLM model to use'
+      method_option :book_dir, aliases: ['-b'], type: :string, desc: 'Path to the book directory'
+      def illustration(chapter_number, prompt)
+        project_root = resolve_project_root!(options[:book_dir])
+        abs_root = File.expand_path(project_root)
+        
+        Dir.chdir(abs_root) do
+          ENV['DEBUG_AI'] = '1' if options[:debug]
+          
+          # Load settings to get defaults
+          config_path = File.join(abs_root, 'data', 'settings.yml')
+          llm_service = BookCore::LLMService.new(config_path, options[:model])
+          
+          # Load config to check for default style/orientation if not provided
+          settings = YAML.load_file(config_path) if File.exist?(config_path)
+          illustration_settings = settings&.dig('illustration') || {}
+          
+          style = options[:style] || illustration_settings['style']
+          orientation = options[:orientation] || illustration_settings['orientation'] || 'landscape'
+          
+          generator = BookCore::IllustrationGenerator.new(llm_service, project_root: abs_root)
+          generator.generate(
+            chapter_number, 
+            prompt, 
+            style: style, 
+            orientation: orientation, 
+            anchor_text: options[:anchor]
+          )
         end
       end
     end
@@ -779,17 +817,29 @@ module Book
           {
             dst_name: '_data',
             candidates: [File.join(book_root, 'data')]
+          },
+          {
+            dst_name: 'assets',
+            candidates: [File.join(book_root, 'assets')]
           }
         ].each do |mapping|
           src = mapping[:candidates].find { |p| Dir.exist?(p) }
           dst = File.join(dest_dir, mapping[:dst_name])
           begin
-            FileUtils.rm_rf(dst)
-            if src
-              FileUtils.mkdir_p(File.dirname(dst))
-              FileUtils.cp_r(src, dst)
-            else
+            # Special handling for assets: merge instead of replace
+            if mapping[:dst_name] == 'assets'
               FileUtils.mkdir_p(dst)
+              if src
+                FileUtils.cp_r(Dir.glob("#{src}/*"), dst)
+              end
+            else
+              FileUtils.rm_rf(dst)
+              if src
+                FileUtils.mkdir_p(File.dirname(dst))
+                FileUtils.cp_r(src, dst)
+              else
+                FileUtils.mkdir_p(dst)
+              end
             end
           rescue StandardError => e
             say "Failed to copy #{mapping[:dst_name]}: #{e.message}", :yellow

@@ -256,6 +256,11 @@ article nav + p, main nav + p {
   border-radius: 4px;
 }
 
+article .illustration img {
+  max-width: 100%;
+  height: auto;
+}
+
 // Responsive chapter navigation
 @media (max-width: 768px) {
   article nav ul, main nav ul {

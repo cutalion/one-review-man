@@ -30,3 +30,10 @@ llm:
     o3-mini:
       max_completion_tokens: 8000
       # temperature omitted - not supported by o3-mini
+
+# Illustration Configuration
+illustration:
+  provider: openai
+  model: dall-e-3
+  style: comic book
+  orientation: landscape # default to landscape (1792x1024)

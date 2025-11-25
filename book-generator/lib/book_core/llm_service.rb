@@ -179,6 +179,43 @@ module BookCore
       raise APIError, "Invalid JSON from LLM (character): #{e.message}"
     end
 
+    # Generate an image using DALL-E
+    # Returns the URL of the generated image or base64 data
+    def generate_image(prompt, size: '1024x1024', quality: 'standard', style: 'vivid', model: 'dall-e-3')
+      if EnvUtils.mock_ai_enabled?
+        return 'https://placehold.co/1024x1024/png?text=Mock+Image'
+      end
+
+      raise ConfigurationError, 'No OpenAI client configured' if @client.nil?
+
+      parameters = {
+        model: model,
+        prompt: prompt,
+        size: size,
+        quality: quality,
+        style: style,
+        response_format: 'b64_json' # We want the data, not a temporary URL
+      }
+
+      debug_dump('image_generation_params.json', JSON.pretty_generate(parameters))
+
+      response = with_retries do
+        @client.images.generate(parameters: parameters)
+      end
+
+      debug_dump('image_generation_response.json', response.to_s)
+
+      # Extract base64 data
+      b64_data = response.dig('data', 0, 'b64_json')
+      raise APIError, 'Failed to generate image: No data returned' unless b64_data
+
+      b64_data
+    rescue Faraday::Error => e
+      raise APIError, "Image generation failed: #{e.response[:status] if e.response} - #{e.response[:body] if e.response}"
+    rescue StandardError => e
+      raise LLMError, "Image generation error: #{e.message}"
+    end
+
     def get_model_for_task(task_type)
       return @model_override if @model_override
 
