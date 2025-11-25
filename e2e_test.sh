@@ -6,7 +6,8 @@
 set -e  # Exit on any error
 
 # Configuration
-BOOK_GENERATOR_BIN="/home/cutalion/code/one-review-man/book-generator/bin/book"
+REPO_ROOT=$(pwd)
+BOOK_GENERATOR_BIN="$REPO_ROOT/book-generator/bin/book"
 TEST_DIR="/tmp/book_e2e_test_$$"
 MODEL="gpt-4.1-mini"
 TRANSLATE_LANG="ru"
@@ -114,11 +115,7 @@ check_unfilled_placeholders() {
     cd "$check_dir"
     
     local unfilled_placeholders
-    if command -v rgrep >/dev/null 2>&1; then
-        unfilled_placeholders=$(rgrep -r "{{[A-Z_][A-Z0-9_]*}}" . 2>/dev/null || true)
-    else
-        unfilled_placeholders=$(grep -r "{{[A-Z_][A-Z0-9_]*}}" . 2>/dev/null || true)
-    fi
+    unfilled_placeholders=$(grep -r "{{[A-Z_][A-Z0-9_]*}}" . 2>/dev/null || true)
     
     if [[ -n "$unfilled_placeholders" ]]; then
         log_warning "Unfilled placeholders found in $description:"
@@ -162,7 +159,7 @@ test_book_workflow() {
     # Initialize book using only standard CLI (as real user would)
     log_info "Initializing book: $book_title (using standard CLI with intelligent defaults)"
     cd "$TEST_DIR"
-    if echo -e "$book_title\n$book_author\n$book_description\nen,ru\nen" | "$BOOK_GENERATOR_BIN" init here --book-dir "$book_dir" --quick 2>/dev/null; then
+    if echo -e "$book_title\n$book_author\n$book_description\nen,ru\nen" | "$BOOK_GENERATOR_BIN" init --book-dir "$book_dir" --quick 2>/dev/null; then
         log_success "Book initialization successful"
     else
         log_error "Book initialization failed - PRODUCTION ISSUE"
@@ -171,7 +168,7 @@ test_book_workflow() {
     
     # Validate basic book structure (what init should create)
     check_dir_exists "$book_dir" "Book directory"
-    check_file_exists "$book_dir/data/book_metadata.yml" "Book metadata"
+    check_file_exists "$book_dir/data/book_config.yml" "Book metadata"
     check_file_exists "$book_dir/data/characters.yml" "Characters file" 
     check_file_exists "$book_dir/data/generation_log.yml" "Generation log"
     
@@ -181,7 +178,7 @@ test_book_workflow() {
     log_info "Testing chapter generation as real user would..."
     log_info "Attempting to generate first chapter with minimal setup..."
     
-    if "$BOOK_GENERATOR_BIN" generate chapter --model "$MODEL" --book-dir "$book_dir" --auto 2>/dev/null; then
+    if (cd "$book_dir" && MOCK_AI=true "$BOOK_GENERATOR_BIN" generate chapter --model "$MODEL" --auto --debug); then
         log_success "Chapter generation succeeded with minimal setup"
         if check_file_exists "$book_dir/content/chapters/001-chapter.md" "First chapter"; then
             log_success "Chapter file created successfully"
@@ -205,7 +202,7 @@ test_book_workflow() {
     # Test translation (if chapter exists)
     if [[ -f "$book_dir/content/chapters/001-chapter.md" ]]; then
         log_info "Testing chapter translation..."
-        if "$BOOK_GENERATOR_BIN" translate chapter 1 "$TRANSLATE_LANG" --model "$MODEL" --book-dir "$book_dir" 2>/dev/null; then
+        if (cd "$book_dir" && MOCK_AI=true "$BOOK_GENERATOR_BIN" translate chapter 1 "$TRANSLATE_LANG" --model "$MODEL"); then
             check_file_exists "$book_dir/content/chapters/001-chapter.ru.md" "First chapter translation"
         else
             log_warning "PRODUCTION ISSUE: Chapter translation failed"
@@ -215,12 +212,12 @@ test_book_workflow() {
     
     # Test generating one additional chapter only (smaller story)
     log_info "Testing second chapter generation..."
-    if "$BOOK_GENERATOR_BIN" generate chapter --model "$MODEL" --book-dir "$book_dir" --auto 2>/dev/null; then
+    if (cd "$book_dir" && MOCK_AI=true "$BOOK_GENERATOR_BIN" generate chapter --model "$MODEL" --auto); then
         check_file_exists "$book_dir/content/chapters/002-chapter.md" "Second chapter"
         
         # Test batch translation
         log_info "Testing batch translation..."
-        if "$BOOK_GENERATOR_BIN" translate all "$TRANSLATE_LANG" --model "$MODEL" --book-dir "$book_dir" 2>/dev/null; then
+        if (cd "$book_dir" && MOCK_AI=true "$BOOK_GENERATOR_BIN" translate all "$TRANSLATE_LANG" --model "$MODEL"); then
             log_success "Batch translation completed"
         else
             log_warning "PRODUCTION ISSUE: Batch translation failed"
@@ -233,7 +230,7 @@ test_book_workflow() {
     
     # Test Jekyll site generation
     log_info "Testing Jekyll site generation..."
-    if "$BOOK_GENERATOR_BIN" jekyll generate --book-dir "$book_dir" --dest "$site_dir" 2>/dev/null; then
+    if (cd "$book_dir" && "$BOOK_GENERATOR_BIN" jekyll generate --dest "$site_dir"); then
         log_success "Jekyll site generation succeeded"
         check_dir_exists "$site_dir" "Jekyll site directory"
         check_file_exists "$site_dir/_config.yml" "Jekyll config"
@@ -243,11 +240,7 @@ test_book_workflow() {
         # Test for unfilled custom placeholders (PRODUCTION ISSUE check)
         log_info "Checking for unfilled custom placeholders in source templates..."
         cd "$site_dir"
-        if command -v rgrep >/dev/null 2>&1; then
-            unfilled_placeholders=$(rgrep -r "{{[A-Z_][A-Z0-9_]*}}" . --exclude-dir=_site 2>/dev/null || true)
-        else
-            unfilled_placeholders=$(find . -name "_site" -prune -o -type f -exec grep -l "{{[A-Z_][A-Z0-9_]*}}" {} \; 2>/dev/null || true)
-        fi
+        unfilled_placeholders=$(grep -r "{{[A-Z_][A-Z0-9_]*}}" . --exclude-dir=_site 2>/dev/null || true)
         
         if [[ -n "$unfilled_placeholders" ]]; then
             log_warning "PRODUCTION ISSUE: Unfilled custom placeholders found in source templates:"
@@ -302,13 +295,13 @@ test_book_workflow() {
     
     # Test third chapter generation
     log_info "Testing third chapter generation..."
-    if "$BOOK_GENERATOR_BIN" generate chapter --model "$MODEL" --book-dir "$book_dir" --auto 2>/dev/null; then
+    if (cd "$book_dir" && MOCK_AI=true "$BOOK_GENERATOR_BIN" generate chapter --model "$MODEL" --auto); then
         if check_file_exists "$book_dir/content/chapters/003-chapter.md" "Third chapter"; then
             log_success "Third chapter generated successfully"
             
             # Test individual chapter translation
             log_info "Testing individual chapter translation..."
-            if "$BOOK_GENERATOR_BIN" translate chapter 3 "$TRANSLATE_LANG" --model "$MODEL" --book-dir "$book_dir" 2>/dev/null; then
+            if (cd "$book_dir" && MOCK_AI=true "$BOOK_GENERATOR_BIN" translate chapter 3 "$TRANSLATE_LANG" --model "$MODEL"); then
                 check_file_exists "$book_dir/content/chapters/003-chapter.ru.md" "Third chapter translation"
             else
                 log_warning "PRODUCTION ISSUE: Individual chapter translation failed"
@@ -323,7 +316,7 @@ test_book_workflow() {
     # Test Jekyll site updates
     if [[ -d "$site_dir" ]]; then
         log_info "Testing Jekyll site updates..."
-        if "$BOOK_GENERATOR_BIN" jekyll generate --book-dir "$book_dir" --dest "$site_dir" 2>/dev/null; then
+        if (cd "$book_dir" && "$BOOK_GENERATOR_BIN" jekyll generate --dest "$site_dir"); then
             log_success "Jekyll site update succeeded"
             # Only check if chapter exists before checking Jekyll copy
             if [[ -f "$book_dir/content/chapters/003-chapter.md" ]]; then

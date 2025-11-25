@@ -3,7 +3,8 @@
 # Quick test to verify production readiness fixes
 set -e
 
-BOOK_GENERATOR_BIN="/home/cutalion/code/one-review-man/book-generator/bin/book"
+REPO_ROOT=$(pwd)
+BOOK_GENERATOR_BIN="$REPO_ROOT/book-generator/bin/book"
 TEST_DIR="/tmp/quick_test_$$"
 
 echo "🧪 Quick Production Readiness Test"
@@ -17,7 +18,7 @@ echo ""
 echo "1️⃣ Testing enhanced book initialization..."
 
 # Test book initialization with intelligent defaults
-echo -e "Fantasy Quest\nWizard Author\nA magical adventure with dragons and spells\nen\nen" | "$BOOK_GENERATOR_BIN" init here --book-dir fantasy-book --quick
+echo -e "Fantasy Quest\nWizard Author\nA magical adventure with dragons and spells\nen\nen" | "$BOOK_GENERATOR_BIN" init --book-dir fantasy-book --quick
 
 if [[ $? -eq 0 ]]; then
     echo "✅ Book initialization: PASSED"
@@ -30,7 +31,7 @@ echo ""
 echo "2️⃣ Testing book status command..."
 
 cd fantasy-book
-"$BOOK_GENERATOR_BIN" status show
+"$BOOK_GENERATOR_BIN" status
 
 if [[ $? -eq 0 ]]; then
     echo "✅ Book status command: PASSED"
@@ -43,9 +44,9 @@ echo ""
 echo "3️⃣ Testing chapter generation readiness..."
 
 # Check if metadata is properly structured
-if grep -q "genre: fantasy" data/book_metadata.yml && 
-   grep -q "humor_style: adventurous" data/book_metadata.yml &&
-   grep -q "setting: magical realm" data/book_metadata.yml; then
+if grep -q "genre: fantasy" data/book_config.yml &&
+   grep -q "style: adventurous" data/book_config.yml &&
+   grep -q "setting: magical realm" data/book_config.yml; then
     echo "✅ Intelligent defaults: PASSED"
     echo "   - Genre correctly inferred as 'fantasy' (from 'magical', 'dragons')"
     echo "   - Style correctly inferred as 'adventurous' (from 'adventure')" 
@@ -61,7 +62,7 @@ echo ""
 echo "4️⃣ Testing required files creation..."
 
 required_files=(
-    "data/book_metadata.yml"
+    "data/book_config.yml"
     "data/world.yml"
     "data/strings.yml"
     "data/characters.yml"

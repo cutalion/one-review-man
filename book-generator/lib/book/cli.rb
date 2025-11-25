@@ -588,7 +588,14 @@ module Book
           'author' => book_info[:author],
           'description' => book_info[:description],
           'languages' => (book_info[:languages] || 'en').split(',').map(&:strip),
-          'default_language' => book_info[:default_lang]
+          'default_language' => book_info[:default_lang],
+          'site' => {
+            'url' => '',
+            'domain' => '',
+            'author_email' => '',
+            'twitter_username' => '',
+            'github_username' => ''
+          }
         }
       end
 
@@ -879,10 +886,13 @@ module Book
       end
 
       def load_jekyll_metadata(book_root)
+        config_path = File.join(book_root, 'data', 'book_config.yml')
         metadata_path = File.join(book_root, 'data', 'book_metadata.yml')
-        return nil unless File.exist?(metadata_path)
 
-        YAML.safe_load_file(metadata_path)
+        path_to_load = File.exist?(config_path) ? config_path : metadata_path
+        return nil unless File.exist?(path_to_load)
+
+        YAML.safe_load_file(path_to_load)
       end
 
       def add_english_placeholders(placeholders, book_metadata)
