@@ -34,6 +34,7 @@ Gem::Specification.new do |spec|
   # Runtime dependencies
   spec.add_dependency 'dotenv', '~> 3.1'
   spec.add_dependency 'rainbow', '~> 3.1'
+  spec.add_dependency 'reline'
   spec.add_dependency 'ruby-openai', '~> 7.3'
   spec.add_dependency 'thor', '~> 1.3'
   spec.add_dependency 'tty-prompt', '~> 0.23'
