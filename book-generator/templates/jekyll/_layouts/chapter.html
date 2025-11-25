@@ -3,7 +3,10 @@ layout: default
 ---
 
 <article>
-  {{ content }}
+  {% capture processed_content %}
+    {{ content | regex_replace: '!\\[\\[illustration:(.*?)\\]\\]', '<img src="/assets/images/chapter_{{ page.chapter_number }}/\\1" alt="Illustration" class="illustration" />' }}
+  {% endcapture %}
+  {{ processed_content }}
   
   <nav>
     {% include chapter_nav.html %}

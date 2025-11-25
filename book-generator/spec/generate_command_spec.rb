@@ -9,7 +9,6 @@ RSpec.describe 'book generate command' do
   let(:cli_path) { File.expand_path('../bin/book', __dir__) }
   let(:rubyopt_injector) { "-r#{File.expand_path('support/inject_mock_llm', __dir__)}" }
   
-  # Run each test in a fresh temporary directory
   around(:each) do |example|
     Dir.mktmpdir do |tmpdir|
       Dir.chdir(tmpdir) do
@@ -19,13 +18,13 @@ RSpec.describe 'book generate command' do
   end
 
   def setup_book_structure
-    FileUtils.mkdir_p('_chapters')
+    FileUtils.mkdir_p('content/chapters')
     FileUtils.mkdir_p('data')
-    File.write(File.join('data', 'book_metadata.yml'), "book:\n  current_chapter: 0\n")
+    File.write(File.join('data', 'book_config.yml'), "---\n")
+    File.write(File.join('data', 'book_state.yml'), "book:\n  current_chapter: 0\n")
   end
 
   it 'responds to chapter generation' do
-    # Test in empty directory (should fail because not a book directory)
     _, stderr, status = Open3.capture3('ruby', cli_path, 'generate', 'chapter', '1')
     expect(status).not_to be_success
     expect(stderr).to include('book directory')
@@ -53,6 +52,30 @@ RSpec.describe 'book generate command' do
       stdout, _stderr, status = Open3.capture3(env, 'ruby', cli_path, 'generate', 'chapter', '1', '--model', 'gpt-4o', '--auto')
       expect(status).to be_success
       expect(stdout).to include('gpt-4o')
+    end
+
+    context 'when generating illustrations' do
+      before do
+        File.write('content/chapters/001-chapter.md', 'This is a chapter with anchor text.')
+      end
+
+      it 'embeds illustration with --anchor' do
+        env = { 'RUBYOPT' => rubyopt_injector, 'MOCK_AI' => 'true' }
+        stdout, stderr, status = Open3.capture3(env, 'ruby', cli_path, 'generate', 'illustration', '1', 'a test prompt', '--anchor', 'anchor text')
+
+        expect(status).to be_success
+        expect(stderr).to be_empty
+        expect(stdout).to include('Illustration embedded in chapter 1')
+      end
+
+      it 'prints markdown tag without --anchor' do
+        env = { 'RUBYOPT' => rubyopt_injector, 'MOCK_AI' => 'true' }
+        stdout, stderr, status = Open3.capture3(env, 'ruby', cli_path, 'generate', 'illustration', '1', 'a test prompt')
+
+        expect(status).to be_success
+        expect(stderr).to be_empty
+        expect(stdout).to include('![[illustration:')
+      end
     end
   end
 end
