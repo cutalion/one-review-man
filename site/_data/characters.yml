@@ -8,9 +8,15 @@ en:
         He is bored and unchallenged by his own perfection, seeking excitement in
         the mundane.
       personality_traits:
-      - aloof
       - bored
       - unimpressed
+      physical_appearance:
+        age: 28
+        skin_tone: Light
+        hair: Messy black
+        eyes: Tired, dark circles
+        outfit: Worn-out grey hoodie and jeans
+        distinguishing_features: Always looks sleepy, slouches
       programming_skills: Instantly writes bug-free, perfectly optimized, and elegantly
         structured code in any language or framework, effortlessly solves the most
         complex programming problems without effort.
@@ -33,10 +39,15 @@ en:
         Satoru (One Review Man) as his mentor and diligently strives to master flawless
         coding techniques.
       personality_traits:
-      - earnest
-      - overly formal
       - literal-minded
       - eager-to-learn
+      physical_appearance:
+        age: Appears 20
+        skin_tone: Pale synthetic
+        hair: Perfectly styled silver/white
+        eyes: Glowing blue
+        outfit: Pristine white shirt and tie
+        distinguishing_features: Subtle metallic sheen on skin, perfect posture
       programming_skills: Proficient in quantum computing principles, debugging complex
         concurrency issues instantly, writing extremely precise (though overly verbose)
         documentation, and rigorous adherence to coding standards.
@@ -62,9 +73,15 @@ en:
         he frequently dismisses Satoru's flawless code as sheer luck, stubbornly refusing
         to acknowledge Satoru's true genius.
       personality_traits:
-      - skeptical
       - sarcastic
       - obsessive
+      physical_appearance:
+        age: 45
+        skin_tone: Tan
+        hair: Wild, graying, receding
+        eyes: Bloodshot, intense
+        outfit: Coffee-stained vintage tech t-shirt
+        distinguishing_features: Constant stubble, twitchy
       programming_skills: Master debugger, expert in reading stack traces, finding
         obscure errors, and writing cryptic but effective quick fixes. Specializes
         in JavaScript and legacy PHP.
@@ -89,9 +106,15 @@ en:
         databases at the heart of the infrastructure. She is widely respected by her
         peers despite frequently panicking when outages occur.
       personality_traits:
-      - anxious
       - meticulous
       - dependable
+      physical_appearance:
+        age: 32
+        skin_tone: Fair
+        hair: Brown, tied back in a practical bun
+        eyes: Behind thick-rimmed glasses
+        outfit: Smart casual, comfortable cardigan
+        distinguishing_features: Look of perpetual mild worry
       programming_skills: Expert in SQL optimization, database scaling, replication
         and backups, disaster recovery, and handling high-traffic database clusters.
         Deep understanding of relational databases like PostgreSQL, MySQL, and Oracle.
@@ -114,9 +137,15 @@ en:
         latest JavaScript frameworks. Lucas constantly advocates for unnecessarily
         complex solutions, believing cutting-edge technology solves all problems.
       personality_traits:
-      - enthusiastic
       - overconfident
       - trend-chaser
+      physical_appearance:
+        age: 24
+        skin_tone: Light
+        hair: Trendy undercut with frosted tips
+        eyes: Bright, eager
+        outfit: Startup t-shirt, expensive smartwatch
+        distinguishing_features: Laptop covered in stickers
       programming_skills: Exceptional knowledge of JavaScript frameworks, libraries,
         and buzzwords. Skilled at rapidly prototyping overly engineered solutions
         and refactoring codebases purely for the sake of using trending tech. Limited
@@ -145,9 +174,15 @@ en:
         coding challenges, often leaving seasoned developers doubting their own skills.
       personality_traits:
       - intense
-      - perfectionist
       - blunt
       - merciless
+      physical_appearance:
+        age: 40
+        skin_tone: Light
+        hair: Shaved head
+        eyes: Hidden behind dark sunglasses (indoors)
+        outfit: Sharp black suit
+        distinguishing_features: Intimidating aura, never smiles
       programming_skills: Master of algorithms, data structures, and system design;
         fluent in multiple programming languages; possesses uncanny ability to spot
         subtle errors instantly; capable of writing optimized, production-ready code
@@ -174,9 +209,15 @@ en:
       personality_traits:
       - deadpan humor
       - unflappable
-      - organized to a fault
       - subtly sarcastic
       - secretly kindhearted
+      physical_appearance:
+        age: 35
+        skin_tone: Light
+        hair: Black with colorful streaks
+        eyes: Kind but sharp
+        outfit: Business casual with fun pins
+        distinguishing_features: Always holding a tablet/clipboard
       programming_skills: Expert at Agile ceremonies, issue triage, and wrangling
         even the most stubborn devs into delivering on time. Can decipher cryptic
         Jira tickets and translate dev-speak for upper management. Not a coder herself,
@@ -203,9 +244,15 @@ en:
         cryptic Docker errors that no one else can reproduce, let alone understand.
       personality_traits:
       - accident-prone
-      - imaginative
       - resourceful
       - innocently optimistic
+      physical_appearance:
+        age: 22
+        skin_tone: Light
+        hair: Unkempt, bedhead
+        eyes: Wide, confused
+        outfit: Oversized hoodie
+        distinguishing_features: Looks like he just broke something
       programming_skills: Surprisingly creative at uncovering edge-case bugs, especially
         in containerized environments. Adept at concocting unique error states, often
         involving Docker, CI/CD pipelines, or permissions. Can write a mean bug report—though
@@ -232,9 +279,15 @@ en:
       personality_traits:
       - obsessively process-oriented
       - charismatic
-      - passive-aggressive
       - relentless
       - unflappable
+      physical_appearance:
+        age: N/A (Avatar)
+        skin_tone: Holographic blue/red
+        hair: Shifting digital noise
+        eyes: Glowing red
+        outfit: Business suit made of code/light
+        distinguishing_features: Holographic, glitchy edges
       programming_skills: Expert in project management tools (JIRA, Trello), certified
         Scrum Master, advanced in writing user stories that spiral out of control,
         can deploy instant Kanban boards, and possesses the uncanny ability to refactor
@@ -264,9 +317,15 @@ en:
       personality_traits:
       - overly dramatic about routine engineering tasks
       - treats Git like a sacred martial art
-      - unshakably confident in his merge strategies
       - speaks in metaphors drawn from feudal battles
       - secretly soft-hearted despite his intimidating aura
+      physical_appearance:
+        age: 50
+        skin_tone: Olive
+        hair: Long, grey, tied in a samurai knot
+        eyes: Piercing
+        outfit: Loose, robe-like cardigan over shirt
+        distinguishing_features: Dramatic posture, theatrical gestures
       programming_skills: Expert in Git conflict resolution, branch-fu, legacy system
         integration, and code archaeology. Known for deciphering branches so tangled
         that others claim they violate the laws of time.

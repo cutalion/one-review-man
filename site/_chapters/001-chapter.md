@@ -86,6 +86,14 @@ Kai nodded seriously, then approached Kenji and bowed deeply, startling everyone
 
 Kenji blinked slowly, still scrolling through Stack Overflow. "Sure, whatever."
 
+<div class="illustration" markdown="1">
+
+![A serious silver-haired android named Kai Nakamura introduces himself in a casual workplace, seeking mentorship from Kenji.]({{ '/assets/images/a-tall-strangely-composed-individual-with-51d7e62a.png' | relative_url }})
+
+</div>
+
+
+
 ---
 
 The day progressed with the usual mix of chaos and caffeine. In the dev corner, Mark frantically scrolled through logs, panic rising in his voice.
@@ -165,4 +173,3 @@ Unbeknownst to everyone, deep within the bowels of their ancient codebase, somet
 The year was already 2024.
 
 **To Be Continued...**
-

@@ -14,11 +14,25 @@ module BookCore
       @characters_data = load_characters_data
     end
 
-    def generate(chapter_number, prompt, style: nil, orientation: 'landscape', anchor_text: nil, provider: 'openai', model: 'dall-e-3')
+    def generate(chapter_number, prompt, style: nil, orientation: nil, anchor_text: nil, provider: nil, model: nil, dry_run: false, alt_text: nil)
       # 1. Prepare prompt and parameters
       context_enhanced_prompt = inject_character_context(prompt)
+      
+      # Resolve defaults for accurate logging/dry-run
+      opts = @llm_service.resolve_image_options(
+        provider: provider, 
+        model: model, 
+        style: style, 
+        orientation: orientation
+      )
+      
+      provider = opts[:provider]
+      model = opts[:model]
+      style = opts[:style]
+      size = opts[:size]
+      orientation = opts[:orientation]
+      
       full_prompt = build_prompt(context_enhanced_prompt, style)
-      size = resolve_size(orientation)
       
       # 2. Generate image
       puts "🎨 Generating illustration for Chapter #{chapter_number}..."
@@ -26,9 +40,14 @@ module BookCore
       puts "   Model: #{model}"
       puts "   Prompt: #{prompt}"
       puts "   Enhanced Prompt: #{full_prompt}" if full_prompt != prompt
-      puts "   Style: #{style || 'default'}"
-      puts "   Orientation: #{orientation} (#{size})"
+      puts "   Style: #{style}"
+      puts "   Orientation: #{orientation || 'default'} (#{size})"
       
+      if dry_run
+        puts "   [Dry Run] Skipping image generation and embedding."
+        return nil
+      end
+
       b64_data = @llm_service.generate_image(full_prompt, size: size, provider: provider, model: model)
       
       # 3. Save image
@@ -36,7 +55,8 @@ module BookCore
       puts "   Saved to: #{image_path}"
       
       # 4. Embed in chapter
-      embed_in_chapter(chapter_number, image_path, prompt, anchor_text)
+      final_alt_text = resolve_alt_text(alt_text, prompt)
+      embed_in_chapter(chapter_number, image_path, final_alt_text, anchor_text)
       puts "✅ Illustration added to Chapter #{chapter_number}"
       
       image_path
@@ -49,16 +69,6 @@ module BookCore
       "#{style} style. #{prompt}"
     end
 
-    def resolve_size(orientation)
-      case orientation.to_s.downcase
-      when 'portrait'
-        '1024x1792'
-      when 'landscape'
-        '1792x1024'
-      else
-        '1024x1024' # square
-      end
-    end
 
     def save_image(b64_data, prompt)
       slug = generate_slug(prompt)
@@ -85,14 +95,14 @@ module BookCore
       words.map { |w| w.downcase.gsub(/[^a-z0-9]/, '') }.reject(&:empty?).join('-')
     end
 
-    def embed_in_chapter(chapter_number, image_path, prompt, anchor_text)
+    def embed_in_chapter(chapter_number, image_path, alt_text, anchor_text)
       chapter_file = find_chapter_file(chapter_number)
       return unless chapter_file
 
       # Liquid tag for robust linking
       # {{ '/assets/images/foo.png' | relative_url }}
       # Wrap in div.illustration for better styling control
-      image_markdown = "\n\n<div class=\"illustration\" markdown=\"1\">\n\n![#{prompt}]({{ '#{image_path}' | relative_url }})\n\n</div>\n\n"
+      image_markdown = "\n\n<div class=\"illustration\" markdown=\"1\">\n\n![#{alt_text}]({{ '#{image_path}' | relative_url }})\n\n</div>\n\n"
 
       # Calculate block index for translations BEFORE updating the main file
       anchor_block_index = find_anchor_block_index(chapter_file, anchor_text)
@@ -255,6 +265,22 @@ module BookCore
           .gsub(/[“”]/, '"')
           .gsub(/[‘’]/, "'")
           .gsub(/[^a-z0-9]/, '')
+    end
+
+    def resolve_alt_text(alt_text, prompt)
+      return alt_text if alt_text && !alt_text.strip.empty?
+
+      # If no alt text provided, summarize the prompt using LLM
+      puts "   Generating alt text summary..."
+      begin
+        summary = @llm_service.summarize_text(prompt)
+        puts "   Alt text: #{summary}"
+        summary
+      rescue StandardError => e
+        puts "⚠️  Failed to generate alt text summary: #{e.message}"
+        # Fallback to truncated prompt
+        prompt.split[0..10].join(' ') + '...'
+      end
     end
   end
 end

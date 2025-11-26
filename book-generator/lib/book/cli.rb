@@ -327,7 +327,7 @@ module Book
     class Generate < Thor
       include Helpers
 
-      class_option :model, type: :string, desc: 'Specify the model to use for generation'
+      class_option :model, type: :string, desc: 'Specify the model to use for generation (defaults to settings.yml)'
       class_option :auto, type: :boolean, default: false, desc: 'Auto mode: skip interactive prompts'
       class_option :debug, type: :boolean, default: false, desc: 'Enable verbose LLM debug logging'
       class_option :book_dir, aliases: ['-b'], type: :string, desc: 'Path to the book directory (defaults to current directory)'
@@ -367,11 +367,13 @@ module Book
       method_option :content, type: :string, required: true, desc: 'Line range for content (e.g., "10:17")'
       method_option :anchor, type: :numeric, desc: 'Line number to anchor illustration (defaults to first line of content)'
       method_option :prompt, type: :string, desc: 'Additional prompt text to augment the extracted content'
-      method_option :style, type: :string, desc: 'Style of the illustration (e.g., "comic book", "oil painting")'
-      method_option :orientation, type: :string, desc: 'Orientation: landscape, portrait, square, or aspect ratio (16:9, 1:1, etc.)'
-      method_option :provider, type: :string, desc: 'Image provider (openai, openrouter)'
-      method_option :model, type: :string, desc: 'Model name (e.g., google/gemini-3-pro-image-preview, dall-e-3)'
+      method_option :alt_text, type: :string, desc: 'Alt text for the image (defaults to LLM summary of prompt)'
+      method_option :style, type: :string, desc: 'Style of the illustration (defaults to settings.yml)'
+      method_option :orientation, type: :string, desc: 'Orientation: landscape, portrait, square (defaults to settings.yml)'
+      method_option :provider, type: :string, desc: 'Image provider: openai, openrouter (defaults to settings.yml)'
+      method_option :model, type: :string, desc: 'Model name (defaults to settings.yml)'
       method_option :debug, type: :boolean, default: false, desc: 'Enable debug mode for AI calls'
+      method_option :dry_run, type: :boolean, default: false, desc: 'Dry run: print parameters without generating'
       method_option :book_dir, aliases: ['-b'], type: :string, desc: 'Path to the book directory'
       def illustration
         project_root = resolve_project_root!(options[:book_dir])
@@ -425,22 +427,12 @@ module Book
           
           # Load settings to get defaults
           config_path = File.join(abs_root, 'data', 'settings.yml')
-          settings = YAML.load_file(config_path) if File.exist?(config_path)
-          illustration_settings = settings&.dig('illustration') || {}
           
-          # Three-tier override precedence: CLI > ENV > Settings > Defaults
-          provider = options[:provider] || 
-                     ENV['ILLUSTRATION_PROVIDER'] || 
-                     illustration_settings['provider'] || 
-                     'openai'
-          
-          model = options[:model] || 
-                  ENV['ILLUSTRATION_MODEL'] || 
-                  illustration_settings['model'] || 
-                  'dall-e-3'
-          
-          style = options[:style] || illustration_settings['style']
-          orientation = options[:orientation] || illustration_settings['orientation'] || 'landscape'
+          # Three-tier override precedence: CLI > ENV > Settings > Defaults (handled in LLMService)
+          provider = options[:provider] || ENV['ILLUSTRATION_PROVIDER']
+          model = options[:model] || ENV['ILLUSTRATION_MODEL']
+          style = options[:style]
+          orientation = options[:orientation]
           
           # Initialize LLM service
           llm_service = BookCore::LLMService.new(config_path)
@@ -454,7 +446,9 @@ module Book
             orientation: orientation, 
             anchor_text: anchor_text,
             provider: provider,
-            model: model
+            model: model,
+            dry_run: options[:dry_run],
+            alt_text: options[:alt_text]
           )
         end
       end
@@ -464,7 +458,7 @@ module Book
     class Translate < Thor
       include Helpers
 
-      class_option :model, type: :string, desc: 'Specify the model to use for translation'
+      class_option :model, type: :string, desc: 'Specify the model to use for translation (defaults to settings.yml)'
       class_option :debug, type: :boolean, default: false, desc: 'Enable verbose LLM debug logging'
       class_option :book_dir, aliases: ['-b'], type: :string, desc: 'Path to the book directory (defaults to current directory)'
 

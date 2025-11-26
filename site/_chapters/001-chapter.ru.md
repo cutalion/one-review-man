@@ -88,6 +88,14 @@ translated_date: '2025-08-18'
 
 Кэндзи медленно моргнул, все еще прокручивая Stack Overflow. "Конечно, как скажешь."
 
+<div class="illustration" markdown="1">
+
+![A serious silver-haired android named Kai Nakamura introduces himself in a casual workplace, seeking mentorship from Kenji.]({{ '/assets/images/a-tall-strangely-composed-individual-with-51d7e62a.png' | relative_url }})
+
+</div>
+
+
+
 ---
 
 День продолжался с привычной смесью хаоса и кофеина. В углу разработчиков Марк в панике прокручивал логи, паника нарастала в его голосе.

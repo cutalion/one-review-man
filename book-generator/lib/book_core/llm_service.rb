@@ -23,7 +23,8 @@ module BookCore
     def initialize(config_path, model_override = nil)
       @config_path = config_path
       @model_override = model_override
-      @config = load_config(config_path)
+      @settings = load_settings(config_path)
+      @config = @settings['llm'] || {}
       @client = setup_client
       @debug = EnvUtils.debug_ai_enabled?
       @debug_dir = nil
@@ -41,6 +42,26 @@ module BookCore
       raise APIError, 'Failed to generate content' unless response && response['content']
 
       response['content']
+    end
+
+    # Summarize text using a lightweight model
+    def summarize_text(text)
+      if EnvUtils.mock_ai_enabled?
+        return "Mock summary of: #{text[0..20]}..."
+      end
+
+      prompt = "Summarize the following text into a short description suitable for an image alt text (max 20 words):\n\n#{text}"
+      
+      # Use gpt-5-nano by default for summarization if not overridden
+      options = get_task_options('summarization', { 
+        model: 'gpt-5-nano',
+        system_prompt: 'You are a helpful assistant that summarizes text for image descriptions.' 
+      })
+
+      response = call_llm(prompt, options, 'summarization')
+      raise APIError, 'Failed to summarize text' unless response && response['content']
+
+      response['content'].strip
     end
 
     # Structured chapter translation (returns hash with title/summary/content)
@@ -203,10 +224,16 @@ module BookCore
     # @param style [String] Image style for DALL-E
     # @param model [String] Model name (e.g., 'dall-e-3', 'google/gemini-3-pro-image-preview')
     # @param provider [String] Provider name ('openai' or 'openrouter')
-    def generate_image(prompt, size: '1024x1024', quality: 'standard', style: 'vivid', model: 'dall-e-3', provider: 'openai')
+    def generate_image(prompt, size: nil, quality: 'standard', style: nil, model: nil, provider: nil)
       if EnvUtils.mock_ai_enabled?
         return 'https://placehold.co/1024x1024/png?text=Mock+Image'
       end
+
+      opts = resolve_image_options(provider: provider, model: model, style: style, size: size)
+      provider = opts[:provider]
+      model = opts[:model]
+      style = opts[:style]
+      size = opts[:size]
 
       case provider.to_s.downcase
       when 'openrouter'
@@ -216,6 +243,29 @@ module BookCore
       else
         raise ConfigurationError, "Unknown image provider: #{provider}. Supported: openai, openrouter"
       end
+    end
+
+    def resolve_image_options(provider: nil, model: nil, style: nil, size: nil, orientation: nil)
+      illustration_config = @settings['illustration'] || {}
+      
+      # Use explicit args, then illustration config, then hardcoded fallbacks
+      provider ||= illustration_config['provider'] || 'openai'
+      model ||= illustration_config['model'] || 'dall-e-3'
+      style ||= illustration_config['style'] || 'vivid'
+      
+      # Resolve size from orientation if size is not explicit
+      unless size
+        orientation ||= illustration_config['orientation']
+        size = resolve_default_size(orientation) || '1024x1024'
+      end
+
+      {
+        provider: provider,
+        model: model,
+        style: style,
+        size: size,
+        orientation: orientation
+      }
     end
 
     private
@@ -358,7 +408,7 @@ module BookCore
 
       begin
         yield
-      rescue Faraday::Error => e
+      rescue Faraday::Error
         if retries < max_retries
           sleep_time = backoff**retries
           # Log retry (puts for now, could be logger)
@@ -371,13 +421,22 @@ module BookCore
       end
     end
 
+    def resolve_default_size(orientation)
+      case orientation.to_s.downcase
+      when 'portrait'
+        '1024x1792'
+      when 'landscape'
+        '1792x1024'
+      else
+        '1024x1024' # square
+      end
+    end
+
     private
 
-    def load_config(config_file)
+    def load_settings(config_file)
       if File.exist?(config_file)
-        settings = YAML.load_file(config_file) || {}
-        # Extract LLM configuration from settings file
-        settings['llm'] || {}
+        YAML.load_file(config_file) || {}
       else
         {}
       end
