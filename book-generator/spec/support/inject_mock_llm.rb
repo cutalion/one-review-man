@@ -9,3 +9,7 @@ Object.const_set(:LLMService, MockLLMService)
 module BookCore; end unless defined?(BookCore)
 BookCore.send(:remove_const, :LLMService) if defined?(BookCore::LLMService)
 BookCore.const_set(:LLMService, MockLLMService)
+
+# Prevent the real LLMService from being loaded and overwriting the mock
+$LOADED_FEATURES << File.expand_path('../../lib/book_core/llm_service.rb', __dir__)
+$LOADED_FEATURES << 'book_core/llm_service.rb'

@@ -17,14 +17,13 @@ module BookCore
     class ConfigurationError < LLMError; end
     class APIError < LLMError; end
 
-    DEFAULT_MODEL = 'gpt-4o-mini'
-    O3_MODELS = %w[o3-mini o3].freeze
+    class LLMError < StandardError; end
+    class ConfigurationError < LLMError; end
+    class APIError < LLMError; end
 
-    def initialize(config_path, model_override = nil)
-      @config_path = config_path
-      @model_override = model_override
-      @settings = load_settings(config_path)
-      @config = @settings['llm'] || {}
+    def initialize(config)
+      @config = config['llm'] || {}
+      @settings = config # Keep full config for other sections like illustration
       @client = setup_client
       @debug = EnvUtils.debug_ai_enabled?
       @debug_dir = nil
@@ -53,8 +52,8 @@ module BookCore
       prompt = "Summarize the following text into a short description suitable for an image alt text (max 20 words):\n\n#{text}"
       
       # Use gpt-5-nano by default for summarization if not overridden
+      # Model is now resolved from config via get_model_for_task('summarization')
       options = get_task_options('summarization', { 
-        model: 'gpt-5-nano',
         system_prompt: 'You are a helpful assistant that summarizes text for image descriptions.' 
       })
 
@@ -392,12 +391,12 @@ module BookCore
     public
 
     def get_model_for_task(task_type)
-      return @model_override if @model_override
-
+      # Check for specific model override for this task type in the config
+      # The config logic should have already merged CLI overrides into this structure
       if @config['models'] && @config['models'][task_type]
         @config['models'][task_type]
       else
-        @config['model'] || DEFAULT_MODEL
+        @config['model']
       end
     end
 
@@ -433,14 +432,6 @@ module BookCore
     end
 
     private
-
-    def load_settings(config_file)
-      if File.exist?(config_file)
-        YAML.load_file(config_file) || {}
-      else
-        {}
-      end
-    end
 
     def setup_client
       return nil if EnvUtils.mock_ai_enabled?
@@ -691,7 +682,9 @@ module BookCore
       return unless @debug
       return @debug_dir if @debug_dir
 
-      project_root = File.expand_path(File.join(File.dirname(@config_path), '..'))
+      # Best effort to find project root since we don't have config_path anymore
+      # We assume the caller (CLI) sets up the environment or we use PWD
+      project_root = Dir.pwd
       dir = File.join(project_root, 'tmp', 'ai_debug')
       FileUtils.mkdir_p(dir)
       @debug_dir = dir

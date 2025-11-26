@@ -25,7 +25,7 @@ RSpec.describe 'book chapter generation' do
       File.write(File.join(test_dir, 'data', 'settings.yml'), "llm:\n  model: mock\n")
 
       # Mock the ChapterGenerator to avoid actual LLM calls
-      expect(BookCore::ChapterGenerator).to receive(:new).with('gpt-4o', hash_including(project_root: kind_of(String))).and_call_original
+      expect(BookCore::ChapterGenerator).to receive(:new).with(hash_including(configuration: kind_of(Hash), project_root: kind_of(String))).and_call_original
       # Stub the generate_next_chapter method to prevent it from running
       expect_any_instance_of(BookCore::ChapterGenerator).to receive(:generate_next_chapter).with(auto_generate: true)
 

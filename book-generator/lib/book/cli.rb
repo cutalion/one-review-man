@@ -10,6 +10,7 @@ require 'book_core/chapter_generator'
 require 'book_core/env_utils'
 require 'book_core/book_config'
 require 'book_core/illustration_generator'
+require 'book_core/configuration'
 
 module Book
   module CLI
@@ -334,12 +335,18 @@ module Book
 
       desc 'chapter [NUMBER]', 'Generate a chapter'
       def chapter(_number = nil)
-        model_name = options[:model]
         project_root = resolve_project_root!(options[:book_dir])
         abs_root = File.expand_path(project_root)
+        
+        # Load configuration with CLI overrides
+        cli_overrides = {}
+        cli_overrides['llm.model'] = options[:model] if options[:model]
+        config = BookCore::Configuration.load(abs_root, cli_overrides)
+
         Dir.chdir(abs_root) do
           ENV['DEBUG_AI'] = '1' if options[:debug]
-          generator = BookCore::ChapterGenerator.new(model_name, project_root: abs_root)
+          # Pass config to generator
+          generator = BookCore::ChapterGenerator.new(configuration: config, project_root: abs_root)
           generator.generate_next_chapter(auto_generate: options[:auto])
         end
       end
@@ -353,8 +360,14 @@ module Book
         end
 
         abs_root = File.expand_path(project_root)
+        
+        # Load configuration with CLI overrides
+        cli_overrides = {}
+        cli_overrides['llm.model'] = options[:model] if options[:model]
+        config = BookCore::Configuration.load(abs_root, cli_overrides)
+
         Dir.chdir(abs_root) do
-          generator = BookCore::ChapterGenerator.new(options[:model], project_root: abs_root)
+          generator = BookCore::ChapterGenerator.new(config: config, project_root: abs_root)
           chapter_number = number ? number.to_i : generator.send(:determine_next_chapter_number)
           prompt = generator.send(:build_chapter_prompt, chapter_number)
           puts prompt
@@ -372,6 +385,7 @@ module Book
       method_option :orientation, type: :string, desc: 'Orientation: landscape, portrait, square (defaults to settings.yml)'
       method_option :provider, type: :string, desc: 'Image provider: openai, openrouter (defaults to settings.yml)'
       method_option :model, type: :string, desc: 'Model name (defaults to settings.yml)'
+      method_option :summarization_model, type: :string, desc: 'Model to use for alt text summarization'
       method_option :debug, type: :boolean, default: false, desc: 'Enable debug mode for AI calls'
       method_option :dry_run, type: :boolean, default: false, desc: 'Dry run: print parameters without generating'
       method_option :book_dir, aliases: ['-b'], type: :string, desc: 'Path to the book directory'
@@ -426,7 +440,13 @@ module Book
           anchor_text = anchor_line > 0 && anchor_line <= chapter_lines.length ? chapter_lines[anchor_line - 1].strip : nil
           
           # Load settings to get defaults
-          config_path = File.join(abs_root, 'data', 'settings.yml')
+          cli_overrides = {}
+          cli_overrides['llm.model'] = options[:model] if options[:model] # For generation if needed
+          cli_overrides['llm.models.summarization'] = options[:summarization_model] if options[:summarization_model]
+          
+          # Illustration specific overrides (handled by IllustrationGenerator but passed via config if we want to unify)
+          # For now, IllustrationGenerator handles its own config, but LLMService needs the LLM config
+          config = BookCore::Configuration.load(abs_root, cli_overrides)
           
           # Three-tier override precedence: CLI > ENV > Settings > Defaults (handled in LLMService)
           provider = options[:provider] || ENV['ILLUSTRATION_PROVIDER']
@@ -434,8 +454,8 @@ module Book
           style = options[:style]
           orientation = options[:orientation]
           
-          # Initialize LLM service
-          llm_service = BookCore::LLMService.new(config_path)
+          # Initialize LLM service with config
+          llm_service = BookCore::LLMService.new(config)
           
           # Generate illustration with provider and model options
           generator = BookCore::IllustrationGenerator.new(llm_service, project_root: abs_root)
@@ -466,9 +486,14 @@ module Book
       def chapter(number, lang)
         book_root = resolve_project_root!(options[:book_dir])
         abs_root = File.expand_path(book_root)
+        
+        cli_overrides = {}
+        cli_overrides['llm.model'] = options[:model] if options[:model]
+        config = BookCore::Configuration.load(abs_root, cli_overrides)
+
         Dir.chdir(abs_root) do
           ENV['DEBUG_AI'] = '1' if options[:debug]
-          translator = Book::Translator.new(options[:model], project_root: abs_root)
+          translator = Book::Translator.new(config: config, project_root: abs_root)
           translator.translate_chapter_with_ai(number.to_i, lang)
         end
       end
@@ -477,9 +502,14 @@ module Book
       def character(slug, lang)
         book_root = resolve_project_root!(options[:book_dir])
         abs_root = File.expand_path(book_root)
+        
+        cli_overrides = {}
+        cli_overrides['llm.model'] = options[:model] if options[:model]
+        config = BookCore::Configuration.load(abs_root, cli_overrides)
+
         Dir.chdir(abs_root) do
           ENV['DEBUG_AI'] = '1' if options[:debug]
-          translator = Book::Translator.new(options[:model], project_root: abs_root)
+          translator = Book::Translator.new(config: config, project_root: abs_root)
           translator.translate_character_with_ai(slug, lang)
         end
       end
@@ -488,9 +518,14 @@ module Book
       def all(lang)
         book_root = resolve_project_root!(options[:book_dir])
         abs_root = File.expand_path(book_root)
+        
+        cli_overrides = {}
+        cli_overrides['llm.model'] = options[:model] if options[:model]
+        config = BookCore::Configuration.load(abs_root, cli_overrides)
+
         Dir.chdir(abs_root) do
           ENV['DEBUG_AI'] = '1' if options[:debug]
-          translator = Book::Translator.new(options[:model], project_root: abs_root)
+          translator = Book::Translator.new(config: config, project_root: abs_root)
           translator.translate_all_content?(lang)
         end
       end

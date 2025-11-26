@@ -1,0 +1,42 @@
+---
+# Default Configuration for Book Generator
+# This file contains all default values. Project-specific settings in data/settings.yml override these.
+
+llm:
+  provider: openai
+  model: gpt-4o-mini
+  temperature: 0.7
+  timeout: 240
+  default_options:
+    max_tokens: 12000
+  task_options:
+    generation:
+      max_tokens: 8000
+    translation:
+      max_tokens: 12000
+    summarization:
+      max_tokens: 2000
+  models:
+    summarization: gpt-5-nano
+  model_settings:
+    gpt-5-nano:
+      max_completion_tokens: 2000
+    gpt-5:
+      max_completion_tokens: 8000
+      reasoning_effort: "low"
+    gpt-4o:
+      temperature: 0.7
+      max_tokens: 12000
+    gpt-4o-mini:
+      temperature: 0.7
+      max_tokens: 12000
+    o3:
+      max_completion_tokens: 12000
+    o3-mini:
+      max_completion_tokens: 8000
+
+illustration:
+  provider: openai
+  model: dall-e-3
+  style: vivid
+  orientation: square

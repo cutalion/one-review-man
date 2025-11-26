@@ -26,14 +26,22 @@ module BookCore
       @output_adapter = kwargs[:output_adapter] || default_output_adapter
 
       # Initialize BookConfig - can be injected for testing or loaded from project
-      @config = kwargs[:config] || begin
+      @config = kwargs[:book_config] || kwargs[:config] || begin
         BookCore::BookConfig.load_from_project(@project_root)
       rescue BookCore::BookConfig::NotFoundError
         BookCore::BookConfig.new
       end
 
-      settings_path = File.join(@project_root, 'data/settings.yml')
-      @llm_service = kwargs[:llm_service] || BookCore::LLMService.new(settings_path, model_override)
+      # Initialize LLMService with injected config or load default
+      if kwargs[:configuration]
+        @llm_service = kwargs[:llm_service] || BookCore::LLMService.new(kwargs[:configuration])
+      else
+        # Fallback for legacy calls or tests not using config object
+        # We need to construct a config object here if not provided, or LLMService will fail
+        # But LLMService expects a hash now.
+        config = BookCore::Configuration.load(@project_root, { 'llm.model' => model_override })
+        @llm_service = kwargs[:llm_service] || BookCore::LLMService.new(config)
+      end
 
       # Ensure adapter is configured with project root if provided
       return unless @output_adapter.respond_to?(:setup_project)

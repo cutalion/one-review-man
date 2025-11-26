@@ -15,11 +15,17 @@ module Book
   class Translator
     include BookUtils
 
-    def initialize(model_override = nil, llm_service: nil, project_root: Dir.pwd)
+    def initialize(model_override = nil, llm_service: nil, project_root: Dir.pwd, config: nil)
       @source_lang = 'en' # Always translate FROM English
       @project_root = File.expand_path(project_root)
-      settings_path = File.join(@project_root, 'data/settings.yml')
-      @llm_service = llm_service || BookCore::LLMService.new(settings_path, model_override)
+      
+      if config
+        @llm_service = llm_service || BookCore::LLMService.new(config)
+      else
+        # Fallback for legacy calls
+        config = BookCore::Configuration.load(@project_root, { 'llm.model' => model_override })
+        @llm_service = llm_service || BookCore::LLMService.new(config)
+      end
     end
 
     # Translate a single chapter using the LLM service with glossary support
