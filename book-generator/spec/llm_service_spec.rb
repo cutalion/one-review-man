@@ -153,4 +153,15 @@ RSpec.describe BookCore::LLMService do
       expect(result).to eq('Mock chapter content for Chapter 5')
     end
   end
+  describe '#generate_character' do
+    it 'returns a character profile with physical appearance' do
+      allow(BookCore::EnvUtils).to receive(:mock_ai_enabled?).and_return(true)
+      service = described_class.new(temp_settings_file.path)
+
+      result = service.generate_character('Test Character')
+
+      expect(result).to have_key('physical_appearance')
+      expect(result['physical_appearance']).to be_a(Hash)
+    end
+  end
 end

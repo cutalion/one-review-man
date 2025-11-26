@@ -29,4 +29,4 @@ CHARACTER RELATIONSHIPS:
 GENRE-SPECIFIC CONSIDERATIONS:
 {GENRE_GUIDELINES}
 
-Please create a complete character profile with: name, description, personality_traits, relevant_skills, catchphrase, backstory, quirks, and narrative_role.
+Please create a complete character profile with: name, description, personality_traits, relevant_skills, catchphrase, backstory, quirks, narrative_role, and physical_appearance (including age, skin_tone, hair, eyes, outfit, and distinguishing_features).

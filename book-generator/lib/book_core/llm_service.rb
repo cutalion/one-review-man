@@ -151,7 +151,15 @@ module BookCore
           'programming_skills' => 'General programming',
           'catchphrase' => 'Mock phrase.',
           'backstory' => 'Born in the land of tests.',
-          'quirks' => 'Always returns mocked values.'
+          'quirks' => 'Always returns mocked values.',
+          'physical_appearance' => {
+            'age' => '25',
+            'skin_tone' => 'Pixelated',
+            'hair' => 'Blue',
+            'eyes' => 'Green',
+            'outfit' => 'Hoodie',
+            'distinguishing_features' => 'None'
+          }
         }
       end
 
@@ -163,7 +171,15 @@ module BookCore
           "programming_skills": "Programming skills (string)",
           "catchphrase": "Catchphrase (string)",
           "backstory": "Backstory (string)",
-          "quirks": "Quirks (string)"
+          "quirks": "Quirks (string)",
+          "physical_appearance": {
+            "age": "Age (string or number)",
+            "skin_tone": "Skin tone (string)",
+            "hair": "Hair color/style (string)",
+            "eyes": "Eye color/shape (string)",
+            "outfit": "Clothing style (string)",
+            "distinguishing_features": "Notable features (string)"
+          }
         }
       SCHEMA
 

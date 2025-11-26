@@ -423,6 +423,7 @@ module BookCore
         'catchphrase' => full['catchphrase'],
         'backstory' => full['backstory'],
         'quirks' => full['quirks'],
+        'physical_appearance' => full['physical_appearance'] || {},
         'first_appearance' => "Chapter #{@current_chapter_number}",
         'slug' => slug,
         'created_date' => Date.today.to_s,
@@ -434,6 +435,7 @@ module BookCore
       {
         'name' => name,
         'description' => character_info['description'] || 'New character',
+        'physical_appearance' => { 'description' => 'Not specified' },
         'first_appearance' => "Chapter #{@current_chapter_number}",
         'slug' => slug,
         'created_date' => Date.today.to_s,

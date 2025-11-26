@@ -220,7 +220,23 @@ module BookCore
         
         if prompt.downcase.include?(name.downcase) || (first_name && prompt.downcase.include?(first_name.downcase))
           description = char_info['description']
-          mentioned_characters << "#{name}: #{description}" if description
+          physical = char_info['physical_appearance']
+          
+          char_desc = "#{name}: #{description}"
+          
+          if physical
+            details = []
+            details << "Age: #{physical['age']}" if physical['age']
+            details << "Skin: #{physical['skin_tone']}" if physical['skin_tone']
+            details << "Hair: #{physical['hair']}" if physical['hair']
+            details << "Eyes: #{physical['eyes']}" if physical['eyes']
+            details << "Outfit: #{physical['outfit']}" if physical['outfit']
+            details << "Features: #{physical['distinguishing_features']}" if physical['distinguishing_features']
+            
+            char_desc += " [Appearance: #{details.join(', ')}]" unless details.empty?
+          end
+          
+          mentioned_characters << char_desc if description
         end
       end
 
