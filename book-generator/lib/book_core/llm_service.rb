@@ -179,13 +179,33 @@ module BookCore
       raise APIError, "Invalid JSON from LLM (character): #{e.message}"
     end
 
-    # Generate an image using DALL-E
-    # Returns the URL of the generated image or base64 data
-    def generate_image(prompt, size: '1024x1024', quality: 'standard', style: 'vivid', model: 'dall-e-3')
+    # Generate an image using DALL-E or OpenRouter
+    # Returns base64 encoded image data
+    # @param prompt [String] Image generation prompt
+    # @param size [String] Image size (e.g., '1024x1024', '16:9')
+    # @param quality [String] Image quality for DALL-E
+    # @param style [String] Image style for DALL-E
+    # @param model [String] Model name (e.g., 'dall-e-3', 'google/gemini-3-pro-image-preview')
+    # @param provider [String] Provider name ('openai' or 'openrouter')
+    def generate_image(prompt, size: '1024x1024', quality: 'standard', style: 'vivid', model: 'dall-e-3', provider: 'openai')
       if EnvUtils.mock_ai_enabled?
         return 'https://placehold.co/1024x1024/png?text=Mock+Image'
       end
 
+      case provider.to_s.downcase
+      when 'openrouter'
+        generate_image_with_openrouter(prompt, model: model, size: size)
+      when 'openai'
+        generate_image_with_openai(prompt, size: size, quality: quality, style: style, model: model)
+      else
+        raise ConfigurationError, "Unknown image provider: #{provider}. Supported: openai, openrouter"
+      end
+    end
+
+    private
+
+    # Generate image using OpenAI DALL-E
+    def generate_image_with_openai(prompt, size:, quality:, style:, model:)
       raise ConfigurationError, 'No OpenAI client configured' if @client.nil?
 
       parameters = {
@@ -215,6 +235,95 @@ module BookCore
     rescue StandardError => e
       raise LLMError, "Image generation error: #{e.message}"
     end
+
+    # Generate image using OpenRouter (chat completions with modalities)
+    def generate_image_with_openrouter(prompt, model:, size:)
+      api_key = EnvUtils.openrouter_api_key(@config)
+      raise ConfigurationError, 'No OpenRouter API key found. Set OPENROUTER_API_KEY environment variable.' unless api_key
+
+      # Create a temporary OpenAI client configured for OpenRouter
+      openrouter_client = OpenAI::Client.new(
+        access_token: api_key,
+        uri_base: 'https://openrouter.ai/api/v1',
+        request_timeout: @config['timeout'] || 240,
+        log_errors: true
+      )
+
+      messages = [{ role: 'user', content: prompt }]
+      
+      parameters = {
+        model: model,
+        messages: messages,
+        modalities: ['image', 'text']
+      }
+
+      # Add aspect ratio configuration if a ratio is provided (e.g., '16:9')
+      if size.include?(':')
+        parameters[:image_config] = { aspect_ratio: size }
+      end
+
+      debug_dump('openrouter_image_params.json', JSON.pretty_generate(parameters))
+
+      response = with_retries do
+        openrouter_client.chat(parameters: parameters)
+      end
+
+      debug_dump('openrouter_image_response.json', response.to_s)
+
+      # OpenRouter returns images in message.images array, not content
+      # Format: { choices: [{ message: { images: [{ image_url: { url: "data:image/..." } }] } }] }
+      message = response.dig('choices', 0, 'message')
+      
+      # Debug: log what we got
+      puts "DEBUG: Response structure:" if @debug
+      puts "  choices present: #{response['choices']&.any?}" if @debug
+      puts "  message keys: #{message&.keys&.inspect}" if @debug
+      puts "  images present: #{message&.dig('images')&.any?}" if @debug
+      
+      # Check for images in the correct location
+      images = message&.dig('images')
+      if images&.any?
+        # Get the first image's data URL
+        image_url = images.first&.dig('image_url', 'url')
+        if image_url&.start_with?('data:image')
+          # Extract base64 part from "data:image/png;base64,..."
+          b64_data = image_url.split(',', 2)[1]
+          return b64_data if b64_data
+        end
+      end
+
+      # Fallback: check content for backwards compatibility
+      content_parts = message&.dig('content')
+      if content_parts.is_a?(Array)
+        image_part = content_parts.find { |part| part['type'] == 'image_url' }
+        if image_part && image_part['image_url']
+          data_url = image_part['image_url']['url']
+          if data_url&.start_with?('data:image')
+            b64_data = data_url.split(',', 2)[1]
+            return b64_data if b64_data
+          end
+        end
+      end
+
+      # Better error message showing what we got
+      error_details = {
+        'response_keys' => response.keys,
+        'message_keys' => message&.keys,
+        'images_count' => images&.length,
+        'content_type' => content_parts.class.name,
+        'full_message' => message&.inspect[0..500]
+      }
+      
+      debug_dump('openrouter_parse_error.json', JSON.pretty_generate(error_details))
+      
+      raise APIError, "Failed to extract image from OpenRouter response. Message keys: #{message&.keys&.inspect}"
+    rescue Faraday::Error => e
+      raise APIError, "OpenRouter image generation failed: #{e.response[:status] if e.response} - #{e.response[:body] if e.response}"
+    rescue StandardError => e
+      raise LLMError, "OpenRouter image generation error: #{e.message}"
+    end
+
+    public
 
     def get_model_for_task(task_type)
       return @model_override if @model_override

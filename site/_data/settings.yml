@@ -33,7 +33,7 @@ llm:
 
 # Illustration Configuration
 illustration:
-  provider: openai
-  model: dall-e-3
+  provider: openrouter  # 'openai' or 'openrouter'
+  model: google/gemini-2.5-flash-image  # Fast, cheaper model for testing
   style: comic book
-  orientation: landscape # default to landscape (1792x1024)
+  orientation: 1:1 # Square format (1024x1024) - cheaper and faster

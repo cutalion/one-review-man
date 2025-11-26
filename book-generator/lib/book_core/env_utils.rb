@@ -36,6 +36,13 @@ module BookCore
       ENV['OPENAI_BASE_URL'] || config['openai_base_url']
     end
 
+    # Get OpenRouter API key from environment or config
+    # @param config [Hash] Configuration hash that may contain openrouter_api_key
+    # @return [String, nil] API key if found
+    def self.openrouter_api_key(config = {})
+      ENV['OPENROUTER_API_KEY'] || config['openrouter_api_key']
+    end
+
     # Get Jekyll template path from environment or default
     # @param default_path [String] Default template path to use if not set
     # @return [String] Template path

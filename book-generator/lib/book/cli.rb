@@ -362,38 +362,99 @@ module Book
 
       end
 
-      desc 'illustration CHAPTER_NUMBER PROMPT', 'Generate an illustration for a chapter'
+      desc 'illustration', 'Generate an illustration for a chapter using line numbers'
+      method_option :chapter, type: :numeric, required: true, desc: 'Chapter number'
+      method_option :content, type: :string, required: true, desc: 'Line range for content (e.g., "10:17")'
+      method_option :anchor, type: :numeric, desc: 'Line number to anchor illustration (defaults to first line of content)'
+      method_option :prompt, type: :string, desc: 'Additional prompt text to augment the extracted content'
       method_option :style, type: :string, desc: 'Style of the illustration (e.g., "comic book", "oil painting")'
-      method_option :orientation, type: :string, default: 'landscape', desc: 'Orientation: landscape, portrait, or square'
-      method_option :anchor, type: :string, desc: 'Text snippet to anchor the illustration to'
+      method_option :orientation, type: :string, desc: 'Orientation: landscape, portrait, square, or aspect ratio (16:9, 1:1, etc.)'
+      method_option :provider, type: :string, desc: 'Image provider (openai, openrouter)'
+      method_option :model, type: :string, desc: 'Model name (e.g., google/gemini-3-pro-image-preview, dall-e-3)'
       method_option :debug, type: :boolean, default: false, desc: 'Enable debug mode for AI calls'
-      method_option :model, type: :string, desc: 'Specify the LLM model to use'
       method_option :book_dir, aliases: ['-b'], type: :string, desc: 'Path to the book directory'
-      def illustration(chapter_number, prompt)
+      def illustration
         project_root = resolve_project_root!(options[:book_dir])
         abs_root = File.expand_path(project_root)
         
         Dir.chdir(abs_root) do
           ENV['DEBUG_AI'] = '1' if options[:debug]
           
+          chapter_number = options[:chapter]
+          content_range = options[:content]
+          
+          # Parse content range (e.g., "10:17")
+          unless content_range.match?(/^\d+:\d+$/)
+            say "Error: --content must be in format 'START:END' (e.g., '10:17')", :red
+            exit 1
+          end
+          
+          start_line, end_line = content_range.split(':').map(&:to_i)
+          
+          # Read chapter file and extract content
+          chapter_file = File.join(abs_root, 'content', 'chapters', format('%03d-chapter.md', chapter_number))
+          unless File.exist?(chapter_file)
+            say "Error: Chapter file not found: #{chapter_file}", :red
+            exit 1
+          end
+          
+          chapter_lines = File.readlines(chapter_file)
+          
+          # Validate line numbers
+          if start_line < 1 || end_line > chapter_lines.length || start_line > end_line
+            say "Error: Invalid line range #{content_range}. Chapter has #{chapter_lines.length} lines.", :red
+            exit 1
+          end
+          
+          # Extract content (lines are 1-indexed)
+          content_lines = chapter_lines[(start_line - 1)..(end_line - 1)]
+          extracted_content = content_lines.join.strip
+          
+          # Build prompt from extracted content and optional additional prompt
+          prompt = extracted_content
+          prompt += "\n\n#{options[:prompt]}" if options[:prompt]
+          
+          # Determine anchor line
+          anchor_line = options[:anchor] || start_line
+          if anchor_line < start_line || anchor_line > end_line
+            say "Warning: Anchor line #{anchor_line} is outside content range #{content_range}", :yellow
+          end
+          
+          # Extract anchor text (single line)
+          anchor_text = anchor_line > 0 && anchor_line <= chapter_lines.length ? chapter_lines[anchor_line - 1].strip : nil
+          
           # Load settings to get defaults
           config_path = File.join(abs_root, 'data', 'settings.yml')
-          llm_service = BookCore::LLMService.new(config_path, options[:model])
-          
-          # Load config to check for default style/orientation if not provided
           settings = YAML.load_file(config_path) if File.exist?(config_path)
           illustration_settings = settings&.dig('illustration') || {}
+          
+          # Three-tier override precedence: CLI > ENV > Settings > Defaults
+          provider = options[:provider] || 
+                     ENV['ILLUSTRATION_PROVIDER'] || 
+                     illustration_settings['provider'] || 
+                     'openai'
+          
+          model = options[:model] || 
+                  ENV['ILLUSTRATION_MODEL'] || 
+                  illustration_settings['model'] || 
+                  'dall-e-3'
           
           style = options[:style] || illustration_settings['style']
           orientation = options[:orientation] || illustration_settings['orientation'] || 'landscape'
           
+          # Initialize LLM service
+          llm_service = BookCore::LLMService.new(config_path)
+          
+          # Generate illustration with provider and model options
           generator = BookCore::IllustrationGenerator.new(llm_service, project_root: abs_root)
           generator.generate(
             chapter_number, 
             prompt, 
             style: style, 
             orientation: orientation, 
-            anchor_text: options[:anchor]
+            anchor_text: anchor_text,
+            provider: provider,
+            model: model
           )
         end
       end

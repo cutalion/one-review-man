@@ -14,7 +14,7 @@ module BookCore
       @characters_data = load_characters_data
     end
 
-    def generate(chapter_number, prompt, style: nil, orientation: 'landscape', anchor_text: nil)
+    def generate(chapter_number, prompt, style: nil, orientation: 'landscape', anchor_text: nil, provider: 'openai', model: 'dall-e-3')
       # 1. Prepare prompt and parameters
       context_enhanced_prompt = inject_character_context(prompt)
       full_prompt = build_prompt(context_enhanced_prompt, style)
@@ -22,12 +22,14 @@ module BookCore
       
       # 2. Generate image
       puts "🎨 Generating illustration for Chapter #{chapter_number}..."
+      puts "   Provider: #{provider}"
+      puts "   Model: #{model}"
       puts "   Prompt: #{prompt}"
       puts "   Enhanced Prompt: #{full_prompt}" if full_prompt != prompt
       puts "   Style: #{style || 'default'}"
       puts "   Orientation: #{orientation} (#{size})"
       
-      b64_data = @llm_service.generate_image(full_prompt, size: size)
+      b64_data = @llm_service.generate_image(full_prompt, size: size, provider: provider, model: model)
       
       # 3. Save image
       image_path = save_image(b64_data, prompt)
