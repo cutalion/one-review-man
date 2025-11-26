@@ -24,7 +24,7 @@ module BookCore
     def initialize(config)
       @config = config['llm'] || {}
       @settings = config # Keep full config for other sections like illustration
-      @client = setup_client
+      @clients = {} # Cache for lazy-initialized clients per provider
       @debug = EnvUtils.debug_ai_enabled?
       @debug_dir = nil
     end
@@ -244,6 +244,42 @@ module BookCore
       end
     end
 
+    # Get the provider for a specific task type
+    # @param task_type [String] Task type ('generation', 'translation', 'summarization')
+    # @return [String] Provider name
+    def get_provider_for_task(task_type)
+      case task_type
+      when 'summarization'
+        @settings.dig('summarization', 'provider') || @config['provider'] || 'openai'
+      when 'generation', 'translation'
+        @settings.dig('content', 'provider') || @config['provider'] || 'openai'
+      else
+        @config['provider'] || 'openai'
+      end
+    end
+
+    # Validate that a provider is supported
+    # @param provider_name [String] Provider to validate
+    # @raise [ConfigurationError] if provider is not supported
+    def validate_provider!(provider_name)
+      providers_config = @settings['providers'] || {}
+      return if providers_config.key?(provider_name)
+
+      supported = providers_config.keys.join(', ')
+      raise ConfigurationError, "Unsupported provider '#{provider_name}'. Supported providers: #{supported}"
+    end
+
+    # Get or create a client for the specified provider
+    # @param provider_name [String] Provider name ('openai' or 'openrouter')
+    # @return [OpenAI::Client, nil] Client instance
+    def get_client(provider_name)
+      return nil if EnvUtils.mock_ai_enabled?
+      
+      validate_provider!(provider_name)
+      
+      @clients[provider_name] ||= setup_client_for_provider(provider_name)
+    end
+
     def resolve_image_options(provider: nil, model: nil, style: nil, size: nil, orientation: nil)
       illustration_config = @settings['illustration'] || {}
       
@@ -271,7 +307,8 @@ module BookCore
 
     # Generate image using OpenAI DALL-E
     def generate_image_with_openai(prompt, size:, quality:, style:, model:)
-      raise ConfigurationError, 'No OpenAI client configured' if @client.nil?
+      client = get_client('openai')
+      raise ConfigurationError, 'No OpenAI client configured' if client.nil?
 
       parameters = {
         model: model,
@@ -285,7 +322,7 @@ module BookCore
       debug_dump('image_generation_params.json', JSON.pretty_generate(parameters))
 
       response = with_retries do
-        @client.images.generate(parameters: parameters)
+        client.images.generate(parameters: parameters)
       end
 
       debug_dump('image_generation_response.json', response.to_s)
@@ -303,16 +340,8 @@ module BookCore
 
     # Generate image using OpenRouter (chat completions with modalities)
     def generate_image_with_openrouter(prompt, model:, size:)
-      api_key = EnvUtils.openrouter_api_key(@config)
-      raise ConfigurationError, 'No OpenRouter API key found. Set OPENROUTER_API_KEY environment variable.' unless api_key
-
-      # Create a temporary OpenAI client configured for OpenRouter
-      openrouter_client = OpenAI::Client.new(
-        access_token: api_key,
-        uri_base: 'https://openrouter.ai/api/v1',
-        request_timeout: @config['timeout'] || 240,
-        log_errors: true
-      )
+      client = get_client('openrouter')
+      raise ConfigurationError, 'No OpenRouter client configured' unless client
 
       messages = [{ role: 'user', content: prompt }]
       
@@ -330,7 +359,7 @@ module BookCore
       debug_dump('openrouter_image_params.json', JSON.pretty_generate(parameters))
 
       response = with_retries do
-        openrouter_client.chat(parameters: parameters)
+        client.chat(parameters: parameters)
       end
 
       debug_dump('openrouter_image_response.json', response.to_s)
@@ -439,13 +468,29 @@ module BookCore
 
     private
 
-    def setup_client
-      return nil if EnvUtils.mock_ai_enabled?
-
-      api_key = EnvUtils.openai_api_key(@config)
-      organization = EnvUtils.openai_org_id(@config)
-      base_url = EnvUtils.openai_base_url(@config)
+    # Setup a client for a specific provider
+    # @param provider_name [String] Provider name
+    # @return [OpenAI::Client, nil]
+    def setup_client_for_provider(provider_name)
       return nil unless defined?(OpenAI)
+      
+      providers_config = @settings['providers'] || {}
+      provider_config = providers_config[provider_name]
+      raise ConfigurationError, "Provider configuration not found for '#{provider_name}'" unless provider_config
+
+      case provider_name
+      when 'openai'
+        setup_openai_client(provider_config)
+      when 'openrouter'
+        setup_openrouter_client(provider_config)
+      else
+        raise ConfigurationError, "Unknown provider: #{provider_name}"
+      end
+    end
+
+    # Setup OpenAI client
+    def setup_openai_client(provider_config)
+      api_key = ENV[provider_config['api_key_env']] || @config['openai_api_key']
       unless api_key
         # No API key — caller can still run in mock mode
         return nil
@@ -453,17 +498,44 @@ module BookCore
 
       client_options = {
         access_token: api_key,
-        log_errors: true
+        log_errors: true,
+        request_timeout: @config['timeout'] || 240
       }
-      client_options[:organization_id] = organization if organization
-      client_options[:uri_base] = base_url if base_url
-      client_options[:request_timeout] = @config['timeout'] || 240
+      
+      if provider_config['org_id_env']
+        org_id = ENV[provider_config['org_id_env']] || @config['openai_org_id']
+        client_options[:organization_id] = org_id if org_id
+      end
+      
+      if provider_config['base_url_env']
+        base_url = ENV[provider_config['base_url_env']] || @config['openai_base_url']
+        client_options[:uri_base] = base_url if base_url
+      end
+
+      OpenAI::Client.new(**client_options)
+    end
+
+    # Setup OpenRouter client (uses OpenAI client with different base URL)
+    def setup_openrouter_client(provider_config)
+      api_key = ENV[provider_config['api_key_env']] || @config['openrouter_api_key']
+      unless api_key
+        return nil
+      end
+
+      client_options = {
+        access_token: api_key,
+        uri_base: provider_config['base_url'] || 'https://openrouter.ai/api/v1',
+        log_errors: true,
+        request_timeout: @config['timeout'] || 240
+      }
 
       OpenAI::Client.new(**client_options)
     end
 
     def call_llm(prompt, options = {}, task_type = 'generation')
-      raise ConfigurationError, 'No OpenAI client configured' if @client.nil?
+      provider = get_provider_for_task(task_type)
+      client = get_client(provider)
+      raise ConfigurationError, "No client configured for provider '#{provider}'" if client.nil?
 
       model = get_model_for_task(task_type)
       messages = []
@@ -475,7 +547,7 @@ module BookCore
       debug_dump('request_parameters.json', JSON.pretty_generate(parameters))
       
       response = with_retries do
-        @client.chat(parameters: parameters)
+        client.chat(parameters: parameters)
       end
       
       content = response.dig('choices', 0, 'message', 'content')
@@ -488,7 +560,9 @@ module BookCore
     end
 
     def call_llm_structured(prompt, options = {}, task_type = 'generation')
-      raise ConfigurationError, 'No OpenAI client configured' if @client.nil?
+      provider = get_provider_for_task(task_type)
+      client = get_client(provider)
+      raise ConfigurationError, "No client configured for provider '#{provider}'" if client.nil?
 
       model = get_model_for_task(task_type)
       messages = []
@@ -501,7 +575,7 @@ module BookCore
       debug_dump('request_parameters.json', JSON.pretty_generate(parameters))
       
       response = with_retries do
-        @client.chat(parameters: parameters)
+        client.chat(parameters: parameters)
       end
       
       content = response.dig('choices', 0, 'message', 'content')

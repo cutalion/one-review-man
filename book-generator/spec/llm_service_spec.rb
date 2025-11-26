@@ -66,9 +66,6 @@ RSpec.describe BookCore::LLMService do
   describe 'mock mode' do
     it 'returns mock responses when MOCK_AI is enabled' do
       allow(BookCore::EnvUtils).to receive(:mock_ai_enabled?).and_return(true)
-      
-      # Mock the client setup to avoid errors if any
-      allow(service).to receive(:setup_client).and_return(nil)
 
       result = service.generate_text(prompt: 'Test prompt', context: { chapter_number: 5 })
       expect(result).to eq('Mock chapter content for Chapter 5')

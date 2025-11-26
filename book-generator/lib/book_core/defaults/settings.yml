@@ -32,6 +32,15 @@ llm:
     o3-mini:
       max_completion_tokens: 8000
 
+providers:
+  openai:
+    api_key_env: OPENAI_API_KEY
+    base_url_env: OPENAI_BASE_URL
+    org_id_env: OPENAI_ORG_ID
+  openrouter:
+    api_key_env: OPENROUTER_API_KEY
+    base_url: https://openrouter.ai/api/v1
+
 illustration:
   provider: openai
   model: dall-e-3
@@ -39,8 +48,10 @@ illustration:
   orientation: square
 
 summarization:
+  provider: openai
   model: gpt-5-nano
   max_tokens: 2000
 
 content:
+  provider: openai
   model: gpt-4o-mini
