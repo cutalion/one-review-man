@@ -58,27 +58,41 @@ module BookCore
     end
 
     def apply_cli_overrides(config, options)
+      # Apply overrides from CLI options
+      # We automatically convert underscore notation (e.g. content_model) 
+      # to dot notation (e.g. content.model) for configuration nesting.
       options.each do |key, value|
         next if value.nil?
-
-        # Support dot notation for nested keys (e.g. "llm.model")
-        keys = key.to_s.split('.')
-        last_key = keys.pop
         
-        current = config
-        keys.each do |k|
-          current[k] ||= {}
-          current = current[k]
-          # If we hit a non-hash while traversing, we can't merge into it, so we stop or overwrite
-          # For simplicity, we assume the structure matches if it exists
-          break unless current.is_a?(Hash)
-        end
-
-        if current.is_a?(Hash)
-          current[last_key] = value
-        end
+        # Convert underscores and dashes to dots for nested config keys, but preserve existing dots
+        # e.g. 'content-model' -> 'content.model'
+        # e.g. 'content_model' -> 'content.model'
+        config_key = if key.to_s.include?('.')
+                       key.to_s
+                     else
+                       key.to_s.tr('-_', '.')
+                     end
+        
+        apply_override(config, config_key, value)
       end
       config
+    end
+
+    def apply_override(config, key, value)
+      keys = key.split('.')
+      last_key = keys.pop
+      
+      current = config
+      keys.each do |k|
+        current[k] ||= {}
+        current = current[k]
+        # If we hit a non-hash while traversing, we can't merge into it
+        return unless current.is_a?(Hash)
+      end
+
+      if current.is_a?(Hash)
+        current[last_key] = value
+      end
     end
   end
 end

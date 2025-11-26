@@ -35,7 +35,7 @@ RSpec.describe 'book translation' do
 
       Dir.chdir(test_dir) do
         { 'RUBYOPT' => rubyopt_injector }
-        Book::CLI::Runner.start(%w[translate chapter 1 ru --model gpt-4o])
+        Book::CLI::Runner.start(%w[translate chapter 1 ru --content-model gpt-4o])
       end
     end
 
@@ -45,7 +45,7 @@ RSpec.describe 'book translation' do
 
       Dir.chdir(test_dir) do
         { 'RUBYOPT' => rubyopt_injector }
-        Book::CLI::Runner.start(%w[translate character test_character ru --model gpt-4o])
+        Book::CLI::Runner.start(%w[translate character test_character ru --content-model gpt-4o])
       end
     end
 
@@ -55,7 +55,7 @@ RSpec.describe 'book translation' do
 
       Dir.chdir(test_dir) do
         { 'RUBYOPT' => rubyopt_injector }
-        Book::CLI::Runner.start(%w[translate all ru --model gpt-4o])
+        Book::CLI::Runner.start(%w[translate all ru --content-model gpt-4o])
       end
     end
   end

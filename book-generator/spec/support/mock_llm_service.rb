@@ -64,7 +64,11 @@ class MockLLMService
   end
 
   def get_model_for_task(task_type)
-    @config['model'] || 'mock-model'
+    if @settings && @settings['content'] && @settings['content']['model']
+      @settings['content']['model']
+    else
+      @config['model'] || 'mock-model'
+    end
   end
 
   def resolve_image_options(provider: nil, model: nil, style: nil, size: nil, orientation: nil)

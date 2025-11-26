@@ -169,12 +169,12 @@ RSpec.describe 'book generate illustration command' do
           'ruby', cli_path, 'generate', 'illustration',
           '--chapter', '1', '--content', '9:11',
           '--provider', 'openrouter',
-          '--model', 'google/gemini-2.5-flash-image'
+          '--content-model', 'anthropic/claude-3-opus'
         )
         
         expect(status).to be_success
         expect(stdout).to include('Provider: openrouter')
-        expect(stdout).to include('Model: google/gemini-2.5-flash-image')
+        expect(stdout).to include('Model: anthropic/claude-3-opus')
       end
 
       it 'uses default anchor when not specified' do

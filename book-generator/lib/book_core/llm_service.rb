@@ -393,8 +393,14 @@ module BookCore
     def get_model_for_task(task_type)
       # Check for specific model override for this task type in the config
       # The config logic should have already merged CLI overrides into this structure
+      if task_type == 'summarization' && @settings['summarization'] && @settings['summarization']['model']
+        return @settings['summarization']['model']
+      end
+
       if @config['models'] && @config['models'][task_type]
         @config['models'][task_type]
+      elsif @settings['content'] && @settings['content']['model']
+        @settings['content']['model']
       else
         @config['model']
       end
@@ -539,6 +545,13 @@ module BookCore
     def get_task_options(task_type, base_options = {})
       merged = (@config['default_options'] || {}).dup
       merged.merge!(@config['task_options'][task_type]) if @config['task_options'] && @config['task_options'][task_type]
+      
+      if task_type == 'summarization' && @settings['summarization']
+        # Merge root-level summarization options (excluding model)
+        sum_opts = @settings['summarization'].reject { |k, _| k == 'model' }
+        merged.merge!(sum_opts)
+      end
+
       merged['max_tokens'] ||= { 'generation' => 8000, 'translation' => 12_000, 'chat' => 4000 }[task_type] || 6000
       merged.merge(base_options).transform_keys(&:to_sym)
     end

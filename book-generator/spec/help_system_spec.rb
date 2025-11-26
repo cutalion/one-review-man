@@ -51,7 +51,7 @@ RSpec.describe 'book help system' do
       expect(stderr).to be_empty
       expect(stdout).to include('book generate chapter')
       expect(stdout).to include('--auto')
-      expect(stdout).to include('--model')
+      expect(stdout).to include('--content-model')
     end
   end
 end

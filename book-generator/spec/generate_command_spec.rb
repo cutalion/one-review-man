@@ -48,9 +48,9 @@ RSpec.describe 'book generate command' do
       expect(stderr).to be_empty
     end
 
-    it 'accepts --model option' do
+    it 'accepts --content-model option' do
       env = { 'RUBYOPT' => rubyopt_injector, 'MOCK_AI' => 'true' }
-      stdout, _stderr, status = Open3.capture3(env, 'ruby', cli_path, 'generate', 'chapter', '1', '--model', 'gpt-4o', '--auto')
+      stdout, stderr, status = Open3.capture3(env, 'ruby', cli_path, 'generate', 'chapter', '1', '--content-model', 'gpt-4o', '--auto')
       expect(status).to be_success
       expect(stdout).to include('gpt-4o')
     end

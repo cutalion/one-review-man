@@ -32,7 +32,9 @@ module Book
         candidate = explicit_path || Dir.pwd
         data_dir = File.join(candidate, 'data')
         # Check for either new config or legacy metadata
-        return candidate if File.exist?(File.join(data_dir, 'book_config.yml')) || File.exist?(File.join(data_dir, 'book_metadata.yml'))
+        if File.exist?(File.join(data_dir, 'book_config.yml')) || File.exist?(File.join(data_dir, 'book_metadata.yml'))
+          return File.expand_path(candidate)
+        end
 
         return handle_missing_project_root(max_attempts) if explicit_path
 
@@ -328,20 +330,17 @@ module Book
     class Generate < Thor
       include Helpers
 
-      class_option :model, type: :string, desc: 'Specify the model to use for generation (defaults to settings.yml)'
+      class_option 'content-model', type: :string, desc: 'Specify the model to use for generation (defaults to settings.yml)'
       class_option :auto, type: :boolean, default: false, desc: 'Auto mode: skip interactive prompts'
       class_option :debug, type: :boolean, default: false, desc: 'Enable verbose LLM debug logging'
-      class_option :book_dir, aliases: ['-b'], type: :string, desc: 'Path to the book directory (defaults to current directory)'
+      class_option 'book-dir', aliases: ['-b'], type: :string, desc: 'Path to the book directory (defaults to current directory)'
 
       desc 'chapter [NUMBER]', 'Generate a chapter'
       def chapter(_number = nil)
-        project_root = resolve_project_root!(options[:book_dir])
-        abs_root = File.expand_path(project_root)
+        abs_root = resolve_project_root!(options['book-dir'])
         
         # Load configuration with CLI overrides
-        cli_overrides = {}
-        cli_overrides['llm.model'] = options[:model] if options[:model]
-        config = BookCore::Configuration.load(abs_root, cli_overrides)
+        config = BookCore::Configuration.load(abs_root, options)
 
         Dir.chdir(abs_root) do
           ENV['DEBUG_AI'] = '1' if options[:debug]
@@ -353,7 +352,7 @@ module Book
 
       desc 'prompt [NUMBER]', 'Show generation prompt'
       def prompt(number = nil)
-        project_root = resolve_project_root(options[:book_dir])
+        project_root = resolve_project_root(options['book-dir'])
         unless project_root
           puts 'prompt stub for chapter'
           return
@@ -362,12 +361,10 @@ module Book
         abs_root = File.expand_path(project_root)
         
         # Load configuration with CLI overrides
-        cli_overrides = {}
-        cli_overrides['llm.model'] = options[:model] if options[:model]
-        config = BookCore::Configuration.load(abs_root, cli_overrides)
+        config = BookCore::Configuration.load(abs_root, options)
 
         Dir.chdir(abs_root) do
-          generator = BookCore::ChapterGenerator.new(config: config, project_root: abs_root)
+          generator = BookCore::ChapterGenerator.new(configuration: config, project_root: abs_root)
           chapter_number = number ? number.to_i : generator.send(:determine_next_chapter_number)
           prompt = generator.send(:build_chapter_prompt, chapter_number)
           puts prompt
@@ -380,18 +377,17 @@ module Book
       method_option :content, type: :string, required: true, desc: 'Line range for content (e.g., "10:17")'
       method_option :anchor, type: :numeric, desc: 'Line number to anchor illustration (defaults to first line of content)'
       method_option :prompt, type: :string, desc: 'Additional prompt text to augment the extracted content'
-      method_option :alt_text, type: :string, desc: 'Alt text for the image (defaults to LLM summary of prompt)'
+      method_option 'alt-text', type: :string, desc: 'Alt text for the image (defaults to LLM summary of prompt)'
       method_option :style, type: :string, desc: 'Style of the illustration (defaults to settings.yml)'
       method_option :orientation, type: :string, desc: 'Orientation: landscape, portrait, square (defaults to settings.yml)'
       method_option :provider, type: :string, desc: 'Image provider: openai, openrouter (defaults to settings.yml)'
-      method_option :model, type: :string, desc: 'Model name (defaults to settings.yml)'
-      method_option :summarization_model, type: :string, desc: 'Model to use for alt text summarization'
+      method_option 'content-model', type: :string, desc: 'Model name (defaults to settings.yml)'
+      method_option 'summarization-model', type: :string, desc: 'Model to use for alt text summarization'
       method_option :debug, type: :boolean, default: false, desc: 'Enable debug mode for AI calls'
-      method_option :dry_run, type: :boolean, default: false, desc: 'Dry run: print parameters without generating'
-      method_option :book_dir, aliases: ['-b'], type: :string, desc: 'Path to the book directory'
+      method_option 'dry-run', type: :boolean, default: false, desc: 'Dry run: print parameters without generating'
+      method_option 'book-dir', aliases: ['-b'], type: :string, desc: 'Path to the book directory'
       def illustration
-        project_root = resolve_project_root!(options[:book_dir])
-        abs_root = File.expand_path(project_root)
+        abs_root = resolve_project_root!(options['book-dir'])
         
         Dir.chdir(abs_root) do
           ENV['DEBUG_AI'] = '1' if options[:debug]
@@ -440,17 +436,13 @@ module Book
           anchor_text = anchor_line > 0 && anchor_line <= chapter_lines.length ? chapter_lines[anchor_line - 1].strip : nil
           
           # Load settings to get defaults
-          cli_overrides = {}
-          cli_overrides['llm.model'] = options[:model] if options[:model] # For generation if needed
-          cli_overrides['llm.models.summarization'] = options[:summarization_model] if options[:summarization_model]
-          
           # Illustration specific overrides (handled by IllustrationGenerator but passed via config if we want to unify)
           # For now, IllustrationGenerator handles its own config, but LLMService needs the LLM config
-          config = BookCore::Configuration.load(abs_root, cli_overrides)
+          config = BookCore::Configuration.load(abs_root, options)
           
           # Three-tier override precedence: CLI > ENV > Settings > Defaults (handled in LLMService)
           provider = options[:provider] || ENV['ILLUSTRATION_PROVIDER']
-          model = options[:model] || ENV['ILLUSTRATION_MODEL']
+          model = options['content-model'] || ENV['ILLUSTRATION_MODEL']
           style = options[:style]
           orientation = options[:orientation]
           
@@ -467,8 +459,8 @@ module Book
             anchor_text: anchor_text,
             provider: provider,
             model: model,
-            dry_run: options[:dry_run],
-            alt_text: options[:alt_text]
+            dry_run: options['dry-run'],
+            alt_text: options['alt-text']
           )
         end
       end
@@ -478,18 +470,15 @@ module Book
     class Translate < Thor
       include Helpers
 
-      class_option :model, type: :string, desc: 'Specify the model to use for translation (defaults to settings.yml)'
+      class_option 'content-model', type: :string, desc: 'Specify the model to use for translation (defaults to settings.yml)'
       class_option :debug, type: :boolean, default: false, desc: 'Enable verbose LLM debug logging'
-      class_option :book_dir, aliases: ['-b'], type: :string, desc: 'Path to the book directory (defaults to current directory)'
+      class_option 'book-dir', aliases: ['-b'], type: :string, desc: 'Path to the book directory (defaults to current directory)'
 
       desc 'chapter NUMBER LANG', 'Translate a chapter to a language'
       def chapter(number, lang)
-        book_root = resolve_project_root!(options[:book_dir])
-        abs_root = File.expand_path(book_root)
+        abs_root = resolve_project_root!(options['book-dir'])
         
-        cli_overrides = {}
-        cli_overrides['llm.model'] = options[:model] if options[:model]
-        config = BookCore::Configuration.load(abs_root, cli_overrides)
+        config = BookCore::Configuration.load(abs_root, options)
 
         Dir.chdir(abs_root) do
           ENV['DEBUG_AI'] = '1' if options[:debug]
@@ -500,12 +489,9 @@ module Book
 
       desc 'character SLUG LANG', 'Translate a character to a language'
       def character(slug, lang)
-        book_root = resolve_project_root!(options[:book_dir])
-        abs_root = File.expand_path(book_root)
+        abs_root = resolve_project_root!(options['book-dir'])
         
-        cli_overrides = {}
-        cli_overrides['llm.model'] = options[:model] if options[:model]
-        config = BookCore::Configuration.load(abs_root, cli_overrides)
+        config = BookCore::Configuration.load(abs_root, options)
 
         Dir.chdir(abs_root) do
           ENV['DEBUG_AI'] = '1' if options[:debug]
@@ -516,12 +502,9 @@ module Book
 
       desc 'all LANG', 'Translate all content to a language'
       def all(lang)
-        book_root = resolve_project_root!(options[:book_dir])
-        abs_root = File.expand_path(book_root)
+        abs_root = resolve_project_root!(options['book-dir'])
         
-        cli_overrides = {}
-        cli_overrides['llm.model'] = options[:model] if options[:model]
-        config = BookCore::Configuration.load(abs_root, cli_overrides)
+        config = BookCore::Configuration.load(abs_root, options)
 
         Dir.chdir(abs_root) do
           ENV['DEBUG_AI'] = '1' if options[:debug]
@@ -535,12 +518,12 @@ module Book
     class Init < Thor
       include Helpers
 
-      class_option :book_dir, aliases: ['-b'], type: :string, desc: 'Path to the book directory (defaults to current directory)'
+      class_option 'book-dir', aliases: ['-b'], type: :string, desc: 'Path to the book directory (defaults to current directory)'
       class_option :quick, type: :boolean, default: false, desc: 'Quick setup with minimal prompts (uses intelligent defaults)'
 
       desc 'here', 'Initialise a new book (use --book-dir to specify location)'
       def here
-        target = File.expand_path(options[:book_dir] || Dir.pwd)
+        target = File.expand_path(options['book-dir'] || Dir.pwd)
 
         validate_target_directory(target)
         book_info = collect_book_information
@@ -560,7 +543,7 @@ module Book
         end
 
         # Ask for confirmation if using current directory (no --book-dir specified)
-        return unless !options[:book_dir] && !yes?("Create book in current directory (#{target})? [y/N]", :yellow)
+        return unless !options['book-dir'] && !yes?("Create book in current directory (#{target})? [y/N]", :yellow)
 
         say 'Aborted.', :red
         exit 1
@@ -804,7 +787,6 @@ module Book
         settings_data = {
           'llm' => {
             'provider' => 'openai',
-            'model' => 'gpt-4o-mini',
             'temperature' => 0.7,
             'timeout' => 240,
             'default_options' => {
@@ -817,14 +799,28 @@ module Book
               },
               'translation' => {
                 'max_tokens' => 12_000,
-                'timeout' => 120
+                'timeout' => 300
               }
             },
             'retry' => {
               'max_attempts' => 3,
               'backoff_multiplier' => 2
             },
-            'strict_model' => true
+            'strict_model' => true,
+            'models' => {}
+          },
+          'content' => {
+            'model' => 'gpt-4o-mini'
+          },
+          'summarization' => {
+            'model' => 'gpt-5-nano',
+            'max_tokens' => 2000
+          },
+          'illustration' => {
+            'provider' => 'openai',
+            'model' => 'dall-e-3',
+            'style' => 'vivid',
+            'orientation' => 'square'
           }
         }
         write_yaml_file(File.join(target, 'data', 'settings.yml'), settings_data)
@@ -848,9 +844,9 @@ module Book
 
       desc 'generate [DEST]', 'Create or update a Jekyll site from the current book content'
       method_option :dest, aliases: '-d', type: :string, desc: 'Destination directory for the Jekyll site (defaults to ./site)'
-      class_option :book_dir, aliases: ['-b'], type: :string, desc: 'Path to the book directory (defaults to current directory)'
+      class_option 'book-dir', aliases: ['-b'], type: :string, desc: 'Path to the book directory (defaults to current directory)'
       def generate(dest = nil)
-        book_root = resolve_project_root!(options[:book_dir])
+        book_root = resolve_project_root!(options['book-dir'])
         dest_dir = File.expand_path(dest || options[:dest] || File.join(book_root, 'site'))
 
         # Prefer local template bundled with this repo layout
@@ -1123,11 +1119,11 @@ module Book
     class Status < Thor
       include Helpers
 
-      class_option :book_dir, aliases: ['-b'], type: :string, desc: 'Path to the book directory (defaults to current directory)'
+      class_option 'book-dir', aliases: ['-b'], type: :string, desc: 'Path to the book directory (defaults to current directory)'
 
       desc 'show', 'Show current book configuration and status'
       def show
-        book_root = resolve_project_root(options[:book_dir])
+        book_root = resolve_project_root(options['book-dir'])
         unless book_root
           say "Not in a book directory. Use 'book init' to create a new book.", :red
           return
@@ -1149,7 +1145,7 @@ module Book
       subcommand 'translate', Translate
 
       desc 'init', 'Initialize a new book project'
-      class_option :book_dir, aliases: ['-b'], type: :string, desc: 'Path to the book directory (defaults to current directory)'
+      class_option 'book-dir', aliases: ['-b'], type: :string, desc: 'Path to the book directory (defaults to current directory)'
       class_option :quick, type: :boolean, default: false, desc: 'Quick setup with minimal prompts (uses intelligent defaults)'
       def init
         # Delegate to the Init class's here method with the same options
@@ -1164,9 +1160,9 @@ module Book
 
       # Replace subcommand with a top-level status command
       desc 'status', 'Show current book configuration and status'
-      method_option :book_dir, aliases: ['-b'], type: :string, desc: 'Path to the book directory (defaults to current directory)'
+      method_option 'book-dir', aliases: ['-b'], type: :string, desc: 'Path to the book directory (defaults to current directory)'
       def status
-        book_root = resolve_project_root(options[:book_dir])
+        book_root = resolve_project_root(options['book-dir'])
         unless book_root
           say "Not in a book directory. Use 'book init' to create a new book.", :red
           return
@@ -1177,9 +1173,9 @@ module Book
       end
 
       desc 'migrate', 'Migrate legacy configuration to new format'
-      method_option :book_dir, aliases: ['-b'], type: :string, desc: 'Path to the book directory (defaults to current directory)'
+      method_option 'book-dir', aliases: ['-b'], type: :string, desc: 'Path to the book directory (defaults to current directory)'
       def migrate
-        book_root = resolve_project_root(options[:book_dir])
+        book_root = resolve_project_root(options['book-dir'])
         unless book_root
           say "Not in a book directory.", :red
           return

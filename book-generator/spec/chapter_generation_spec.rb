@@ -38,7 +38,7 @@ RSpec.describe 'book chapter generation' do
         begin
           $stdout = StringIO.new
           $stderr = StringIO.new
-          Book::CLI::Runner.start(%w[generate chapter --model gpt-4o --auto])
+          Book::CLI::Runner.start(%w[generate chapter --content-model gpt-4o --auto])
         ensure
           $stdout = original_stdout
           $stderr = original_stderr
