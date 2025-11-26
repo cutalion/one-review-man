@@ -36,6 +36,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'rainbow', '~> 3.1'
   spec.add_dependency 'reline'
   spec.add_dependency 'ruby-openai', '~> 7.3'
+  spec.add_dependency 'base64' # Silence Ruby 3.4 deprecation warnings
   spec.add_dependency 'thor', '~> 1.3'
   spec.add_dependency 'tty-prompt', '~> 0.23'
   spec.add_dependency 'tty-spinner', '~> 0.9'
