@@ -94,8 +94,6 @@ translated_date: '2025-08-18'
 
 </div>
 
-
-
 ---
 
 День продолжался с привычной смесью хаоса и кофеина. В углу разработчиков Марк в панике прокручивал логи, паника нарастала в его голосе.
@@ -141,6 +139,14 @@ translated_date: '2025-08-18'
 "Невероятно," прошептал Кай с благоговением, поклонившись еще глубже. "Кэндзи-сенсей, научите меня."
 
 Кэндзи зевнул, вернувшись к своей вкладке Stack Overflow. "Конечно, только не ожидай многого."
+
+<div class="illustration" markdown="1">
+
+![Chaos in a dev room as Kenji Yamamoto-sensei instantly fixes a critical legacy code outage.]({{ '/assets/images/the-day-progressed-with-the-usual-7d8f51e3.png' | relative_url }})
+
+</div>
+
+
 
 ---
 

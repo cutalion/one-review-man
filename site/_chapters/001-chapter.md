@@ -92,8 +92,6 @@ Kenji blinked slowly, still scrolling through Stack Overflow. "Sure, whatever."
 
 </div>
 
-
-
 ---
 
 The day progressed with the usual mix of chaos and caffeine. In the dev corner, Mark frantically scrolled through logs, panic rising in his voice.
@@ -139,6 +137,14 @@ Three minutes later, silence returned. The alarms ceased.
 "Incredible," Kai whispered reverently, bowing even deeper. "Kenji-sensei, teach me."
 
 Kenji yawned, turning back to his Stack Overflow tab. "Sure, just don't expect much."
+
+<div class="illustration" markdown="1">
+
+![Chaos in a dev room as Kenji Yamamoto-sensei instantly fixes a critical legacy code outage.]({{ '/assets/images/the-day-progressed-with-the-usual-7d8f51e3.png' | relative_url }})
+
+</div>
+
+
 
 ---
 
