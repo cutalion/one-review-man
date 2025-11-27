@@ -808,3 +808,221 @@ pre {
 .border-light, .border-gray {
   border-color: $dark-border-color;
 } 
+
+// ============================================================================
+// TABLE OF CONTENTS MENU
+// ============================================================================
+
+// Toggle button - bottom right on all screen sizes
+.toc-toggle {
+  position: fixed;
+  right: 1.5rem;
+  bottom: 1.5rem;
+  width: 56px;
+  height: 56px;
+  background: linear-gradient(135deg, rgba($dark-link-color, 0.9), rgba($dark-link-color, 0.7));
+  border: 2px solid rgba($dark-link-color, 0.3);
+  border-radius: 50%;
+  color: $dark-background-color;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 20px rgba($dark-link-color, 0.4);
+  z-index: 1000;
+  
+  &:hover {
+    background: linear-gradient(135deg, lighten($dark-link-color, 5%), $dark-link-color);
+    transform: scale(1.05);
+    box-shadow: 0 6px 25px rgba($dark-link-color, 0.5);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+
+  svg {
+    transition: transform 0.3s ease;
+  }
+}
+
+.toc-menu.open .toc-toggle svg {
+  transform: rotate(90deg);
+}
+
+// Menu content container - slides from right
+.toc-content {
+  position: fixed;
+  right: -350px;
+  top: 0;
+  width: 320px;
+  height: 100vh;
+  background: rgba($dark-header-background, 0.95);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba($dark-link-color, 0.2);
+  border-radius: 16px 0 0 16px;
+  border-right: none;
+  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.3);
+  overflow-y: auto;
+  overflow-x: hidden;
+  transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 999;
+  
+  // Disable transition on initial page load to prevent jump
+  &.no-transition {
+    transition: none;
+  }
+}
+
+.toc-menu.open .toc-content {
+  right: 0;
+}
+
+// Header section
+.toc-header {
+  padding: 1.5rem 1.5rem 1rem;
+  border-bottom: 2px solid rgba($dark-link-color, 0.2);
+  position: sticky;
+  top: 0;
+  background: rgba($dark-header-background, 0.95);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  z-index: 1;
+
+  h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: $dark-link-color;
+    letter-spacing: 0.5px;
+  }
+}
+
+// Chapter list
+.toc-list {
+  list-style: none;
+  margin: 0;
+  padding: 0.5rem 0;
+}
+
+.toc-item {
+  margin: 0;
+  padding: 0;
+  border-bottom: 1px solid rgba($dark-border-color, 0.3);
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &.active {
+    background: linear-gradient(90deg,
+        rgba($dark-link-color, 0.15),
+        rgba($dark-link-color, 0.05));
+    border-left: 3px solid $dark-link-color;
+
+    .toc-link {
+      color: $dark-link-color;
+      font-weight: 600;
+    }
+
+    .toc-chapter-number {
+      background: $dark-link-color;
+      color: $dark-background-color;
+    }
+  }
+}
+
+.toc-link {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  color: $dark-text-color;
+  text-decoration: none;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: rgba($dark-link-color, 0.1);
+    color: $dark-link-color;
+    transform: translateX(-4px);
+
+    .toc-chapter-number {
+      background: $dark-link-color;
+      color: $dark-background-color;
+      transform: scale(1.1);
+    }
+  }
+}
+
+.toc-chapter-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 32px;
+  background: rgba($dark-link-color, 0.2);
+  color: $dark-link-color;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.toc-chapter-title {
+  flex: 1;
+  font-size: 0.95rem;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  word-wrap: break-word;
+  word-break: break-word;
+}
+
+.toc-empty {
+  padding: 2rem 1.5rem;
+  text-align: center;
+  color: rgba($dark-text-color, 0.6);
+  font-style: italic;
+}
+
+// Desktop: Still collapsible, no auto-margin on main
+@media (min-width: 1025px) {
+  .toc-content {
+    width: 350px;
+    right: -400px;
+  }
+}
+
+// Mobile: Smaller width
+@media (max-width: 640px) {
+  .toc-content {
+    width: 85vw;
+    max-width: 320px;
+  }
+
+  .toc-toggle {
+    right: 1rem;
+    bottom: 1rem;
+    width: 52px;
+    height: 52px;
+  }
+}
+
+// Text color overrides for dark backgrounds
+.text-dark,
+.text-black {
+  color: $dark-text-color;
+}
+
+// Border overrides for dark theme
+.border-light,
+.border-gray {
+  border-color: $dark-border-color;
+}

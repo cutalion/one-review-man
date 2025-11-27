@@ -1,18 +1,21 @@
 <!DOCTYPE html>
-<html lang="{{ page.lang | default: site.lang | default: "en" }}">
+<html lang="{{ page.lang | default: site.lang | default: " en" }}">
 
-  {%- include head.html -%}
+{%- include head.html -%}
 
-  <body>
-    {%- include header.html -%}
+<body>
+  {%- include header.html -%}
+  {%- include toc_menu.html -%}
 
-    <main>
-      {{ content }}
-    </main>
+  <main>
+    {{ content }}
+  </main>
 
-    <footer>
-      {% assign strings = site.data.strings[page.lang] %}
-      <p>{{ site.title | escape }} - {{ strings.footer.ai_generated }} {{ site.time | date: '%Y' }}. {{ strings.footer.enjoy_responsibly }}</p>
-    </footer>
-  </body>
-</html> 
+  <footer>
+    {% assign strings = site.data.strings[page.lang] %}
+    <p>{{ site.title | escape }} - {{ strings.footer.ai_generated }} {{ site.time | date: '%Y' }}. {{
+      strings.footer.enjoy_responsibly }}</p>
+  </footer>
+</body>
+
+</html>

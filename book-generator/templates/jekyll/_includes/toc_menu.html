@@ -1,0 +1,84 @@
+{% assign strings = site.data.strings[page.lang] %}
+{% assign chapters = site.chapters | where: "lang", page.lang | sort: "chapter_number" %}
+
+<div class="toc-menu" id="toc-menu">
+  <button class="toc-toggle" id="toc-toggle" aria-label="Toggle table of contents">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </button>
+
+  <nav class="toc-content" id="toc-content">
+    <div class="toc-header">
+      <h2>📚 {{ strings.toc.title | default: "Chapters" }}</h2>
+    </div>
+
+    {% if chapters.size > 0 %}
+    <ul class="toc-list">
+      {% for chapter in chapters %}
+      <li class="toc-item{% if page.url == chapter.url %} active{% endif %}">
+        <a href="{{ chapter.url | relative_url }}" class="toc-link">
+          <span class="toc-chapter-number">{{ chapter.chapter_number }}</span>
+          <span class="toc-chapter-title">{{ chapter.title }}</span>
+        </a>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="toc-empty">{{ strings.toc.no_chapters | default: "No chapters yet!" }}</p>
+    {% endif %}
+  </nav>
+</div>
+
+<script>
+  (function () {
+    const toggle = document.getElementById('toc-toggle');
+    const menu = document.getElementById('toc-menu');
+    const content = document.getElementById('toc-content');
+    const TOC_STATE_KEY = 'toc-menu-open';
+
+    if (toggle && menu && content) {
+      // Add no-transition class initially to prevent jump on page load
+      content.classList.add('no-transition');
+
+      // Restore TOC state from localStorage
+      const savedState = localStorage.getItem(TOC_STATE_KEY);
+      if (savedState === 'true') {
+        menu.classList.add('open');
+      }
+
+      // Remove no-transition class after a short delay to enable future transitions
+      setTimeout(function () {
+        content.classList.remove('no-transition');
+      }, 50);
+
+      // Toggle menu and save state
+      toggle.addEventListener('click', function () {
+        menu.classList.toggle('open');
+        localStorage.setItem(TOC_STATE_KEY, menu.classList.contains('open'));
+      });
+
+      // Close menu when clicking outside
+      document.addEventListener('click', function (e) {
+        if (!menu.contains(e.target)) {
+          if (menu.classList.contains('open')) {
+            menu.classList.remove('open');
+            localStorage.setItem(TOC_STATE_KEY, 'false');
+          }
+        }
+      });
+
+      // Prevent closing when clicking inside the menu
+      content.addEventListener('click', function (e) {
+        e.stopPropagation();
+      });
+
+      // Prevent toggle button click from propagating
+      toggle.addEventListener('click', function (e) {
+        e.stopPropagation();
+      });
+    }
+  })();
+</script>

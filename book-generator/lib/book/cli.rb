@@ -765,6 +765,10 @@ module Book
               'chapters' => 'Chapters',
               'characters' => 'Characters',
               'about' => 'About'
+            },
+            'toc' => {
+              'title' => 'Chapters',
+              'no_chapters' => 'No chapters yet!'
             }
           }
         }
@@ -779,6 +783,10 @@ module Book
             'chapters' => 'Главы',
             'characters' => 'Персонажи',
             'about' => 'О проекте'
+          },
+          'toc' => {
+            'title' => 'Главы',
+            'no_chapters' => 'Глав пока нет!'
           }
         }
       end
