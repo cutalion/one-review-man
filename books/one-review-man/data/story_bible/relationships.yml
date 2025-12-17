@@ -1,0 +1,12 @@
+---
+relationships:
+- character1: Kenji Yamamoto
+  character2: Kai Nakamura
+  type: mentor
+  status: established
+  since_chapter: 7
+- character1: Kenji Yamamoto
+  character2: Lorenzo Takeda
+  type: rival
+  status: established
+  since_chapter: 7

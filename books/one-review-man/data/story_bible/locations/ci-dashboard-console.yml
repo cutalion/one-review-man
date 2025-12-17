@@ -1,0 +1,7 @@
+---
+id: ci-dashboard-console
+name: CI Dashboard Console
+description: Where Jenkins displays its cryptic prophecies and taunts developers.
+type: room
+first_mentioned: 8
+status: established

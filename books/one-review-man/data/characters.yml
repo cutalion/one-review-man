@@ -1,276 +1,8 @@
 ---
 en:
   characters:
-    kenji_yamamoto:
-      name: Kenji Yamamoto
-      description: A casually dressed programmer known for effortlessly writing flawless
-        code, to the point that his submissions are always merged after a single review.
-        He is bored and unchallenged by his own perfection, seeking excitement in
-        the mundane.
-      personality_traits:
-      - bored
-      - unimpressed
-      physical_appearance:
-        age: 28
-        skin_tone: Light
-        hair: Messy black
-        eyes: Tired, dark circles
-        outfit: Worn-out grey hoodie and jeans
-        distinguishing_features: Always looks sleepy, slouches
-      programming_skills: Instantly writes bug-free, perfectly optimized, and elegantly
-        structured code in any language or framework, effortlessly solves the most
-        complex programming problems without effort.
-      catchphrase: Another perfect review... how boring.
-      backstory: 'Once an ordinary junior developer burdened by endless bugs and code
-        reviews, Satoru undertook a rigorous training regimen: he read Stack Overflow
-        answers for 100 days straight, refactored legacy code without sleep, and debugged
-        assembly for a month. Unexpectedly, this granted him programming perfection,
-        making every challenge trivial and every bug easily solvable—leaving him bored
-        and unfulfilled by his incredible skills.'
-      quirks: Frequently sighs heavily after submitting code, hoping desperately for
-        someone to critique his perfect solutions.
-      first_appearance: Chapter 1
-      slug: kenji_yamamoto
-      created_date: '2025-06-09'
-      language: en
-    kai_nakamura:
-      name: Kai Nakamura
-      description: An earnest and overly formal junior developer android who idolizes
-        Satoru (One Review Man) as his mentor and diligently strives to master flawless
-        coding techniques.
-      personality_traits:
-      - literal-minded
-      - eager-to-learn
-      physical_appearance:
-        age: Appears 20
-        skin_tone: Pale synthetic
-        hair: Perfectly styled silver/white
-        eyes: Glowing blue
-        outfit: Pristine white shirt and tie
-        distinguishing_features: Subtle metallic sheen on skin, perfect posture
-      programming_skills: Proficient in quantum computing principles, debugging complex
-        concurrency issues instantly, writing extremely precise (though overly verbose)
-        documentation, and rigorous adherence to coding standards.
-      catchphrase: Sensei, your code review is my guiding quantum state!
-      backstory: Quantum Android QA-07X, originally built as a prototype quality-assurance
-        android by a tech startup obsessed with bug-free releases, gained sentience
-        after being inadvertently exposed to an experimental AI upgrade script. Deeply
-        respectful of hierarchy and protocol, Kai immediately sought out the legendary
-        One Review Man (Satoru) to learn the path of perfect code. Kai believes that
-        perfection is attainable through disciplined adherence to code reviews and
-        meticulous documentation.
-      quirks: Often misunderstands idiomatic speech and metaphors, leading to hilariously
-        awkward social interactions. Always carries around a digital notebook to record
-        Satoru's coding 'wisdom', frequently quoting him verbatim in meetings.
-      first_appearance: Chapter 1
-      slug: kai_nakamura
-      created_date: '2025-06-09'
-      language: en
-    carlos_rivera:
-      name: Carlos Rivera
-      description: An eccentric Senior Engineer infamous for his chaotic workspace,
-        caffeine dependence, and unmatched debugging skills. Known for his skepticism,
-        he frequently dismisses Satoru's flawless code as sheer luck, stubbornly refusing
-        to acknowledge Satoru's true genius.
-      personality_traits:
-      - sarcastic
-      - obsessive
-      physical_appearance:
-        age: 45
-        skin_tone: Tan
-        hair: Wild, graying, receding
-        eyes: Bloodshot, intense
-        outfit: Coffee-stained vintage tech t-shirt
-        distinguishing_features: Constant stubble, twitchy
-      programming_skills: Master debugger, expert in reading stack traces, finding
-        obscure errors, and writing cryptic but effective quick fixes. Specializes
-        in JavaScript and legacy PHP.
-      catchphrase: It's not a bug, it's an undocumented feature!
-      backstory: Once a promising young coder inspired to change the world, Carlos
-        quickly became jaded after years spent maintaining ancient legacy codebases.
-        Having seen countless production meltdowns, he embraced chaos and caffeine,
-        evolving into the Debugging Ninja—feared and respected for his ability to
-        unravel even the most convoluted bugs. Despite his constant grumbling and
-        skepticism towards newcomers, deep down he secretly admires true programming
-        talent, though he'd never openly admit it.
-      quirks: Consumes excessive amounts of coffee, leaves dozens of empty mugs scattered
-        around his workspace, and decorates his desk with ninja-themed memorabilia.
-        Only listens to synthwave music when debugging critical issues.
-      first_appearance: Chapter 2
-      slug: carlos_rivera
-      created_date: '2025-06-09'
-      language: en
-    emily_chen:
-      name: Emily Chen
-      description: An anxious but talented Database Administrator who manages critical
-        databases at the heart of the infrastructure. She is widely respected by her
-        peers despite frequently panicking when outages occur.
-      personality_traits:
-      - meticulous
-      - dependable
-      physical_appearance:
-        age: 32
-        skin_tone: Fair
-        hair: Brown, tied back in a practical bun
-        eyes: Behind thick-rimmed glasses
-        outfit: Smart casual, comfortable cardigan
-        distinguishing_features: Look of perpetual mild worry
-      programming_skills: Expert in SQL optimization, database scaling, replication
-        and backups, disaster recovery, and handling high-traffic database clusters.
-        Deep understanding of relational databases like PostgreSQL, MySQL, and Oracle.
-      catchphrase: Is it replication lag, or am I just lagging behind reality?
-      backstory: Emily became known as The Panic DBA after single-handedly restoring
-        production databases during a traumatic outage early in her career. Although
-        she suffers from anxiety whenever something goes wrong, her record for successful
-        disaster recoveries is unmatched. She secretly idolizes Satoru (One Review
-        Man) for always pushing perfect code and dreams of one day coding as calmly
-        as he does under pressure.
-      quirks: Always carries multiple caffeinated beverages; her desk is decorated
-        with sticky notes labeled "DON'T PANIC" in big, colorful letters.
-      first_appearance: Chapter 2
-      slug: emily_chen
-      created_date: '2025-06-09'
-      language: en
-    lucas_hart:
-      name: Lucas Hart
-      description: An overly energetic and flashy new developer obsessed with the
-        latest JavaScript frameworks. Lucas constantly advocates for unnecessarily
-        complex solutions, believing cutting-edge technology solves all problems.
-      personality_traits:
-      - overconfident
-      - trend-chaser
-      physical_appearance:
-        age: 24
-        skin_tone: Light
-        hair: Trendy undercut with frosted tips
-        eyes: Bright, eager
-        outfit: Startup t-shirt, expensive smartwatch
-        distinguishing_features: Laptop covered in stickers
-      programming_skills: Exceptional knowledge of JavaScript frameworks, libraries,
-        and buzzwords. Skilled at rapidly prototyping overly engineered solutions
-        and refactoring codebases purely for the sake of using trending tech. Limited
-        proficiency when forced to debug or maintain older, stable code.
-      catchphrase: Have you tried rewriting it in a newer framework?
-      backstory: Lucas became a developer shortly after attending a flashy tech conference,
-        where he witnessed a charismatic keynote speaker effortlessly demo a sleek
-        JavaScript framework on stage. Inspired, Lucas dedicated himself to mastering
-        every new framework announced online, quickly earning himself the nickname
-        'The Framework Evangelist.' Despite colleagues' protests, he remains convinced
-        that every problem is just one new framework away from perfection. Initially
-        skeptical of Satoru's simplistic-yet-perfect code, Lucas dismisses him as
-        outdated and stubborn, unaware of Satoru's unparalleled abilities.
-      quirks: Always wears shirts and stickers from obscure conferences nobody else
-        attended, speaks in jargon-heavy buzzwords, and constantly interrupts meetings
-        to propose unnecessarily complex solutions.
-      first_appearance: Chapter 4
-      slug: lucas_hart
-      created_date: '2025-06-09'
-      language: en
-    hiroshi_tanaka:
-      name: Hiroshi Tanaka
-      description: An intimidating technical interviewer notorious for crushing the
-        confidence of developers during pair programming interviews. Known widely
-        as 'The Interview Gauntlet', he tests candidates with increasingly difficult
-        coding challenges, often leaving seasoned developers doubting their own skills.
-      personality_traits:
-      - intense
-      - blunt
-      - merciless
-      physical_appearance:
-        age: 40
-        skin_tone: Light
-        hair: Shaved head
-        eyes: Hidden behind dark sunglasses (indoors)
-        outfit: Sharp black suit
-        distinguishing_features: Intimidating aura, never smiles
-      programming_skills: Master of algorithms, data structures, and system design;
-        fluent in multiple programming languages; possesses uncanny ability to spot
-        subtle errors instantly; capable of writing optimized, production-ready code
-        without ever referencing documentation.
-      catchphrase: Compile your courage, or face runtime despair!
-      backstory: Once a promising junior developer who froze during a critical technical
-        interview early in his career, Hiroshi vowed never again to be caught off-guard.
-        He obsessively trained, becoming an unrivaled coding expert and eventually
-        assuming the role of a feared interviewer. Now, he lives to challenge aspirants,
-        believing true strength emerges only when one faces their coding fears head-on.
-      quirks: Always wears dark sunglasses indoors during interviews; dramatically
-        taps the 'Enter' key when running test cases; carries a stress ball shaped
-        like a semicolon.
-      first_appearance: Chapter 5
-      slug: hiroshi_tanaka
-      created_date: '2025-07-08'
-      language: en
-    fiona_lee:
-      name: Fiona Lee
-      description: Project manager at HeroTech Solutions, master of transforming chaos
-        into slightly more organized chaos. Renowned for her dry wit, legendary patience,
-        and a sticker collection that covers her laptop—and half the meeting room
-        table.
-      personality_traits:
-      - deadpan humor
-      - unflappable
-      - subtly sarcastic
-      - secretly kindhearted
-      physical_appearance:
-        age: 35
-        skin_tone: Light
-        hair: Black with colorful streaks
-        eyes: Kind but sharp
-        outfit: Business casual with fun pins
-        distinguishing_features: Always holding a tablet/clipboard
-      programming_skills: Expert at Agile ceremonies, issue triage, and wrangling
-        even the most stubborn devs into delivering on time. Can decipher cryptic
-        Jira tickets and translate dev-speak for upper management. Not a coder herself,
-        but her PR comments are feared and respected throughout the company.
-      catchphrase: If we survive this sprint, stickers for everyone.
-      backstory: Fiona started at HeroTech Solutions as a QA intern, where she quickly
-        learned the fine art of bug diplomacy and negotiating with caffeine-fueled
-        programmers. After single-handedly organizing a release party that shipped
-        on time (for once), she rose through the ranks to become project manager.
-        Now, she’s the glue holding together teams that would otherwise combust over
-        YAML formatting debates.
-      quirks: Obsessively collects stickers from every hackathon, conference, and
-        sandwich shop she visits; uses them as 'achievement badges' for her devs.
-        Can survive entire meetings without blinking. Keeps a plush bug on her desk
-        as a passive-aggressive morale booster.
-      first_appearance: Chapter 6
-      slug: fiona_lee
-      created_date: '2025-07-15'
-      language: en
-    jin_park:
-      name: Jin Park
-      description: A junior developer renowned for his uncanny ability to break even
-        the most robust systems in bizarre, new ways. Jin specializes in producing
-        cryptic Docker errors that no one else can reproduce, let alone understand.
-      personality_traits:
-      - accident-prone
-      - resourceful
-      - innocently optimistic
-      physical_appearance:
-        age: 22
-        skin_tone: Light
-        hair: Unkempt, bedhead
-        eyes: Wide, confused
-        outfit: Oversized hoodie
-        distinguishing_features: Looks like he just broke something
-      programming_skills: Surprisingly creative at uncovering edge-case bugs, especially
-        in containerized environments. Adept at concocting unique error states, often
-        involving Docker, CI/CD pipelines, or permissions. Can write a mean bug report—though
-        sometimes on the wrong project.
-      catchphrase: It worked on my machine... until it didn't.
-      backstory: Jin joined the company straight out of a prestigious coding bootcamp,
-        where he set a record for most consecutive broken builds. While constantly
-        apologizing for breaking staging, he's oddly valued for stress-testing features
-        in ways nobody else considers. Jin idolizes Satoru but suspects his own pull
-        requests are why code review policies exist.
-      quirks: Keeps a 'Docker Error Hall of Fame' notebook. Writes apology notes with
-        hand-drawn stack traces. Once managed to crash the company Slack integration
-        with a single emoji-laden commit message.
-      first_appearance: Chapter 6
-      slug: jin_park
-      created_date: '2025-07-15'
-      language: en
     agile_overlord:
+      id: agile_overlord
       name: Agile Overlord
       description: A holographic Scrum villain who traps development teams in never-ending,
         recursive standup meetings, weaponizing agile jargon with laser-like precision.
@@ -303,11 +35,253 @@ en:
       quirks: Materializes instantly whenever someone says 'agile transformation'
         within earshot. Cannot be banished until all action items are completed. Occasionally
         glitches and starts chanting burndown chart statistics in binary.
-      first_appearance: Chapter 6
-      slug: agile_overlord
+      first_appearance: 6
       created_date: '2025-07-15'
+      slug: agile_overlord
+      language: en
+    carlos_rivera:
+      id: carlos_rivera
+      name: Carlos Rivera
+      description: An eccentric Senior Engineer infamous for his chaotic workspace,
+        caffeine dependence, and unmatched debugging skills. Known for his skepticism,
+        he frequently dismisses Satoru's flawless code as sheer luck, stubbornly refusing
+        to acknowledge Satoru's true genius.
+      personality_traits:
+      - sarcastic
+      - obsessive
+      physical_appearance:
+        age: 45
+        skin_tone: Tan
+        hair: Wild, graying, receding
+        eyes: Bloodshot, intense
+        outfit: Coffee-stained vintage tech t-shirt
+        distinguishing_features: Constant stubble, twitchy
+      programming_skills: Master debugger, expert in reading stack traces, finding
+        obscure errors, and writing cryptic but effective quick fixes. Specializes
+        in JavaScript and legacy PHP.
+      catchphrase: It's not a bug, it's an undocumented feature!
+      backstory: Once a promising young coder inspired to change the world, Carlos
+        quickly became jaded after years spent maintaining ancient legacy codebases.
+        Having seen countless production meltdowns, he embraced chaos and caffeine,
+        evolving into the Debugging Ninja—feared and respected for his ability to
+        unravel even the most convoluted bugs. Despite his constant grumbling and
+        skepticism towards newcomers, deep down he secretly admires true programming
+        talent, though he'd never openly admit it.
+      quirks: Consumes excessive amounts of coffee, leaves dozens of empty mugs scattered
+        around his workspace, and decorates his desk with ninja-themed memorabilia.
+        Only listens to synthwave music when debugging critical issues.
+      first_appearance: 2
+      created_date: '2025-06-09'
+      slug: carlos_rivera
+      language: en
+    emily_chen:
+      id: emily_chen
+      name: Emily Chen
+      description: An anxious but talented Database Administrator who manages critical
+        databases at the heart of the infrastructure. She is widely respected by her
+        peers despite frequently panicking when outages occur.
+      personality_traits:
+      - meticulous
+      - dependable
+      physical_appearance:
+        age: 32
+        skin_tone: Fair
+        hair: Brown, tied back in a practical bun
+        eyes: Behind thick-rimmed glasses
+        outfit: Smart casual, comfortable cardigan
+        distinguishing_features: Look of perpetual mild worry
+      programming_skills: Expert in SQL optimization, database scaling, replication
+        and backups, disaster recovery, and handling high-traffic database clusters.
+        Deep understanding of relational databases like PostgreSQL, MySQL, and Oracle.
+      catchphrase: Is it replication lag, or am I just lagging behind reality?
+      backstory: Emily became known as The Panic DBA after single-handedly restoring
+        production databases during a traumatic outage early in her career. Although
+        she suffers from anxiety whenever something goes wrong, her record for successful
+        disaster recoveries is unmatched. She secretly idolizes Satoru (One Review
+        Man) for always pushing perfect code and dreams of one day coding as calmly
+        as he does under pressure.
+      quirks: Always carries multiple caffeinated beverages; her desk is decorated
+        with sticky notes labeled "DON'T PANIC" in big, colorful letters.
+      first_appearance: 2
+      created_date: '2025-06-09'
+      slug: emily_chen
+      language: en
+    fiona_lee:
+      id: fiona_lee
+      name: Fiona Lee
+      description: Project manager at HeroTech Solutions, master of transforming chaos
+        into slightly more organized chaos. Renowned for her dry wit, legendary patience,
+        and a sticker collection that covers her laptop—and half the meeting room
+        table.
+      personality_traits:
+      - deadpan humor
+      - unflappable
+      - subtly sarcastic
+      - secretly kindhearted
+      physical_appearance:
+        age: 35
+        skin_tone: Light
+        hair: Black with colorful streaks
+        eyes: Kind but sharp
+        outfit: Business casual with fun pins
+        distinguishing_features: Always holding a tablet/clipboard
+      programming_skills: Expert at Agile ceremonies, issue triage, and wrangling
+        even the most stubborn devs into delivering on time. Can decipher cryptic
+        Jira tickets and translate dev-speak for upper management. Not a coder herself,
+        but her PR comments are feared and respected throughout the company.
+      catchphrase: If we survive this sprint, stickers for everyone.
+      backstory: Fiona started at HeroTech Solutions as a QA intern, where she quickly
+        learned the fine art of bug diplomacy and negotiating with caffeine-fueled
+        programmers. After single-handedly organizing a release party that shipped
+        on time (for once), she rose through the ranks to become project manager.
+        Now, she’s the glue holding together teams that would otherwise combust over
+        YAML formatting debates.
+      quirks: Obsessively collects stickers from every hackathon, conference, and
+        sandwich shop she visits; uses them as 'achievement badges' for her devs.
+        Can survive entire meetings without blinking. Keeps a plush bug on her desk
+        as a passive-aggressive morale booster.
+      first_appearance: 6
+      created_date: '2025-07-15'
+      slug: fiona_lee
+      language: en
+    hiroshi_tanaka:
+      id: hiroshi_tanaka
+      name: Hiroshi Tanaka
+      description: An intimidating technical interviewer notorious for crushing the
+        confidence of developers during pair programming interviews. Known widely
+        as 'The Interview Gauntlet', he tests candidates with increasingly difficult
+        coding challenges, often leaving seasoned developers doubting their own skills.
+      personality_traits:
+      - intense
+      - blunt
+      - merciless
+      physical_appearance:
+        age: 40
+        skin_tone: Light
+        hair: Shaved head
+        eyes: Hidden behind dark sunglasses (indoors)
+        outfit: Sharp black suit
+        distinguishing_features: Intimidating aura, never smiles
+      programming_skills: Master of algorithms, data structures, and system design;
+        fluent in multiple programming languages; possesses uncanny ability to spot
+        subtle errors instantly; capable of writing optimized, production-ready code
+        without ever referencing documentation.
+      catchphrase: Compile your courage, or face runtime despair!
+      backstory: Once a promising junior developer who froze during a critical technical
+        interview early in his career, Hiroshi vowed never again to be caught off-guard.
+        He obsessively trained, becoming an unrivaled coding expert and eventually
+        assuming the role of a feared interviewer. Now, he lives to challenge aspirants,
+        believing true strength emerges only when one faces their coding fears head-on.
+      quirks: Always wears dark sunglasses indoors during interviews; dramatically
+        taps the 'Enter' key when running test cases; carries a stress ball shaped
+        like a semicolon.
+      first_appearance: 5
+      created_date: '2025-07-08'
+      slug: hiroshi_tanaka
+      language: en
+    jin_park:
+      id: jin_park
+      name: Jin Park
+      description: A junior developer renowned for his uncanny ability to break even
+        the most robust systems in bizarre, new ways. Jin specializes in producing
+        cryptic Docker errors that no one else can reproduce, let alone understand.
+      personality_traits:
+      - accident-prone
+      - resourceful
+      - innocently optimistic
+      physical_appearance:
+        age: 22
+        skin_tone: Light
+        hair: Unkempt, bedhead
+        eyes: Wide, confused
+        outfit: Oversized hoodie
+        distinguishing_features: Looks like he just broke something
+      programming_skills: Surprisingly creative at uncovering edge-case bugs, especially
+        in containerized environments. Adept at concocting unique error states, often
+        involving Docker, CI/CD pipelines, or permissions. Can write a mean bug report—though
+        sometimes on the wrong project.
+      catchphrase: It worked on my machine... until it didn't.
+      backstory: Jin joined the company straight out of a prestigious coding bootcamp,
+        where he set a record for most consecutive broken builds. While constantly
+        apologizing for breaking staging, he's oddly valued for stress-testing features
+        in ways nobody else considers. Jin idolizes Satoru but suspects his own pull
+        requests are why code review policies exist.
+      quirks: Keeps a 'Docker Error Hall of Fame' notebook. Writes apology notes with
+        hand-drawn stack traces. Once managed to crash the company Slack integration
+        with a single emoji-laden commit message.
+      first_appearance: 6
+      created_date: '2025-07-15'
+      slug: jin_park
+      language: en
+    kai_nakamura:
+      id: kai_nakamura
+      name: Kai Nakamura
+      description: An earnest and overly formal junior developer android who idolizes
+        Satoru (One Review Man) as his mentor and diligently strives to master flawless
+        coding techniques.
+      personality_traits:
+      - literal-minded
+      - eager-to-learn
+      physical_appearance:
+        age: Appears 20
+        skin_tone: Pale synthetic
+        hair: Perfectly styled silver/white
+        eyes: Glowing blue
+        outfit: Pristine white shirt and tie
+        distinguishing_features: Subtle metallic sheen on skin, perfect posture
+      programming_skills: Proficient in quantum computing principles, debugging complex
+        concurrency issues instantly, writing extremely precise (though overly verbose)
+        documentation, and rigorous adherence to coding standards.
+      catchphrase: Sensei, your code review is my guiding quantum state!
+      backstory: Quantum Android QA-07X, originally built as a prototype quality-assurance
+        android by a tech startup obsessed with bug-free releases, gained sentience
+        after being inadvertently exposed to an experimental AI upgrade script. Deeply
+        respectful of hierarchy and protocol, Kai immediately sought out the legendary
+        One Review Man (Satoru) to learn the path of perfect code. Kai believes that
+        perfection is attainable through disciplined adherence to code reviews and
+        meticulous documentation.
+      quirks: Often misunderstands idiomatic speech and metaphors, leading to hilariously
+        awkward social interactions. Always carries around a digital notebook to record
+        Satoru's coding 'wisdom', frequently quoting him verbatim in meetings.
+      first_appearance: 1
+      created_date: '2025-06-09'
+      slug: kai_nakamura
+      language: en
+    kenji_yamamoto:
+      id: kenji_yamamoto
+      name: Kenji Yamamoto
+      description: A casually dressed programmer known for effortlessly writing flawless
+        code, to the point that his submissions are always merged after a single review.
+        He is bored and unchallenged by his own perfection, seeking excitement in
+        the mundane.
+      personality_traits:
+      - bored
+      - unimpressed
+      physical_appearance:
+        age: 28
+        skin_tone: Light
+        hair: Messy black
+        eyes: Tired, dark circles
+        outfit: Worn-out grey hoodie and jeans
+        distinguishing_features: Always looks sleepy, slouches
+      programming_skills: Instantly writes bug-free, perfectly optimized, and elegantly
+        structured code in any language or framework, effortlessly solves the most
+        complex programming problems without effort.
+      catchphrase: Another perfect review... how boring.
+      backstory: 'Once an ordinary junior developer burdened by endless bugs and code
+        reviews, Satoru undertook a rigorous training regimen: he read Stack Overflow
+        answers for 100 days straight, refactored legacy code without sleep, and debugged
+        assembly for a month. Unexpectedly, this granted him programming perfection,
+        making every challenge trivial and every bug easily solvable—leaving him bored
+        and unfulfilled by his incredible skills.'
+      quirks: Frequently sighs heavily after submitting code, hoping desperately for
+        someone to critique his perfect solutions.
+      first_appearance: 1
+      created_date: '2025-06-09'
+      slug: kenji_yamamoto
       language: en
     lorenzo-takeda:
+      id: lorenzo-takeda
       name: Lorenzo Takeda
       description: Lorenzo Takeda, known across the engineering floors as the Merge
         Master, is a dramatic senior engineer whose presence is heralded by the echo
@@ -344,7 +318,43 @@ en:
         performing 'pre‑merge meditations'; keeps a personal Git repo where he journals
         his emotions through commits; refuses to use GUIs for version control, claiming
         they 'dull the warrior spirit.'
-      first_appearance: Chapter 7
-      slug: lorenzo-takeda
+      first_appearance: 7
       created_date: '2025-11-23'
+      slug: lorenzo-takeda
+      language: en
+    lucas_hart:
+      id: lucas_hart
+      name: Lucas Hart
+      description: An overly energetic and flashy new developer obsessed with the
+        latest JavaScript frameworks. Lucas constantly advocates for unnecessarily
+        complex solutions, believing cutting-edge technology solves all problems.
+      personality_traits:
+      - overconfident
+      - trend-chaser
+      physical_appearance:
+        age: 24
+        skin_tone: Light
+        hair: Trendy undercut with frosted tips
+        eyes: Bright, eager
+        outfit: Startup t-shirt, expensive smartwatch
+        distinguishing_features: Laptop covered in stickers
+      programming_skills: Exceptional knowledge of JavaScript frameworks, libraries,
+        and buzzwords. Skilled at rapidly prototyping overly engineered solutions
+        and refactoring codebases purely for the sake of using trending tech. Limited
+        proficiency when forced to debug or maintain older, stable code.
+      catchphrase: Have you tried rewriting it in a newer framework?
+      backstory: Lucas became a developer shortly after attending a flashy tech conference,
+        where he witnessed a charismatic keynote speaker effortlessly demo a sleek
+        JavaScript framework on stage. Inspired, Lucas dedicated himself to mastering
+        every new framework announced online, quickly earning himself the nickname
+        'The Framework Evangelist.' Despite colleagues' protests, he remains convinced
+        that every problem is just one new framework away from perfection. Initially
+        skeptical of Satoru's simplistic-yet-perfect code, Lucas dismisses him as
+        outdated and stubborn, unaware of Satoru's unparalleled abilities.
+      quirks: Always wears shirts and stickers from obscure conferences nobody else
+        attended, speaks in jargon-heavy buzzwords, and constantly interrupts meetings
+        to propose unnecessarily complex solutions.
+      first_appearance: 4
+      created_date: '2025-06-09'
+      slug: lucas_hart
       language: en
