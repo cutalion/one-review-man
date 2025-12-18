@@ -60,3 +60,14 @@ summarization:
 content:
   provider: openai
   model: gpt-5.1
+
+# Agent-Writer configuration (experimental)
+agent:
+  provider: openrouter
+  model: google/gemini-3-flash-preview
+  max_completion_tokens: 8000
+
+# Translation configuration
+translation:
+  provider: openrouter
+  model: x-ai/grok-4.1-fast
