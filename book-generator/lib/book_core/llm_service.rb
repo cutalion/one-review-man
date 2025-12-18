@@ -251,7 +251,9 @@ module BookCore
       case task_type
       when 'summarization'
         @settings.dig('summarization', 'provider') || @config['provider'] || 'openai'
-      when 'generation', 'translation'
+      when 'translation'
+        @settings.dig('translation', 'provider') || @settings.dig('content', 'provider') || @config['provider'] || 'openai'
+      when 'generation'
         @settings.dig('content', 'provider') || @config['provider'] || 'openai'
       else
         @config['provider'] || 'openai'
@@ -424,6 +426,10 @@ module BookCore
       # The config logic should have already merged CLI overrides into this structure
       if task_type == 'summarization' && @settings['summarization'] && @settings['summarization']['model']
         return @settings['summarization']['model']
+      end
+
+      if task_type == 'translation' && @settings['translation'] && @settings['translation']['model']
+        return @settings['translation']['model']
       end
 
       if @config['models'] && @config['models'][task_type]

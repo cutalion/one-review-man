@@ -36,7 +36,9 @@ module Book
         return false
       end
 
-      puts "🤖 Translating Chapter #{chapter_number} to #{target_lang.upcase} with AI..."
+      provider = @llm_service.get_provider_for_task('translation')
+      model = @llm_service.get_model_for_task('translation')
+      puts "🤖 Translating Chapter #{chapter_number} to #{target_lang.upcase} using #{provider}/#{model}..."
 
       chapter_data = parse_chapter_file(source_file)
       source_basename = File.basename(source_file, '.md')
@@ -72,7 +74,9 @@ module Book
         return false
       end
 
-      puts "🤖 Translating character '#{character_slug}' to #{target_lang.upcase} with AI..."
+      provider = @llm_service.get_provider_for_task('translation')
+      model = @llm_service.get_model_for_task('translation')
+      puts "🤖 Translating character '#{character_slug}' to #{target_lang.upcase} using #{provider}/#{model}..."
 
       character_data = parse_character_file(source_file)
       target_file = File.join(@project_root, preferred_characters_dir_name, "#{character_slug}.#{target_lang}.md")
