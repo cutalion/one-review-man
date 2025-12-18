@@ -14,6 +14,7 @@ require 'book_core/configuration'
 require 'book_core/story_bible'
 require 'book_core/story_bible_migrator'
 require 'book_core/story_bible_exporter'
+require 'book_core/writer_agent'
 
 module Book
   module CLI
@@ -1327,6 +1328,153 @@ module Book
       end
     end
 
+    # CLI commands for agent-based content generation (experimental)
+    class Agent < Thor
+      include Helpers
+
+      class_option 'book-dir', aliases: ['-b'], type: :string, desc: 'Path to the book directory'
+
+      desc 'write [CHAPTER]', 'Generate a chapter using the Agent-Writer (experimental)'
+      option :requirements, type: :string, aliases: '-r', desc: 'Additional requirements for the chapter'
+      option :dry_run, type: :boolean, default: false, desc: 'Show what would be generated without writing'
+      option :debug, type: :boolean, default: false, desc: 'Enable debug output'
+      option :force, type: :boolean, default: false, desc: 'Force overwrite if chapter exists'
+      def write(chapter = nil)
+        abs_root = resolve_project_root!(options['book-dir'])
+
+        # Determine chapter number using max(files, state) + 1 (same as ChapterGenerator)
+        chapter_number = if chapter
+                           chapter.to_i
+                         else
+                           determine_next_chapter_number(abs_root)
+                         end
+
+        # Check if chapter file already exists (unless --force)
+        chapters_dir = File.join(abs_root, 'content', 'chapters')
+        chapter_file = File.join(chapters_dir, format('%03d-chapter.md', chapter_number))
+        
+        if File.exist?(chapter_file) && !options[:force]
+          say "⚠️  Chapter #{chapter_number} already exists at #{chapter_file}", :yellow
+          say "   Use --force to overwrite, or specify a different chapter number.", :yellow
+          say "   Next available: #{determine_next_chapter_number(abs_root)}", :cyan
+          return
+        end
+
+        say "🤖 Agent-Writer: Generating Chapter #{chapter_number}...", :cyan
+        say "   Model: #{BookCore::WriterAgent::DEFAULT_MODEL}", :blue
+
+        # Initialize services
+        config = BookCore::Configuration.load(abs_root, {})
+        llm_service = BookCore::LLMService.new(config)
+        story_bible = BookCore::StoryBible.new(project_root: abs_root)
+
+        # Create agent
+        agent = BookCore::WriterAgent.new(
+          llm_service: llm_service,
+          story_bible: story_bible,
+          project_root: abs_root,
+          debug: options[:debug]
+        )
+
+        if options[:dry_run]
+          say "\n[Dry Run] Would generate chapter using these tools:", :yellow
+          BookCore::AgentTools::StoryBibleTools.definitions.each do |tool|
+            say "  • #{tool[:function][:name]}: #{tool[:function][:description].slice(0, 60)}...", :white
+          end
+          return
+        end
+
+        # Generate chapter
+        begin
+          result = agent.generate_chapter(chapter_number, requirements: options[:requirements])
+
+          # Show tool calls log
+          if options[:debug] && agent.tool_calls_log.any?
+            say "\n📋 Tool calls made:", :blue
+            agent.tool_calls_log.each do |call|
+              say "   • #{call[:name]}(#{call[:arguments].inspect})", :white
+            end
+          end
+
+          say "\n✅ Chapter generated successfully!", :green
+          say "   Title: #{result['title']}", :cyan
+          say "   Summary: #{result['summary'].slice(0, 100)}...", :white if result['summary']
+          say "   Word count: #{result['content'].to_s.split.length}", :white
+          say "   Characters: #{result['characters_featured'].join(', ')}", :white if result['characters_featured']&.any?
+
+          # Save the chapter (using existing chapter generator infrastructure)
+          save_agent_chapter(abs_root, chapter_number, result)
+
+        rescue BookCore::LLMService::LLMError => e
+          say "\n❌ Agent error: #{e.message}", :red
+          exit 1
+        end
+      end
+
+      private
+
+      # Determine next chapter number using max(files, state) + 1
+      # This is the same logic as ChapterGenerator.determine_next_chapter_number
+      def determine_next_chapter_number(project_root)
+        chapters_dir = File.join(project_root, 'content', 'chapters')
+        max_from_files = 0
+        
+        if Dir.exist?(chapters_dir)
+          Dir.glob(File.join(chapters_dir, '*.md')).each do |path|
+            basename = File.basename(path)
+            # Match NNN-chapter.md only (no language suffix like .ru.md)
+            if basename =~ /^(\d{3})-chapter\.md$/
+              num = Regexp.last_match(1).to_i
+              max_from_files = [max_from_files, num].max
+            end
+          end
+        end
+
+        book_config = BookCore::BookConfig.load_from_project(project_root)
+        current_in_metadata = book_config&.current_chapter || 0
+
+        [max_from_files, current_in_metadata].max + 1
+      end
+
+      def save_agent_chapter(project_root, chapter_number, result)
+        # Create chapter file
+        chapters_dir = File.join(project_root, 'content', 'chapters')
+        FileUtils.mkdir_p(chapters_dir)
+
+        filename = File.join(chapters_dir, format('%03d-chapter.md', chapter_number))
+
+        front_matter = {
+          'layout' => 'chapter',
+          'title' => result['title'],
+          'chapter_number' => chapter_number,
+          'summary' => result['summary'],
+          'characters' => result['characters_featured'] || [],
+          'generated_by' => 'agent-writer',
+          'generated_at' => Time.now.strftime('%Y-%m-%dT%H:%M:%S%:z'),
+          'lang' => 'en'
+        }
+
+        content = +"---\n"
+        content << front_matter.to_yaml.lines[1..].join
+        content << "---\n\n"
+        content << result['content'].to_s
+
+        File.write(filename, content)
+        say "   Saved to: #{filename}", :green
+
+        # Update book state
+        begin
+          book_config = BookCore::BookConfig.load_from_project(project_root)
+          if book_config
+            book_config.update_current_chapter(chapter_number)
+            book_config.save!
+          end
+        rescue StandardError => e
+          say "   ⚠️  Could not update book state: #{e.message}", :yellow
+        end
+      end
+    end
+
     # CLI commands for displaying book project status
     class Status < Thor
       include Helpers
@@ -1369,6 +1517,9 @@ module Book
 
       desc 'bible SUBCOMMAND ...ARGS', 'Story Bible management'
       subcommand 'bible', Bible
+
+      desc 'agent SUBCOMMAND ...ARGS', 'Agent-based content generation (experimental)'
+      subcommand 'agent', Agent
 
       desc 'reset SUBCOMMAND ...ARGS', 'Reset generated content'
       subcommand 'reset', Reset
