@@ -1,0 +1,12 @@
+---
+id: office
+name: HeroTech Solutions Office
+description: Casual tech startup office with open floor plan
+type: location
+first_mentioned: 1
+nearby_locations:
+- name: Infinite Loop Café
+  type: coffee_shop
+- name: 404 Fitness
+  type: gym
+status: established

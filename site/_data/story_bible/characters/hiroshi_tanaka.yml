@@ -1,0 +1,32 @@
+---
+id: hiroshi_tanaka
+name: Hiroshi Tanaka
+description: An intimidating technical interviewer notorious for crushing the confidence
+  of developers during pair programming interviews. Known widely as 'The Interview
+  Gauntlet', he tests candidates with increasingly difficult coding challenges, often
+  leaving seasoned developers doubting their own skills.
+personality_traits:
+- intense
+- blunt
+- merciless
+physical_appearance:
+  age: 40
+  skin_tone: Light
+  hair: Shaved head
+  eyes: Hidden behind dark sunglasses (indoors)
+  outfit: Sharp black suit
+  distinguishing_features: Intimidating aura, never smiles
+programming_skills: Master of algorithms, data structures, and system design; fluent
+  in multiple programming languages; possesses uncanny ability to spot subtle errors
+  instantly; capable of writing optimized, production-ready code without ever referencing
+  documentation.
+catchphrase: Compile your courage, or face runtime despair!
+backstory: Once a promising junior developer who froze during a critical technical
+  interview early in his career, Hiroshi vowed never again to be caught off-guard.
+  He obsessively trained, becoming an unrivaled coding expert and eventually assuming
+  the role of a feared interviewer. Now, he lives to challenge aspirants, believing
+  true strength emerges only when one faces their coding fears head-on.
+quirks: Always wears dark sunglasses indoors during interviews; dramatically taps
+  the 'Enter' key when running test cases; carries a stress ball shaped like a semicolon.
+first_appearance: 5
+created_date: '2025-07-08'

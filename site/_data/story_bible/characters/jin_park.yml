@@ -1,0 +1,32 @@
+---
+id: jin_park
+name: Jin Park
+description: A junior developer renowned for his uncanny ability to break even the
+  most robust systems in bizarre, new ways. Jin specializes in producing cryptic Docker
+  errors that no one else can reproduce, let alone understand.
+personality_traits:
+- accident-prone
+- resourceful
+- innocently optimistic
+physical_appearance:
+  age: 22
+  skin_tone: Light
+  hair: Unkempt, bedhead
+  eyes: Wide, confused
+  outfit: Oversized hoodie
+  distinguishing_features: Looks like he just broke something
+programming_skills: Surprisingly creative at uncovering edge-case bugs, especially
+  in containerized environments. Adept at concocting unique error states, often involving
+  Docker, CI/CD pipelines, or permissions. Can write a mean bug report—though sometimes
+  on the wrong project.
+catchphrase: It worked on my machine... until it didn't.
+backstory: Jin joined the company straight out of a prestigious coding bootcamp, where
+  he set a record for most consecutive broken builds. While constantly apologizing
+  for breaking staging, he's oddly valued for stress-testing features in ways nobody
+  else considers. Jin idolizes Satoru but suspects his own pull requests are why code
+  review policies exist.
+quirks: Keeps a 'Docker Error Hall of Fame' notebook. Writes apology notes with hand-drawn
+  stack traces. Once managed to crash the company Slack integration with a single
+  emoji-laden commit message.
+first_appearance: 6
+created_date: '2025-07-15'

@@ -1,0 +1,7 @@
+---
+id: server_room
+name: Server Room
+description: Room with blinking lights and old repository access
+type: location
+first_mentioned: 3
+status: established

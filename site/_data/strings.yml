@@ -68,10 +68,6 @@ en:
     no_content_characters: "Characters are waiting to be created! Each will have their own unique personality and quirks. 🎭"
     footer_note: "This book is generated chapter by chapter using AI, creating an ever-evolving story of workplace comedy and absurdist humor. Each chapter builds on the last, with characters developing relationships and getting into increasingly ridiculous situations."
   
-  toc:
-    title: "Chapters"
-    no_chapters: "No chapters yet!"
-  
   footer:
     ai_generated: "AI-generated content created in"
     enjoy_responsibly: "Enjoy responsibly!"
@@ -144,10 +140,6 @@ ru:
     no_content_chapters: "Главы ещё не сгенерированы. Приключение вот-вот начнётся! 🚀"
     no_content_characters: "Персонажи ждут своего создания! Каждый будет иметь свою уникальную личность и причуды. 🎭"
     footer_note: "Эта книга генерируется глава за главой с помощью ИИ, создавая постоянно развивающуюся историю офисной комедии и абсурдистского юмора. Каждая глава строится на предыдущей, персонажи развивают отношения и попадают во всё более нелепые ситуации."
-  
-  toc:
-    title: "Главы"
-    no_chapters: "Глав пока нет!"
   
   footer:
     ai_generated: "Контент, созданный ИИ в"
