@@ -10,15 +10,18 @@ require 'book_core/prompt_utils'
 require 'book_core/env_utils'
 require 'book_core/validation_utils'
 require 'book_core/book_config'
+require 'book_core/snapshot_store'
+require 'book_core/canon_version_reference'
 
 module BookCore
   # Main engine for generating book chapters using AI models
   class ChapterGenerator
     include WorldUtils
 
-    def initialize(model_override = nil, **kwargs)
+    def initialize(model_override = nil, snapshot: nil, **kwargs)
       @model_override = model_override
       @project_root = File.expand_path(kwargs[:project_root] || Dir.pwd)
+      @snapshot_name = snapshot
       @book_data = kwargs[:book_data] || {}
       @characters = kwargs[:characters] || {}
       @generation_log = kwargs[:generation_log] || {}
@@ -220,7 +223,8 @@ module BookCore
           generated_date: Date.today.to_s,
           status: 'generated',
           lang: 'en',
-          new_characters: (chapter_data['new_characters'] || []).map { |c| c['name'] }.map { |n| n.downcase.gsub(/[^a-z0-9]+/, '_').gsub(/^_+|_+$/, '') }
+          new_characters: (chapter_data['new_characters'] || []).map { |c| c['name'] }.map { |n| n.downcase.gsub(/[^a-z0-9]+/, '_').gsub(/^_+|_+$/, '') },
+          canon_version: resolve_canon_version
         }
         @output_adapter.write_chapter(chapter_number, content, metadata)
       else
@@ -316,6 +320,16 @@ module BookCore
 
       # Default to content/chapters to create if missing
       content_dir
+    end
+
+    def resolve_canon_version
+      bible_path = File.join(@project_root, StoryBible::STORY_BIBLE_DIR)
+      return 'unversioned' unless Dir.exist?(bible_path)
+
+      store = SnapshotStore.new(story_bible_path: bible_path)
+      CanonVersionReference.resolve(snapshot_store: store, explicit_snapshot: @snapshot_name)
+    rescue SnapshotNotFoundError
+      'unversioned'
     end
 
     def default_prompt_provider
