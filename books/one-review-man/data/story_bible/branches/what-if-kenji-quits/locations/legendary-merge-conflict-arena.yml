@@ -1,0 +1,8 @@
+---
+id: legendary-merge-conflict-arena
+name: Legendary Merge Conflict Arena
+description: A secret underground arena where developers duel using cursed branches
+  and impossible Git diffs.
+type: room
+first_mentioned: 7
+status: established

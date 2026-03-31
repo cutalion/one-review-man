@@ -1,0 +1,11 @@
+---
+sequence: 1
+entity_type: character
+entity_id: emily_chen
+snapshot:
+  role: principal database architect
+timestamp: '2026-03-31T01:02:58+04:00'
+operation: update
+branch: main
+change_reason: Batch promotion and server decommission
+changeset_id: cs-20260331-010246-3324

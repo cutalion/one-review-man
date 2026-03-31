@@ -1,0 +1,34 @@
+---
+id: lucas_hart
+name: Lucas Hart
+description: An overly energetic and flashy new developer obsessed with the latest
+  JavaScript frameworks. Lucas constantly advocates for unnecessarily complex solutions,
+  believing cutting-edge technology solves all problems.
+personality_traits:
+- overconfident
+- trend-chaser
+physical_appearance:
+  age: 24
+  skin_tone: Light
+  hair: Trendy undercut with frosted tips
+  eyes: Bright, eager
+  outfit: Startup t-shirt, expensive smartwatch
+  distinguishing_features: Laptop covered in stickers
+programming_skills: Exceptional knowledge of JavaScript frameworks, libraries, and
+  buzzwords. Skilled at rapidly prototyping overly engineered solutions and refactoring
+  codebases purely for the sake of using trending tech. Limited proficiency when forced
+  to debug or maintain older, stable code.
+catchphrase: Have you tried rewriting it in a newer framework?
+backstory: Lucas became a developer shortly after attending a flashy tech conference,
+  where he witnessed a charismatic keynote speaker effortlessly demo a sleek JavaScript
+  framework on stage. Inspired, Lucas dedicated himself to mastering every new framework
+  announced online, quickly earning himself the nickname 'The Framework Evangelist.'
+  Despite colleagues' protests, he remains convinced that every problem is just one
+  new framework away from perfection. Initially skeptical of Satoru's simplistic-yet-perfect
+  code, Lucas dismisses him as outdated and stubborn, unaware of Satoru's unparalleled
+  abilities.
+quirks: Always wears shirts and stickers from obscure conferences nobody else attended,
+  speaks in jargon-heavy buzzwords, and constantly interrupts meetings to propose
+  unnecessarily complex solutions.
+first_appearance: 4
+created_date: '2025-06-09'

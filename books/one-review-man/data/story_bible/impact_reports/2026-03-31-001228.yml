@@ -1,0 +1,252 @@
+---
+id: 2026-03-31-001228
+trigger:
+  entity_type: character
+  entity_id: kenji_yamamoto
+  revision_seq: 3
+  branch: main
+created_at: '2026-03-31T00:12:28+04:00'
+branch: main
+affected_items:
+- content_type: chapter
+  content_path: chapters/001-chapter.md
+  references:
+  - line: 7
+    text: "- kenji_yamamoto"
+  - line: 9
+    text: 'summary: Kenji Yamamoto, a developer known as ''One Review Man'' due to
+      his flawless'
+  - line: 53
+    text: Kenji Yamamoto, known at HeroTech Solutions as "One Review Man"—though no
+      one seriously called him that out loud—shrugged nonchalantly. "Just submitted
+      a PR to optimize the entire backend."
+  - line: 85
+    text: '"Kenji Yamamoto-sensei," Kai spoke reverently, "I have studied your GitHub
+      repositories extensively. Please accept me as your disciple."'
+  - line: 111
+    text: '"Kenji Yamamoto-sensei does," Kai insisted solemnly, earning himself strange
+      looks from everyone.'
+  - line: 121
+    text: '"Kenji Yamamoto-sensei," Kai turned, eyes shining with admiration, "This
+      is your chance to demonstrate your true power."'
+  - line: 143
+    text: "![Chaos in a dev room as Kenji Yamamoto-sensei instantly fixes a critical
+      legacy code outage.]({{ '/assets/images/the-day-progressed-with-the-usual-7d8f51e3.png'
+      | relative_url }})"
+  severity: high
+  review_status: pending
+- content_type: translation
+  content_path: chapters/001-chapter.ru.md
+  references:
+  - line: 7
+    text: "- kenji_yamamoto"
+  - line: 145
+    text: "![Chaos in a dev room as Kenji Yamamoto-sensei instantly fixes a critical
+      legacy code outage.]({{ '/assets/images/the-day-progressed-with-the-usual-7d8f51e3.png'
+      | relative_url }})"
+  severity: medium
+  review_status: pending
+- content_type: chapter
+  content_path: chapters/002-chapter.md
+  references:
+  - line: 6
+    text: "- kenji_yamamoto"
+  - line: 11
+    text: 'summary: Kenji Yamamoto effortlessly resolves a critical production bug,
+      which colleagues'
+  - line: 38
+    text: 'Kenji Yamamoto leaned back in his ergonomic chair, absentmindedly spinning
+      a fidget spinner he had won at last year''s Hackathon. His screen glowed softly,
+      displaying a perfectly formatted pull request titled: "Refactor Legacy Payment
+      Module."'
+  severity: high
+  review_status: pending
+- content_type: translation
+  content_path: chapters/002-chapter.ru.md
+  references:
+  - line: 6
+    text: "- kenji_yamamoto"
+  severity: medium
+  review_status: pending
+- content_type: chapter
+  content_path: chapters/003-chapter.md
+  references:
+  - line: 6
+    text: "- kenji_yamamoto"
+  - line: 11
+    text: 'summary: Kenji Yamamoto effortlessly rewrites an ancient, chaotic legacy
+      system, yet'
+  - line: 40
+    text: It was a typical, dull Monday morning at HeroTech Solutions. Kenji Yamamoto,
+      known secretly to only a few as One Review Man, was slouched at his desk, scrolling
+      lazily through Stack Overflow, trying—and failing—to find a problem worth his
+      attention.
+  severity: high
+  review_status: pending
+- content_type: translation
+  content_path: chapters/003-chapter.ru.md
+  references:
+  - line: 6
+    text: "- kenji_yamamoto"
+  severity: medium
+  review_status: pending
+- content_type: chapter
+  content_path: chapters/004-chapter.md
+  references:
+  - line: 6
+    text: "- kenji_yamamoto"
+  - line: 11
+    text: 'summary: Kenji Yamamoto effortlessly defeats a complicated framework evangelist''s'
+  - line: 42
+    text: Kenji Yamamoto stared blankly at the poster while sipping his latte. Beside
+      him, Kai Nakamura, the Quantum Android with impeccable carbon-fiber hair and
+      overly serious expression, scribbled notes frantically.
+  - line: 54
+    text: Lucas dramatically pointed at Kenji. "You! Kenji Yamamoto! I've heard rumors
+      about your supposed perfect code. But I bet you can't master FrameStorm.js—only
+      developers of true genius can grasp its elegance."
+  - line: 85
+    text: "**Kenji Yamamoto's PR:**"
+  - line: 130
+    text: "**Kenji Yamamoto's Emergency Fix PR:**"
+  severity: high
+  review_status: pending
+- content_type: translation
+  content_path: chapters/004-chapter.ru.md
+  references:
+  - line: 6
+    text: "- kenji_yamamoto"
+  severity: medium
+  review_status: pending
+- content_type: chapter
+  content_path: chapters/005-chapter.md
+  references:
+  - line: 11
+    text: 'summary: Kenji Yamamoto faces Hiroshi Tanaka (''The Interview Gauntlet''),
+      an infamous'
+  - line: 42
+    text: Kenji Yamamoto, known at HeroTech Solutions merely as an unremarkable hoodie-wearing
+      developer who somehow always had perfect code reviews, shrugged listlessly.
+      He stared into the depths of his lukewarm coffee from Infinite Loop Café. "I
+      guess. It's not like I ever get asked to do anything interesting. Just trivial
+      stuff."
+  - line: 76
+    text: '"I''ve heard of you, Kenji Yamamoto. They say you''re a genius, but I''ll
+      be the judge of that," Tanaka sneered, fingers steepled.'
+  - line: 120
+    text: '"Hired?" Tanaka laughed bitterly. "I would never dare insult him by offering
+      a mere job. Kenji Yamamoto is beyond coding interviews. He’s... unstoppable."'
+  severity: high
+  review_status: pending
+- content_type: chapter
+  content_path: chapters/006-chapter.md
+  references:
+  - line: 8
+    text: "- kenji_yamamoto"
+  - line: 13
+    text: 'summary: Kenji Yamamoto (One Review Man) and the HeroTech Solutions team
+      get trapped'
+  - line: 48
+    text: Kenji Yamamoto strolled in, hoodie slightly askew, hands in his pockets,
+      and took his customary seat next to the only working power outlet (which he
+      fixed once, but no one remembers). Kai Nakamura, HeroTech’s earnest quantum
+      android, was already there, meticulously organizing his three laptops, two tablets,
+      and a quantum debugger interface.
+  severity: high
+  review_status: pending
+- content_type: translation
+  content_path: chapters/006-chapter.ru.md
+  references:
+  - line: 8
+    text: "- kenji_yamamoto"
+  severity: medium
+  review_status: pending
+- content_type: chapter
+  content_path: chapters/007-chapter.md
+  references:
+  - line: 9
+    text: 'summary: Kenji Yamamoto and Kai Nakamura are summoned to the mysterious
+      Merge Conflict'
+  - line: 30
+    text: Fiona stood in the Developer Corner, arms crossed, staring down at Kenji
+      Yamamoto.
+  severity: medium
+  review_status: pending
+- content_type: chapter
+  content_path: chapters/008-chapter.md
+  references:
+  - line: 9
+    text: 'summary: Kenji Yamamoto and Kai Nakamura face a cursed CI/CD pipeline that
+      brings'
+  - line: 27
+    text: 'The morning at HeroTech Solutions began the way most mornings did: Lorenzo
+      Takeda dramatically typing on his mechanical keyboard as if narrating an ancient
+      war saga, Fiona Lee sipping her coffee with unbreakable calm, Emily Chen nervously
+      refreshing database dashboards, and Kenji Yamamoto sitting at his desk in his
+      usual hoodie, quietly eating convenience-store melon bread.'
+  severity: medium
+  review_status: pending
+- content_type: chapter
+  content_path: chapters/009-chapter.md
+  references:
+  - line: 12
+    text: "- kenji_yamamoto"
+  - line: 38
+    text: Kenji Yamamoto, slumped in the back of the room with his hood pulled up,
+      yawned so widely he nearly dislocated his jaw. “Is it that bad? Just open the
+      file and change the stuff.”
+  severity: medium
+  review_status: pending
+- content_type: translation
+  content_path: chapters/009-chapter.ru.md
+  references:
+  - line: 12
+    text: "- kenji_yamamoto"
+  severity: medium
+  review_status: pending
+- content_type: chapter
+  content_path: chapters/010-chapter.md
+  references:
+  - line: 12
+    text: "- kenji_yamamoto"
+  - line: 27
+    text: Kenji Yamamoto sat at his desk, staring blankly at his screen. He had submitted
+      a massive refactor of the core authentication module three minutes ago. His
+      notification bell chimed.
+  severity: medium
+  review_status: pending
+- content_type: translation
+  content_path: chapters/010-chapter.ru.md
+  references:
+  - line: 12
+    text: "- kenji_yamamoto"
+  severity: medium
+  review_status: pending
+- content_type: character_profile
+  content_path: characters/kenji_yamamoto.md
+  references:
+  - line: 3
+    text: 'name: Kenji Yamamoto'
+  - line: 4
+    text: 'slug: kenji_yamamoto'
+  - line: 16
+    text: 'permalink: "/characters/kenji-yamamoto/"'
+  - line: 21
+    text: "## About Kenji Yamamoto"
+  severity: high
+  review_status: pending
+- content_type: translation
+  content_path: characters/kenji_yamamoto.ru.md
+  references:
+  - line: 4
+    text: 'slug: kenji_yamamoto'
+  - line: 25
+    text: 'permalink: "/characters/kenji-yamamoto/"'
+  severity: medium
+  review_status: pending
+summary:
+  total: 19
+  by_severity:
+    high: 7
+    medium: 12
+    low: 0

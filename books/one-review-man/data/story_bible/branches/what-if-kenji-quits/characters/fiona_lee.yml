@@ -1,0 +1,34 @@
+---
+id: fiona_lee
+name: Fiona Lee
+description: Project manager at HeroTech Solutions, master of transforming chaos into
+  slightly more organized chaos. Renowned for her dry wit, legendary patience, and
+  a sticker collection that covers her laptop—and half the meeting room table.
+personality_traits:
+- deadpan humor
+- unflappable
+- subtly sarcastic
+- secretly kindhearted
+physical_appearance:
+  age: 35
+  skin_tone: Light
+  hair: Black with colorful streaks
+  eyes: Kind but sharp
+  outfit: Business casual with fun pins
+  distinguishing_features: Always holding a tablet/clipboard
+programming_skills: Expert at Agile ceremonies, issue triage, and wrangling even the
+  most stubborn devs into delivering on time. Can decipher cryptic Jira tickets and
+  translate dev-speak for upper management. Not a coder herself, but her PR comments
+  are feared and respected throughout the company.
+catchphrase: If we survive this sprint, stickers for everyone.
+backstory: Fiona started at HeroTech Solutions as a QA intern, where she quickly learned
+  the fine art of bug diplomacy and negotiating with caffeine-fueled programmers.
+  After single-handedly organizing a release party that shipped on time (for once),
+  she rose through the ranks to become project manager. Now, she’s the glue holding
+  together teams that would otherwise combust over YAML formatting debates.
+quirks: Obsessively collects stickers from every hackathon, conference, and sandwich
+  shop she visits; uses them as 'achievement badges' for her devs. Can survive entire
+  meetings without blinking. Keeps a plush bug on her desk as a passive-aggressive
+  morale booster.
+first_appearance: 6
+created_date: '2025-07-15'
