@@ -83,7 +83,7 @@ module BookCore
     # front_matter  – Hash that will be serialised as YAML
     # body          – String markdown content (can be empty)
     def write_file(filename, front_matter, body)
-      content = "---\n"
+      content = +"---\n"
       content << front_matter.to_yaml.lines[1..].join # Skip leading '---'
       content << "---\n\n"
       content << body if body && !body.empty?
