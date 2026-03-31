@@ -17,7 +17,7 @@ physical_appearance:
 programming_skills: Instantly writes bug-free, perfectly optimized, and elegantly
   structured code in any language or framework, effortlessly solves the most complex
   programming problems without effort.
-catchphrase: Another perfect review... how boring.
+catchphrase: I used to review code...
 backstory: 'Once an ordinary junior developer burdened by endless bugs and code reviews,
   Satoru undertook a rigorous training regimen: he read Stack Overflow answers for
   100 days straight, refactored legacy code without sleep, and debugged assembly for
@@ -28,4 +28,6 @@ quirks: Frequently sighs heavily after submitting code, hoping desperately for s
   to critique his perfect solutions.
 first_appearance: 1
 created_date: '2025-06-09'
-role: legendary code reviewer
+role: retired developer
+title: The One Review Man
+status: left HeroTech

@@ -1,0 +1,32 @@
+---
+id: carlos_rivera
+name: Carlos Rivera
+description: An eccentric Senior Engineer infamous for his chaotic workspace, caffeine
+  dependence, and unmatched debugging skills. Known for his skepticism, he frequently
+  dismisses Satoru's flawless code as sheer luck, stubbornly refusing to acknowledge
+  Satoru's true genius.
+personality_traits:
+- sarcastic
+- obsessive
+physical_appearance:
+  age: 45
+  skin_tone: Tan
+  hair: Wild, graying, receding
+  eyes: Bloodshot, intense
+  outfit: Coffee-stained vintage tech t-shirt
+  distinguishing_features: Constant stubble, twitchy
+programming_skills: Master debugger, expert in reading stack traces, finding obscure
+  errors, and writing cryptic but effective quick fixes. Specializes in JavaScript
+  and legacy PHP.
+catchphrase: It's not a bug, it's an undocumented feature!
+backstory: Once a promising young coder inspired to change the world, Carlos quickly
+  became jaded after years spent maintaining ancient legacy codebases. Having seen
+  countless production meltdowns, he embraced chaos and caffeine, evolving into the
+  Debugging Ninja—feared and respected for his ability to unravel even the most convoluted
+  bugs. Despite his constant grumbling and skepticism towards newcomers, deep down
+  he secretly admires true programming talent, though he'd never openly admit it.
+quirks: Consumes excessive amounts of coffee, leaves dozens of empty mugs scattered
+  around his workspace, and decorates his desk with ninja-themed memorabilia. Only
+  listens to synthwave music when debugging critical issues.
+first_appearance: 2
+created_date: '2025-06-09'

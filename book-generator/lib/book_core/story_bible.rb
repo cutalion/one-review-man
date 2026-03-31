@@ -25,9 +25,12 @@ module BookCore
 
     attr_reader :project_root
 
-    def initialize(project_root: Dir.pwd)
+    def initialize(project_root: Dir.pwd, revision_store: nil, impact_analyzer: nil, branch_manager: nil)
       @project_root = File.expand_path(project_root)
       @cache = {}
+      @revision_store = revision_store
+      @impact_analyzer = impact_analyzer
+      @branch_manager = branch_manager
     end
 
     # === Directory Paths ===
@@ -50,10 +53,15 @@ module BookCore
     def setup
       FileUtils.mkdir_p(characters_dir)
       FileUtils.mkdir_p(locations_dir)
+      FileUtils.mkdir_p(revisions_dir) if @revision_store
       # Create empty files if they don't exist
       touch_yaml_file(facts_path, { 'facts' => {} })
       touch_yaml_file(relationships_path, { 'relationships' => [] })
       touch_yaml_file(plot_threads_path, { 'plot_threads' => [] })
+    end
+
+    def revisions_dir
+      File.join(story_bible_path, 'revisions')
     end
 
     # === Characters ===
@@ -93,10 +101,17 @@ module BookCore
     # Save a character
     # @param id [String] Character slug/ID
     # @param data [Hash] Character data
-    def save_character(id, data)
+    # @param change_reason [String, nil] Optional reason for the change
+    def save_character(id, data, change_reason: nil)
+      existing = get_character(id)
+      operation = existing ? 'update' : 'create'
+
+      merged = data.merge('id' => id)
       path = File.join(characters_dir, "#{id}.yml")
-      write_yaml_file(path, data.merge('id' => id))
+      write_yaml_file(path, merged)
       invalidate_cache(:characters)
+
+      record_revision('character', id, merged, operation, change_reason: change_reason)
     end
 
     # === Locations ===
@@ -117,10 +132,17 @@ module BookCore
     # Save a location
     # @param id [String] Location slug/ID
     # @param data [Hash] Location data
-    def save_location(id, data)
+    # @param change_reason [String, nil] Optional reason for the change
+    def save_location(id, data, change_reason: nil)
+      existing = get_location(id)
+      operation = existing ? 'update' : 'create'
+
+      merged = data.merge('id' => id)
       path = File.join(locations_dir, "#{id}.yml")
-      write_yaml_file(path, data.merge('id' => id))
+      write_yaml_file(path, merged)
       invalidate_cache(:locations)
+
+      record_revision('location', id, merged, operation, change_reason: change_reason)
     end
 
     # === Facts ===
@@ -146,13 +168,20 @@ module BookCore
     # @param category [String] Category (events, world_rules, etc.)
     # @param id [String] Fact ID
     # @param data [Hash] Fact data
-    def add_fact(category, id, data)
+    # @param change_reason [String, nil] Optional reason for the change
+    def add_fact(category, id, data, change_reason: nil)
+      existing = get_facts_by_category(category)[id]
+      operation = existing ? 'update' : 'create'
+
       all_facts = load_yaml_file(facts_path)
       all_facts['facts'] ||= {}
       all_facts['facts'][category] ||= {}
       all_facts['facts'][category][id] = data
       write_yaml_file(facts_path, all_facts)
       invalidate_cache(:facts)
+
+      fact_id = "#{category}/#{id}"
+      record_revision('fact', fact_id, data, operation, change_reason: change_reason)
     end
 
     # Search facts by keyword (case-insensitive)
@@ -202,12 +231,16 @@ module BookCore
 
     # Add a relationship
     # @param data [Hash] Relationship data with :character1, :character2, :type, :since
-    def add_relationship(data)
+    # @param change_reason [String, nil] Optional reason for the change
+    def add_relationship(data, change_reason: nil)
       all_rels = load_yaml_file(relationships_path)
       all_rels['relationships'] ||= []
       all_rels['relationships'] << data
       write_yaml_file(relationships_path, all_rels)
       invalidate_cache(:relationships)
+
+      rel_id = "#{data['character1']}-#{data['character2']}"
+      record_revision('relationship', rel_id, data, 'create', change_reason: change_reason)
     end
 
     # === Plot Threads ===
@@ -230,12 +263,17 @@ module BookCore
 
     # Add a plot thread
     # @param data [Hash] Plot thread data
-    def add_plot_thread(data)
+    # @param change_reason [String, nil] Optional reason for the change
+    def add_plot_thread(data, change_reason: nil)
+      merged = data.merge('status' => 'active')
       all_threads = load_yaml_file(plot_threads_path)
       all_threads['plot_threads'] ||= []
-      all_threads['plot_threads'] << data.merge('status' => 'active')
+      all_threads['plot_threads'] << merged
       write_yaml_file(plot_threads_path, all_threads)
       invalidate_cache(:plot_threads)
+
+      thread_id = data['id'] || "thread-#{all_threads['plot_threads'].length}"
+      record_revision('plot_thread', thread_id, merged, 'create', change_reason: change_reason)
     end
 
     # === World Rules ===
@@ -276,6 +314,18 @@ module BookCore
     end
 
     private
+
+    def record_revision(entity_type, entity_id, snapshot, operation, change_reason: nil)
+      return unless @revision_store
+
+      @revision_store.record(
+        entity_type: entity_type,
+        entity_id: entity_id,
+        snapshot: snapshot,
+        operation: operation,
+        change_reason: change_reason
+      )
+    end
 
     def load_entities_from_dir(dir)
       return {} unless Dir.exist?(dir)

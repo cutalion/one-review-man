@@ -1,0 +1,41 @@
+---
+sequence: 4
+entity_type: character
+entity_id: kenji_yamamoto
+snapshot:
+  id: kenji_yamamoto
+  name: Kenji Yamamoto
+  description: A casually dressed programmer known for effortlessly writing flawless
+    code, to the point that his submissions are always merged after a single review.
+    He is bored and unchallenged by his own perfection, seeking excitement in the
+    mundane.
+  personality_traits:
+  - bored
+  - unimpressed
+  physical_appearance:
+    age: 28
+    skin_tone: Light
+    hair: Messy black
+    eyes: Tired, dark circles
+    outfit: Worn-out grey hoodie and jeans
+    distinguishing_features: Always looks sleepy, slouches
+  programming_skills: Instantly writes bug-free, perfectly optimized, and elegantly
+    structured code in any language or framework, effortlessly solves the most complex
+    programming problems without effort.
+  catchphrase: Another perfect review... how boring.
+  backstory: 'Once an ordinary junior developer burdened by endless bugs and code
+    reviews, Satoru undertook a rigorous training regimen: he read Stack Overflow
+    answers for 100 days straight, refactored legacy code without sleep, and debugged
+    assembly for a month. Unexpectedly, this granted him programming perfection, making
+    every challenge trivial and every bug easily solvable—leaving him bored and unfulfilled
+    by his incredible skills.'
+  quirks: Frequently sighs heavily after submitting code, hoping desperately for someone
+    to critique his perfect solutions.
+  first_appearance: 1
+  created_date: '2025-06-09'
+  role: legendary code reviewer
+timestamp: '2026-03-31T01:03:19+04:00'
+operation: update
+branch: main
+change_reason: 'Rollback to revision #1'
+parent_seq: 3
