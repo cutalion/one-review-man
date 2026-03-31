@@ -3,6 +3,7 @@
 require 'yaml'
 require 'date'
 require 'fileutils'
+require_relative 'snapshot_errors'
 
 module BookCore
   # Unified API for reading and writing Story Bible data.
@@ -25,18 +26,72 @@ module BookCore
 
     attr_reader :project_root
 
-    def initialize(project_root: Dir.pwd, revision_store: nil, impact_analyzer: nil, branch_manager: nil)
+    def initialize(project_root: Dir.pwd, revision_store: nil, impact_analyzer: nil, branch_manager: nil, frozen: false)
       @project_root = File.expand_path(project_root)
       @cache = {}
       @revision_store = revision_store
       @impact_analyzer = impact_analyzer
       @branch_manager = branch_manager
+      @frozen = frozen
     end
+
+    # Load a read-only Story Bible from a named snapshot.
+    # @param project_root [String] Project root path
+    # @param snapshot_name [String] Snapshot name to load from
+    # @param snapshot_store [SnapshotStore] Injected snapshot store
+    # @return [StoryBible] Read-only instance
+    def self.from_snapshot(project_root:, snapshot_name:, snapshot_store:)
+      manifest = snapshot_store.get(snapshot_name)
+      raise SnapshotNotFoundError, "Snapshot \"#{snapshot_name}\" not found" unless manifest
+
+      snapshot_dir = snapshot_store.snapshot_path(snapshot_name)
+
+      # Validate integrity
+      validate_snapshot_integrity!(snapshot_dir)
+
+      # Create a StoryBible that reads from the snapshot directory.
+      # We set project_root to a synthetic path so that story_bible_path
+      # resolves to the snapshot directory.
+      # snapshot_dir IS the story_bible content, so we need project_root
+      # such that project_root/data/story_bible == snapshot_dir
+      # Instead, we create the instance and override the path.
+      instance = new(project_root: project_root, frozen: true)
+      instance.instance_variable_set(:@snapshot_bible_path, snapshot_dir)
+      instance
+    end
+
+    def self.validate_snapshot_integrity!(snapshot_dir)
+      required_dirs = %w[characters locations]
+      required_files = %w[facts.yml relationships.yml plot_threads.yml]
+
+      # Check manifest is valid YAML
+      manifest_path = File.join(snapshot_dir, 'manifest.yml')
+      if File.exist?(manifest_path)
+        begin
+          YAML.safe_load(File.read(manifest_path), permitted_classes: [Date, Time])
+        rescue Psych::SyntaxError => e
+          raise SnapshotCorruptError, "Snapshot manifest is malformed: #{e.message}"
+        end
+      end
+
+      required_dirs.each do |dir|
+        unless Dir.exist?(File.join(snapshot_dir, dir))
+          raise SnapshotCorruptError, "Snapshot is missing required directory: #{dir}"
+        end
+      end
+
+      required_files.each do |file|
+        unless File.exist?(File.join(snapshot_dir, file))
+          raise SnapshotCorruptError, "Snapshot is missing required file: #{file}"
+        end
+      end
+    end
+    private_class_method :validate_snapshot_integrity!
 
     # === Directory Paths ===
 
     def story_bible_path
-      File.join(@project_root, STORY_BIBLE_DIR)
+      @snapshot_bible_path || File.join(@project_root, STORY_BIBLE_DIR)
     end
 
     def characters_dir
@@ -103,6 +158,7 @@ module BookCore
     # @param data [Hash] Character data
     # @param change_reason [String, nil] Optional reason for the change
     def save_character(id, data, change_reason: nil)
+      check_frozen!
       existing = get_character(id)
       operation = existing ? 'update' : 'create'
 
@@ -134,6 +190,7 @@ module BookCore
     # @param data [Hash] Location data
     # @param change_reason [String, nil] Optional reason for the change
     def save_location(id, data, change_reason: nil)
+      check_frozen!
       existing = get_location(id)
       operation = existing ? 'update' : 'create'
 
@@ -170,6 +227,7 @@ module BookCore
     # @param data [Hash] Fact data
     # @param change_reason [String, nil] Optional reason for the change
     def add_fact(category, id, data, change_reason: nil)
+      check_frozen!
       existing = get_facts_by_category(category)[id]
       operation = existing ? 'update' : 'create'
 
@@ -233,6 +291,7 @@ module BookCore
     # @param data [Hash] Relationship data with :character1, :character2, :type, :since
     # @param change_reason [String, nil] Optional reason for the change
     def add_relationship(data, change_reason: nil)
+      check_frozen!
       all_rels = load_yaml_file(relationships_path)
       all_rels['relationships'] ||= []
       all_rels['relationships'] << data
@@ -265,6 +324,7 @@ module BookCore
     # @param data [Hash] Plot thread data
     # @param change_reason [String, nil] Optional reason for the change
     def add_plot_thread(data, change_reason: nil)
+      check_frozen!
       merged = data.merge('status' => 'active')
       all_threads = load_yaml_file(plot_threads_path)
       all_threads['plot_threads'] ||= []
@@ -314,6 +374,10 @@ module BookCore
     end
 
     private
+
+    def check_frozen!
+      raise FrozenSnapshotError, 'Cannot modify a snapshot-loaded Story Bible' if @frozen
+    end
 
     def record_revision(entity_type, entity_id, snapshot, operation, change_reason: nil)
       return unless @revision_store

@@ -340,16 +340,21 @@ module Book
       class_option 'book-dir', aliases: ['-b'], type: :string, desc: 'Path to the book directory (defaults to current directory)'
 
       desc 'chapter [NUMBER]', 'Generate a chapter'
+      method_option :snapshot, type: :string, desc: 'Pin generation to a specific canon snapshot'
       def chapter(_number = nil)
         abs_root = resolve_project_root!(options['book-dir'])
-        
+
         # Load configuration with CLI overrides
         config = BookCore::Configuration.load(abs_root, options)
 
         Dir.chdir(abs_root) do
           ENV['DEBUG_AI'] = '1' if options[:debug]
           # Pass config to generator
-          generator = BookCore::ChapterGenerator.new(configuration: config, project_root: abs_root)
+          generator = BookCore::ChapterGenerator.new(
+            configuration: config,
+            project_root: abs_root,
+            snapshot: options[:snapshot]
+          )
           generator.generate_next_chapter(auto_generate: options[:auto])
         end
       end
@@ -390,6 +395,7 @@ module Book
       method_option :debug, type: :boolean, default: false, desc: 'Enable debug mode for AI calls'
       method_option 'dry-run', type: :boolean, default: false, desc: 'Dry run: print parameters without generating'
       method_option 'book-dir', aliases: ['-b'], type: :string, desc: 'Path to the book directory'
+      method_option :snapshot, type: :string, desc: 'Pin generation to a specific canon snapshot'
       def illustration
         abs_root = resolve_project_root!(options['book-dir'])
         
@@ -2133,6 +2139,88 @@ module Book
       end
     end
 
+    # CLI subcommand for canon snapshot management
+    class SnapshotCli < Thor
+      include Helpers
+
+      class_option 'book-dir', aliases: ['-b'], type: :string, desc: 'Path to the book directory'
+
+      desc 'create NAME', 'Create a named snapshot of the current Story Bible state'
+      def create(name)
+        abs_root = resolve_project_root!(options['book-dir'])
+        require_relative '../book_core/snapshot_store'
+
+        bible_path = File.join(abs_root, BookCore::StoryBible::STORY_BIBLE_DIR)
+        store = BookCore::SnapshotStore.new(story_bible_path: bible_path)
+        manifest = store.create(name: name)
+
+        say "Created snapshot \"#{manifest['name']}\" (version #{manifest['version']})", :green
+        counts = manifest['entity_counts']
+        say "  Characters: #{counts['characters']}"
+        say "  Locations: #{counts['locations']}"
+        say "  Facts: #{counts['facts']} categories"
+        say "  Relationships: #{counts['relationships']}"
+        say "  Plot threads: #{counts['plot_threads']}"
+      rescue BookCore::DuplicateSnapshotError => e
+        $stderr.puts "Error: #{e.message}"
+        exit 1
+      rescue BookCore::InvalidSnapshotNameError => e
+        $stderr.puts "Error: #{e.message}"
+        exit 1
+      end
+
+      desc 'list', 'List all snapshots'
+      def list
+        abs_root = resolve_project_root!(options['book-dir'])
+        require_relative '../book_core/snapshot_store'
+
+        bible_path = File.join(abs_root, BookCore::StoryBible::STORY_BIBLE_DIR)
+        store = BookCore::SnapshotStore.new(story_bible_path: bible_path)
+        snapshots = store.list
+
+        if snapshots.empty?
+          say 'No snapshots found.'
+          return
+        end
+
+        say 'Snapshots:'
+        snapshots.each do |s|
+          counts = s['entity_counts']
+          date = s['timestamp'].to_s[0, 10]
+          say format('  v%-3d %-20s %s  %s  (%d chars, %d locs, %d facts, %d rels, %d threads)',
+                     s['version'], s['name'], date, s['branch'],
+                     counts['characters'], counts['locations'], counts['facts'],
+                     counts['relationships'], counts['plot_threads'])
+        end
+      end
+
+      desc 'show NAME', 'Show detailed metadata for a snapshot'
+      def show(name)
+        abs_root = resolve_project_root!(options['book-dir'])
+        require_relative '../book_core/snapshot_store'
+
+        bible_path = File.join(abs_root, BookCore::StoryBible::STORY_BIBLE_DIR)
+        store = BookCore::SnapshotStore.new(story_bible_path: bible_path)
+        manifest = store.get(name)
+
+        unless manifest
+          $stderr.puts "Error: Snapshot \"#{name}\" not found"
+          exit 1
+        end
+
+        say "Snapshot: #{manifest['name']} (version #{manifest['version']})"
+        say "Created: #{manifest['timestamp']}"
+        say "Branch: #{manifest['branch']}"
+        say 'Entities:'
+        counts = manifest['entity_counts']
+        say "  Characters: #{counts['characters']}"
+        say "  Locations: #{counts['locations']}"
+        say "  Facts: #{counts['facts']} categories"
+        say "  Relationships: #{counts['relationships']}"
+        say "  Plot threads: #{counts['plot_threads']}"
+      end
+    end
+
     # Main CLI runner that organizes subcommands
     class Runner < Thor
       include Helpers
@@ -2171,6 +2259,9 @@ module Book
 
       desc 'reset SUBCOMMAND ...ARGS', 'Reset generated content'
       subcommand 'reset', Reset
+
+      desc 'snapshot SUBCOMMAND ...ARGS', 'Canon snapshot management'
+      subcommand 'snapshot', SnapshotCli
 
       # Replace subcommand with a top-level status command
       desc 'status', 'Show current book configuration and status'
