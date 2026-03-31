@@ -165,6 +165,8 @@ bundle exec jekyll serve # Site available at http://localhost:4000
 ## Active Technologies
 - Ruby 3.3.5 + Thor (CLI), Bundler, existing BookCore gem (StoryBible, BookConfig, LLMService, WriterAgent) (002-canon-branching-history)
 - YAML files on disk (extending existing `data/story_bible/` structure) (002-canon-branching-history)
+- Ruby 3.3.5 + Thor (CLI framework), Bundler (dependency management), OpenAI Ruby client (LLM access) (003-project-system-spec)
+- YAML files and Markdown files on disk — no external database (003-project-system-spec)
 
 ## Recent Changes
 - 002-canon-branching-history: Added Ruby 3.3.5 + Thor (CLI), Bundler, existing BookCore gem (StoryBible, BookConfig, LLMService, WriterAgent)

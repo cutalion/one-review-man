@@ -164,6 +164,39 @@ RSpec.describe BookCore::ChangesetManager do
       expect { manager.commit(changeset_id: cs.id) }
         .to raise_error(BookCore::ChangesetManager::ChangesetConflictError)
     end
+
+    it 'rolls back applied operations when a later operation fails' do
+      cs = manager.create
+      manager.add_operation(
+        changeset_id: cs.id, operation: 'create',
+        entity_type: 'character', entity_id: 'first_char',
+        changes: { 'name' => 'First' }
+      )
+      manager.add_operation(
+        changeset_id: cs.id, operation: 'create',
+        entity_type: 'character', entity_id: 'second_char',
+        changes: { 'name' => 'Second' }
+      )
+
+      # Stub apply_operation to succeed once then fail
+      call_count = 0
+      allow(manager).to receive(:apply_operation).and_wrap_original do |m, *args|
+        call_count += 1
+        raise 'simulated failure' if call_count == 2
+
+        m.call(*args)
+      end
+
+      expect { manager.commit(changeset_id: cs.id) }.to raise_error('simulated failure')
+
+      # Changeset should be reset to draft, not committed
+      reloaded = manager.load_changeset(cs.id)
+      expect(reloaded.status).to eq('draft')
+
+      # The first character should have been rolled back
+      char = bible.get_character('first_char')
+      expect(char).to be_nil
+    end
   end
 
   describe '#discard' do

@@ -49,6 +49,18 @@ RSpec.describe 'book translation' do
       end
     end
 
+    it 'reports error when translating a non-existent chapter' do
+      translator = Book::Translator.new(
+        project_root: test_dir,
+        config: BookCore::Configuration.load(test_dir, {})
+      )
+
+      # Chapter 99 does not exist
+      expect { translator.translate_chapter_with_ai(99, 'ru') }.not_to raise_error
+      result = translator.translate_chapter_with_ai(99, 'ru')
+      expect(result).to eq(false)
+    end
+
     it 'calls the Translator for all content' do
       expect(Book::Translator).to receive(:new).and_call_original
       expect_any_instance_of(Book::Translator).to receive(:translate_all_content?).with('ru')

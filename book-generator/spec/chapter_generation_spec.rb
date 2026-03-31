@@ -14,6 +14,76 @@ RSpec.describe 'book chapter generation' do
     FileUtils.rm_rf(test_dir)
   end
 
+  describe 'edge cases' do
+    it 'generates a chapter when Story Bible is empty' do
+      # Set up minimal project with empty Story Bible
+      FileUtils.mkdir_p(File.join(test_dir, 'content', 'chapters'))
+      FileUtils.mkdir_p(File.join(test_dir, 'data', 'story_bible', 'characters'))
+      FileUtils.mkdir_p(File.join(test_dir, 'data', 'story_bible', 'locations'))
+      File.write(File.join(test_dir, 'data', 'book_config.yml'), <<~YAML)
+        generation:
+          chapter_length_target: "500-1000 words"
+          main_characters: []
+          content_rules:
+            parody_source: "One-Punch Man"
+        localized:
+          en:
+            title: "Test Book"
+            author: "Test"
+            genre: "Comedy"
+      YAML
+      File.write(File.join(test_dir, 'data', 'book_state.yml'), "book:\n  current_chapter: 0\n  target_chapters: 10\n")
+      File.write(File.join(test_dir, 'data', 'settings.yml'), "llm:\n  model: mock\n")
+      File.write(File.join(test_dir, 'data', 'story_bible', 'facts.yml'), "facts: {}\n")
+      File.write(File.join(test_dir, 'data', 'story_bible', 'relationships.yml'), "relationships: []\n")
+      File.write(File.join(test_dir, 'data', 'story_bible', 'plot_threads.yml'), "plot_threads: []\n")
+
+      config = BookCore::BookConfig.load_from_project(test_dir)
+      configuration = BookCore::Configuration.load(test_dir, {})
+      generator = BookCore::ChapterGenerator.new(
+        configuration: configuration,
+        project_root: test_dir,
+        book_config: config
+      )
+
+      # Should not raise even with empty Story Bible
+      expect { generator.generate_next_chapter(auto_generate: true) }.not_to raise_error
+      expect(Dir.glob(File.join(test_dir, 'content', 'chapters', '*.md')).length).to be >= 1
+    end
+
+    it 'determines next chapter number correctly when chapters already exist' do
+      FileUtils.mkdir_p(File.join(test_dir, 'content', 'chapters'))
+      FileUtils.mkdir_p(File.join(test_dir, 'data'))
+      # Create existing chapters
+      File.write(File.join(test_dir, 'content', 'chapters', '001-chapter.md'), "---\ntitle: Ch1\n---\n")
+      File.write(File.join(test_dir, 'content', 'chapters', '002-chapter.md'), "---\ntitle: Ch2\n---\n")
+      File.write(File.join(test_dir, 'data', 'book_config.yml'), <<~YAML)
+        generation:
+          chapter_length_target: "500 words"
+          main_characters: []
+        localized:
+          en:
+            title: "Test Book"
+            author: "Test"
+            genre: "Comedy"
+      YAML
+      File.write(File.join(test_dir, 'data', 'book_state.yml'), "book:\n  current_chapter: 2\n  target_chapters: 10\n")
+      File.write(File.join(test_dir, 'data', 'settings.yml'), "llm:\n  model: mock\n")
+
+      config = BookCore::BookConfig.load_from_project(test_dir)
+      configuration = BookCore::Configuration.load(test_dir, {})
+      generator = BookCore::ChapterGenerator.new(
+        configuration: configuration,
+        project_root: test_dir,
+        book_config: config
+      )
+
+      # Access private method via send
+      next_num = generator.send(:determine_next_chapter_number)
+      expect(next_num).to eq(3)
+    end
+  end
+
   describe 'integrated chapter generation' do
     it 'calls the ChapterGenerator with correct options' do
       # Create the necessary directories and files in the temporary directory
