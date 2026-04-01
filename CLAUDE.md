@@ -173,6 +173,8 @@ bundle exec jekyll serve # Site available at http://localhost:4000
 - YAML files on disk (story bible, snapshots, book metadata) (005-producer-contract)
 - Ruby 3.3.5, `frozen_string_literal: true` + Thor (CLI), Bundler, BookCore (Producer, LLMService, StoryBible, SnapshotStore) (006-instagram-comic-producer)
 - PNG images + YAML sidecar files on disk (006-instagram-comic-producer)
+- Ruby 3.3.5, `frozen_string_literal: true` + BookCore (existing), LLMService (existing) (007-comic-prompt-quality)
+- N/A — no new storage; existing YAML sidecar format unchanged (007-comic-prompt-quality)
 
 ## Recent Changes
 - 002-canon-branching-history: Added Ruby 3.3.5 + Thor (CLI), Bundler, existing BookCore gem (StoryBible, BookConfig, LLMService, WriterAgent)

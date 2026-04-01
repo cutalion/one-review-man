@@ -41,7 +41,8 @@ module BookCore
           sequence: p['sequence'],
           scene_description: p['scene_description'],
           characters: p['characters'] || [],
-          image_path: p['image_path']
+          image_path: p['image_path'],
+          text_elements: p['text_elements'] || []
         )
       end
 
