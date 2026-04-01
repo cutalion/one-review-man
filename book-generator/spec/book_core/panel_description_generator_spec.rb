@@ -120,7 +120,7 @@ RSpec.describe BookCore::PanelDescriptionGenerator do
       it 'instructs LLM to indicate no-text panels' do
         allow(llm_service).to receive(:generate_text) do |args|
           prompt = args[:prompt]
-          expect(prompt).to match(/no text|empty.*text_elements/i)
+          expect(prompt).to match(/no dialog|empty array \[\]/i)
           '[{"sequence": 1, "scene_description": "test", "characters": [], "text_elements": []}]'
         end
 
@@ -150,14 +150,58 @@ RSpec.describe BookCore::PanelDescriptionGenerator do
         expect(panels.first.text_elements.first['text']).to eq('Hello world')
       end
 
+      it 'includes concrete example with dialog in text_elements' do
+        allow(llm_service).to receive(:generate_text) do |args|
+          prompt = args[:prompt]
+          # Must contain a JSON example with speech_bubble in text_elements
+          expect(prompt).to include('"type": "speech_bubble"')
+          expect(prompt).to include('"speaker"')
+          # The example should show non-empty text_elements
+          expect(prompt).to match(/"text_elements":\s*\[\s*\{/)
+          '[{"sequence": 1, "scene_description": "test", "characters": [], "text_elements": []}]'
+        end
+
+        generator.generate(content: content, characters: characters, panel_count: 1)
+      end
+
+      it 'instructs LLM to NOT put dialog in scene_description' do
+        allow(llm_service).to receive(:generate_text) do |args|
+          prompt = args[:prompt]
+          expect(prompt).to match(/scene_description.*must not.*dialog|do not.*put.*dialog.*scene_description/i)
+          '[{"sequence": 1, "scene_description": "test", "characters": [], "text_elements": []}]'
+        end
+
+        generator.generate(content: content, characters: characters, panel_count: 1)
+      end
+
+      it 'instructs LLM to keep dialog short' do
+        allow(llm_service).to receive(:generate_text) do |args|
+          prompt = args[:prompt]
+          expect(prompt).to match(/short|1-2 sentences|brief/i)
+          '[{"sequence": 1, "scene_description": "test", "characters": [], "text_elements": []}]'
+        end
+
+        generator.generate(content: content, characters: characters, panel_count: 1)
+      end
+
+      it 'instructs LLM to use character IDs in speaker field' do
+        allow(llm_service).to receive(:generate_text) do |args|
+          prompt = args[:prompt]
+          expect(prompt).to match(/character ID|character_id.*speaker/i)
+          '[{"sequence": 1, "scene_description": "test", "characters": [], "text_elements": []}]'
+        end
+
+        generator.generate(content: content, characters: characters, panel_count: 1)
+      end
+
       it 'includes visual storytelling instructions in prompt' do
         allow(llm_service).to receive(:generate_text) do |args|
           prompt = args[:prompt]
-          expect(prompt).to include('Camera angle')
-          expect(prompt).to include('Lighting')
-          expect(prompt).to include('expression')
-          expect(prompt).to include('body language')
-          expect(prompt).to include('Composition')
+          expect(prompt).to match(/camera angle/i)
+          expect(prompt).to match(/lighting/i)
+          expect(prompt).to match(/expression/i)
+          expect(prompt).to match(/body language/i)
+          expect(prompt).to match(/composition/i)
           '[{"sequence": 1, "scene_description": "test", "characters": [], "text_elements": []}]'
         end
 

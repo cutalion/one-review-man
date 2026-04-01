@@ -36,30 +36,59 @@ module BookCore
         NARRATIVE CONTENT:
         #{content}
 
-        For each panel, provide:
-        1. A detailed visual scene description suitable for an AI image generator. Include ALL of these visual storytelling elements:
-           - Character appearance and pose/action
-           - Facial expression and body language
-           - Camera angle or framing (e.g., close-up, wide shot, low angle)
-           - Lighting and mood direction (e.g., dramatic shadows, warm golden hour)
-           - Composition notes (e.g., character centered, rule of thirds, negative space)
-        2. Which characters appear in the scene (use their IDs)
-        3. ALL text that should appear in the image as "text_elements". For each piece of visible text (speech bubbles, signs, screens, sound effects, captions), specify the exact wording. Types: "speech_bubble" (with speaker character ID), "sign", "screen", "sound_effect", "caption". If a panel has NO text at all, use an empty text_elements array [].
+        ## STRICT RULES FOR DIALOG AND TEXT
 
-        IMPORTANT: Respond with valid JSON array matching this schema:
+        RULE 1: "scene_description" must contain ONLY visual direction. It must NOT contain any dialog, quoted speech, "speech bubble" references, or "text reading" phrases. Describe what characters look like and do — NOT what they say.
+
+        RULE 2: ALL character dialog from the narrative MUST go in "text_elements" as speech_bubble entries. If a character speaks in the scene, their words MUST appear in text_elements. Use the character ID (not display name) in the "speaker" field.
+
+        RULE 3: Keep each speech bubble text short — 1-2 brief sentences maximum. Select the most impactful dialog from the narrative.
+
+        RULE 4: If a panel has no dialog or text, set text_elements to an empty array [].
+
+        ## CORRECT EXAMPLE (dialog in text_elements, NOT in scene_description):
+
+        ```json
+        {
+          "sequence": 1,
+          "scene_description": "Medium shot of a programmer slouching in his chair, eyes half-lidded with boredom, one hand resting on the keyboard. Cool blue monitor light illuminates his face. Empty coffee cups litter the desk. Low angle emphasizing his isolation in the dim office.",
+          "characters": ["kenji_yamamoto"],
+          "text_elements": [
+            { "type": "speech_bubble", "speaker": "kenji_yamamoto", "text": "Another perfect review... how boring." }
+          ]
+        }
+        ```
+
+        ## WRONG EXAMPLE (DO NOT DO THIS — dialog embedded in scene_description):
+
+        ```json
+        {
+          "sequence": 1,
+          "scene_description": "A programmer slouches at his desk, a small speech bubble indicating: 'Another perfect review... how boring.' He looks tired.",
+          "characters": ["kenji_yamamoto"],
+          "text_elements": []
+        }
+        ```
+        This is WRONG because the dialog is in scene_description instead of text_elements.
+
+        ## OUTPUT FORMAT
+
+        For each panel, provide:
+        1. "scene_description": Visual direction ONLY — character appearance, pose, expression, body language, camera angle, lighting, mood, composition. Do NOT put any dialog here.
+        2. "characters": Array of character IDs appearing in the scene.
+        3. "text_elements": Array of ALL text for the image. Types: "speech_bubble" (with "speaker" character ID and "text"), "sound_effect" ("text" only), "sign", "screen", "caption".
+
+        Respond with a valid JSON array:
         [
           {
             "sequence": 1,
-            "scene_description": "Detailed visual description with camera angle, lighting, expressions, body language, composition...",
+            "scene_description": "Visual direction only...",
             "characters": ["character_id"],
             "text_elements": [
-              { "type": "speech_bubble", "speaker": "character_id", "text": "Exact words here" },
-              { "type": "sound_effect", "text": "BOOM" }
+              { "type": "speech_bubble", "speaker": "character_id", "text": "Short dialog here" }
             ]
           }
         ]
-
-        CRITICAL: Every piece of text that should appear in the final image MUST be listed in text_elements with the exact wording. Do not describe text generically (e.g., "a speech bubble") — always specify the exact words. If a panel should have no text, set text_elements to an empty array [].
 
         Generate exactly #{panel_count} panels. Respond with the JSON array only, no other text.
       PROMPT
