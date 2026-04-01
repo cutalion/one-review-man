@@ -9,22 +9,32 @@ panel_descriptions: |
   [
     {
       "sequence": 1,
-      "scene_description": "A tired programmer in a grey hoodie slouches at his desk, staring at a monitor showing a perfect code review with zero comments. His expression is one of profound boredom.",
-      "characters": ["kenji_yamamoto"]
+      "scene_description": "A tired programmer in a grey hoodie slouches at his desk, staring at a monitor showing a perfect code review with zero comments. His expression is one of profound boredom. Medium shot from slightly above, cool blue monitor light casting shadows on his face, empty coffee cups scattered across the desk.",
+      "characters": ["kenji_yamamoto"],
+      "text_elements": [
+        { "type": "speech_bubble", "speaker": "kenji_yamamoto", "text": "Another perfect review... how boring." }
+      ]
     },
     {
       "sequence": 2,
-      "scene_description": "The programmer walks through a bustling open-plan office, colleagues frantically debugging around him while he yawns. A giant screen behind shows all CI pipelines green.",
-      "characters": ["kenji_yamamoto"]
+      "scene_description": "The programmer walks through a bustling open-plan office, colleagues frantically debugging around him while he yawns. Wide shot with shallow depth of field focusing on the protagonist, warm fluorescent office lighting, chaotic energy in the background contrasting his calm posture.",
+      "characters": ["kenji_yamamoto"],
+      "text_elements": []
     },
     {
       "sequence": 3,
-      "scene_description": "Close-up of the programmer's hands typing on a keyboard, code flowing onto the screen in perfect formation. His face reflected in the monitor shows tired, dark-circled eyes.",
-      "characters": ["kenji_yamamoto"]
+      "scene_description": "Close-up of the programmer's hands typing on a keyboard, code flowing onto the screen in perfect formation. His face reflected in the monitor shows tired, dark-circled eyes. Extreme close-up, green code reflection on his glasses, dramatic low-key lighting.",
+      "characters": ["kenji_yamamoto"],
+      "text_elements": [
+        { "type": "sound_effect", "text": "TAP TAP TAP" }
+      ]
     },
     {
       "sequence": 4,
-      "scene_description": "The programmer sits alone on a rooftop at sunset, looking at his phone showing yet another merged pull request notification. A single tear of boredom rolls down his cheek.",
-      "characters": ["kenji_yamamoto"]
+      "scene_description": "The programmer sits alone on a rooftop at sunset, looking at his phone showing yet another merged pull request notification. A single tear of boredom rolls down his cheek. Wide establishing shot, warm golden hour lighting, silhouette against orange sky, lonely composition with vast empty space.",
+      "characters": ["kenji_yamamoto"],
+      "text_elements": [
+        { "type": "speech_bubble", "speaker": "kenji_yamamoto", "text": "Is there no code I cannot review?" }
+      ]
     }
   ]

@@ -58,6 +58,21 @@ RSpec.describe BookCore::PanelDescriptionGenerator do
       end
     end
 
+    context 'mock panels include text_elements' do
+      before { allow(BookCore::EnvUtils).to receive(:mock_ai_enabled?).and_return(true) }
+
+      it 'returns panels with text_elements' do
+        panels = generator.generate(content: content, characters: characters, panel_count: 4)
+
+        # Panel 1 has speech bubble, panel 2 is empty, panel 3 has sound effect, panel 4 has speech bubble
+        expect(panels[0].text_elements).not_to be_empty
+        expect(panels[0].text_elements.first['type']).to eq('speech_bubble')
+        expect(panels[1].text_elements).to eq([])
+        expect(panels[2].text_elements.first['type']).to eq('sound_effect')
+        expect(panels[3].text_elements).not_to be_empty
+      end
+    end
+
     context 'with real LLM' do
       before { allow(BookCore::EnvUtils).to receive(:mock_ai_enabled?).and_return(false) }
 
@@ -88,6 +103,65 @@ RSpec.describe BookCore::PanelDescriptionGenerator do
 
         expect(panels.length).to eq(1)
         expect(panels.first.scene_description).to eq('Test')
+      end
+
+      it 'includes text control instructions in prompt' do
+        allow(llm_service).to receive(:generate_text) do |args|
+          prompt = args[:prompt]
+          expect(prompt).to include('text_elements')
+          expect(prompt).to include('speech_bubble')
+          expect(prompt).to include('exact')
+          '[{"sequence": 1, "scene_description": "test", "characters": [], "text_elements": []}]'
+        end
+
+        generator.generate(content: content, characters: characters, panel_count: 1)
+      end
+
+      it 'instructs LLM to indicate no-text panels' do
+        allow(llm_service).to receive(:generate_text) do |args|
+          prompt = args[:prompt]
+          expect(prompt).to match(/no text|empty.*text_elements/i)
+          '[{"sequence": 1, "scene_description": "test", "characters": [], "text_elements": []}]'
+        end
+
+        generator.generate(content: content, characters: characters, panel_count: 1)
+      end
+
+      it 'parses text_elements from LLM response' do
+        json_response = <<~JSON
+          [
+            {
+              "sequence": 1,
+              "scene_description": "A programmer at his desk",
+              "characters": ["kenji_yamamoto"],
+              "text_elements": [
+                { "type": "speech_bubble", "speaker": "kenji_yamamoto", "text": "Hello world" }
+              ]
+            }
+          ]
+        JSON
+
+        allow(llm_service).to receive(:generate_text).and_return(json_response)
+
+        panels = generator.generate(content: content, characters: characters, panel_count: 1)
+
+        expect(panels.first.text_elements.length).to eq(1)
+        expect(panels.first.text_elements.first['type']).to eq('speech_bubble')
+        expect(panels.first.text_elements.first['text']).to eq('Hello world')
+      end
+
+      it 'includes visual storytelling instructions in prompt' do
+        allow(llm_service).to receive(:generate_text) do |args|
+          prompt = args[:prompt]
+          expect(prompt).to include('Camera angle')
+          expect(prompt).to include('Lighting')
+          expect(prompt).to include('expression')
+          expect(prompt).to include('body language')
+          expect(prompt).to include('Composition')
+          '[{"sequence": 1, "scene_description": "test", "characters": [], "text_elements": []}]'
+        end
+
+        generator.generate(content: content, characters: characters, panel_count: 1)
       end
 
       it 'includes character descriptions and art style in prompt' do

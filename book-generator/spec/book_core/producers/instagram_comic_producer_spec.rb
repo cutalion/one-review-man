@@ -154,6 +154,69 @@ RSpec.describe BookCore::Producers::InstagramComicProducer do
       end
     end
 
+    context 'US1-007: text control in image prompts' do
+      it 'appends text safeguard instruction to every image prompt' do
+        prompts = []
+        allow(llm_service).to receive(:generate_image) do |prompt, **_opts|
+          prompts << prompt
+          'mock_base64'
+        end
+
+        Dir.mktmpdir do |output_dir|
+          producer.produce(config: config, output: output_dir)
+        end
+
+        prompts.each do |prompt|
+          expect(prompt).to include('Do not add any text, words, or letters beyond what is explicitly specified')
+        end
+      end
+
+      it 'includes exact text instructions for panels with text_elements' do
+        prompts = []
+        allow(llm_service).to receive(:generate_image) do |prompt, **_opts|
+          prompts << prompt
+          'mock_base64'
+        end
+
+        Dir.mktmpdir do |output_dir|
+          producer.produce(config: config, output: output_dir)
+        end
+
+        # Panel 1 has speech bubble "Another perfect review... how boring."
+        expect(prompts[0]).to include("speech bubble reading exactly: 'Another perfect review... how boring.'")
+      end
+
+      it 'includes no-text declaration for panels with empty text_elements' do
+        prompts = []
+        allow(llm_service).to receive(:generate_image) do |prompt, **_opts|
+          prompts << prompt
+          'mock_base64'
+        end
+
+        Dir.mktmpdir do |output_dir|
+          producer.produce(config: config, output: output_dir)
+        end
+
+        # Panel 2 has empty text_elements
+        expect(prompts[1]).to include('No text, no words, no letters, no speech bubbles anywhere in the image')
+      end
+
+      it 'includes sound effect text instructions' do
+        prompts = []
+        allow(llm_service).to receive(:generate_image) do |prompt, **_opts|
+          prompts << prompt
+          'mock_base64'
+        end
+
+        Dir.mktmpdir do |output_dir|
+          producer.produce(config: config, output: output_dir)
+        end
+
+        # Panel 3 has sound effect "TAP TAP TAP"
+        expect(prompts[2]).to include("sound effect text reading exactly: 'TAP TAP TAP'")
+      end
+    end
+
     context 'US2: art style and panel count' do
       it 'uses custom art_style' do
         Dir.mktmpdir do |output_dir|

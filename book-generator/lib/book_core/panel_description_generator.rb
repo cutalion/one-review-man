@@ -37,17 +37,29 @@ module BookCore
         #{content}
 
         For each panel, provide:
-        1. A detailed visual scene description suitable for an AI image generator
+        1. A detailed visual scene description suitable for an AI image generator. Include ALL of these visual storytelling elements:
+           - Character appearance and pose/action
+           - Facial expression and body language
+           - Camera angle or framing (e.g., close-up, wide shot, low angle)
+           - Lighting and mood direction (e.g., dramatic shadows, warm golden hour)
+           - Composition notes (e.g., character centered, rule of thirds, negative space)
         2. Which characters appear in the scene (use their IDs)
+        3. ALL text that should appear in the image as "text_elements". For each piece of visible text (speech bubbles, signs, screens, sound effects, captions), specify the exact wording. Types: "speech_bubble" (with speaker character ID), "sign", "screen", "sound_effect", "caption". If a panel has NO text at all, use an empty text_elements array [].
 
         IMPORTANT: Respond with valid JSON array matching this schema:
         [
           {
             "sequence": 1,
-            "scene_description": "Detailed visual description...",
-            "characters": ["character_id"]
+            "scene_description": "Detailed visual description with camera angle, lighting, expressions, body language, composition...",
+            "characters": ["character_id"],
+            "text_elements": [
+              { "type": "speech_bubble", "speaker": "character_id", "text": "Exact words here" },
+              { "type": "sound_effect", "text": "BOOM" }
+            ]
           }
         ]
+
+        CRITICAL: Every piece of text that should appear in the final image MUST be listed in text_elements with the exact wording. Do not describe text generically (e.g., "a speech bubble") — always specify the exact words. If a panel should have no text, set text_elements to an empty array [].
 
         Generate exactly #{panel_count} panels. Respond with the JSON array only, no other text.
       PROMPT
@@ -61,7 +73,8 @@ module BookCore
         ComicPanel.new(
           sequence: panel['sequence'],
           scene_description: panel['scene_description'],
-          characters: panel['characters'] || []
+          characters: panel['characters'] || [],
+          text_elements: panel['text_elements'] || []
         )
       end
     rescue JSON::ParserError => e
@@ -86,11 +99,20 @@ module BookCore
 
     def generate_mock_panels(panel_count, characters)
       char_ids = characters.keys
+      mock_text_elements = [
+        [{ 'type' => 'speech_bubble', 'speaker' => char_ids.first, 'text' => 'Another perfect review... how boring.' }],
+        [],
+        [{ 'type' => 'sound_effect', 'text' => 'TAP TAP TAP' }],
+        [{ 'type' => 'speech_bubble', 'speaker' => char_ids.first, 'text' => 'Is there no code I cannot review?' }]
+      ]
+
       panel_count.times.map do |i|
         ComicPanel.new(
           sequence: i + 1,
-          scene_description: "Mock scene #{i + 1}: A visually compelling moment from the narrative",
-          characters: char_ids.empty? ? [] : [char_ids[i % char_ids.length]]
+          scene_description: "Mock scene #{i + 1}: A visually compelling moment from the narrative. " \
+                             "Medium shot, dramatic lighting, character showing determination.",
+          characters: char_ids.empty? ? [] : [char_ids[i % char_ids.length]],
+          text_elements: mock_text_elements[i % mock_text_elements.length]
         )
       end
     end

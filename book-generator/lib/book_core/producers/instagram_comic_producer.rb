@@ -177,6 +177,29 @@ module BookCore
           parts << "Character: #{appearance.to_prompt}" if appearance
         end
 
+        # Text control: specify exact text or declare text-free
+        if panel.text_elements.empty?
+          parts << 'No text, no words, no letters, no speech bubbles anywhere in the image.'
+        else
+          panel.text_elements.each do |te|
+            case te['type']
+            when 'speech_bubble'
+              parts << "speech bubble reading exactly: '#{te['text']}'"
+            when 'sound_effect'
+              parts << "sound effect text reading exactly: '#{te['text']}'"
+            when 'sign'
+              parts << "sign reading exactly: '#{te['text']}'"
+            when 'screen'
+              parts << "screen displaying exactly: '#{te['text']}'"
+            when 'caption'
+              parts << "caption text reading exactly: '#{te['text']}'"
+            end
+          end
+        end
+
+        # Safeguard against model-invented text
+        parts << 'Do not add any text, words, or letters beyond what is explicitly specified in this prompt.'
+
         parts.join(' ')
       end
 
