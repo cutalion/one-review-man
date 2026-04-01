@@ -366,6 +366,45 @@ module Book
         end
       end
 
+      desc 'comic', 'Generate comic panels from a chapter'
+      method_option :chapter, type: :numeric, required: true, desc: 'Chapter number to generate panels from'
+      method_option :panels, type: :numeric, default: 4, desc: 'Number of panels to generate (default: 4)'
+      method_option :style, type: :string, default: 'manga', desc: 'Art style (e.g., manga, western comic, pixel art)'
+      method_option :format, type: :string, default: 'square', desc: 'Image format: square (1080x1080) or portrait (1080x1350)'
+      method_option :snapshot, type: :string, desc: 'Pin generation to a specific canon snapshot'
+      method_option :output, type: :string, desc: 'Output directory for generated panels'
+      method_option 'describe-only', type: :boolean, default: false, desc: 'Generate panel descriptions only (no images)'
+      def comic
+        abs_root = resolve_project_root!(options['book-dir'])
+
+        Dir.chdir(abs_root) do
+          ENV['DEBUG_AI'] = '1' if options[:debug]
+
+          require 'book_core/producers/instagram_comic_producer'
+          producer = BookCore::Producers::InstagramComicProducer.new(project_root: abs_root)
+          result = producer.produce(
+            snapshot: options[:snapshot],
+            config: {
+              source: { type: 'chapter', number: options[:chapter] },
+              panel_count: options[:panels],
+              art_style: options[:style],
+              image_format: options[:format],
+              description_only: options['describe-only']
+            },
+            output: options[:output]
+          )
+
+          if result.success?
+            puts "Comic panels generated at #{result.output_path}"
+            puts "Artifacts: #{result.artifacts.length} files"
+            result.artifacts.each { |a| puts "  #{a}" }
+          else
+            puts "Error: #{result.error}"
+            exit 1
+          end
+        end
+      end
+
       desc 'prompt [NUMBER]', 'Show generation prompt'
       def prompt(number = nil)
         project_root = resolve_project_root(options['book-dir'])

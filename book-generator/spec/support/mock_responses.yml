@@ -3,4 +3,28 @@ chapter_1: |
   Mock chapter 1 content.
 chapter_2: |
   # Heading
-  Mock chapter 2 content. 
+  Mock chapter 2 content.
+
+panel_descriptions: |
+  [
+    {
+      "sequence": 1,
+      "scene_description": "A tired programmer in a grey hoodie slouches at his desk, staring at a monitor showing a perfect code review with zero comments. His expression is one of profound boredom.",
+      "characters": ["kenji_yamamoto"]
+    },
+    {
+      "sequence": 2,
+      "scene_description": "The programmer walks through a bustling open-plan office, colleagues frantically debugging around him while he yawns. A giant screen behind shows all CI pipelines green.",
+      "characters": ["kenji_yamamoto"]
+    },
+    {
+      "sequence": 3,
+      "scene_description": "Close-up of the programmer's hands typing on a keyboard, code flowing onto the screen in perfect formation. His face reflected in the monitor shows tired, dark-circled eyes.",
+      "characters": ["kenji_yamamoto"]
+    },
+    {
+      "sequence": 4,
+      "scene_description": "The programmer sits alone on a rooftop at sunset, looking at his phone showing yet another merged pull request notification. A single tear of boredom rolls down his cheek.",
+      "characters": ["kenji_yamamoto"]
+    }
+  ]
