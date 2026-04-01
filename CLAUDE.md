@@ -169,6 +169,8 @@ bundle exec jekyll serve # Site available at http://localhost:4000
 - YAML files and Markdown files on disk — no external database (003-project-system-spec)
 - Ruby 3.3.5 + Thor (CLI), YAML (stdlib), FileUtils (stdlib) (004-canon-versioning)
 - Filesystem — YAML files under `data/story_bible/snapshots/` (004-canon-versioning)
+- Ruby 3.3.5, `frozen_string_literal: true` + Thor (CLI), Bundler, BookCore gem (ChapterGenerator, StoryBible, LLMService, SnapshotStore) (005-producer-contract)
+- YAML files on disk (story bible, snapshots, book metadata) (005-producer-contract)
 
 ## Recent Changes
 - 002-canon-branching-history: Added Ruby 3.3.5 + Thor (CLI), Bundler, existing BookCore gem (StoryBible, BookConfig, LLMService, WriterAgent)

@@ -341,21 +341,28 @@ module Book
 
       desc 'chapter [NUMBER]', 'Generate a chapter'
       method_option :snapshot, type: :string, desc: 'Pin generation to a specific canon snapshot'
+      method_option :output, type: :string, desc: 'Output directory for generated artifacts'
       def chapter(_number = nil)
         abs_root = resolve_project_root!(options['book-dir'])
 
-        # Load configuration with CLI overrides
-        config = BookCore::Configuration.load(abs_root, options)
-
         Dir.chdir(abs_root) do
           ENV['DEBUG_AI'] = '1' if options[:debug]
-          # Pass config to generator
-          generator = BookCore::ChapterGenerator.new(
-            configuration: config,
-            project_root: abs_root,
-            snapshot: options[:snapshot]
+
+          require 'book_core/producers/chapter_producer'
+          producer = BookCore::Producers::ChapterProducer.new(project_root: abs_root)
+          result = producer.produce(
+            snapshot: options[:snapshot],
+            config: {
+              auto_generate: options[:auto],
+              model: options['content-model']
+            },
+            output: options[:output]
           )
-          generator.generate_next_chapter(auto_generate: options[:auto])
+
+          unless result.success?
+            puts "Error: #{result.error}"
+            exit 1
+          end
         end
       end
 
