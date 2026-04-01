@@ -74,7 +74,7 @@ module BookCore
           sequence: panel['sequence'],
           scene_description: panel['scene_description'],
           characters: panel['characters'] || [],
-          text_elements: panel['text_elements'] || []
+          text_elements: panel['text_elements']
         )
       end
     rescue JSON::ParserError => e

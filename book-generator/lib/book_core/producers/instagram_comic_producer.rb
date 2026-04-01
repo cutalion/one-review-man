@@ -178,7 +178,9 @@ module BookCore
         end
 
         # Text control: specify exact text or declare text-free
-        if panel.text_elements.empty?
+        if panel.text_elements.nil?
+          # text_elements not provided by LLM — no text control applied
+        elsif panel.text_elements.empty?
           parts << 'No text, no words, no letters, no speech bubbles anywhere in the image.'
         else
           panel.text_elements.each do |te|
@@ -197,8 +199,10 @@ module BookCore
           end
         end
 
-        # Safeguard against model-invented text
-        parts << 'Do not add any text, words, or letters beyond what is explicitly specified in this prompt.'
+        # Safeguard against model-invented text (only when text_elements is present)
+        unless panel.text_elements.nil?
+          parts << 'Do not add any text, words, or letters beyond what is explicitly specified in this prompt.'
+        end
 
         parts.join(' ')
       end

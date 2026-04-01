@@ -201,6 +201,33 @@ RSpec.describe BookCore::Producers::InstagramComicProducer do
         expect(prompts[1]).to include('No text, no words, no letters, no speech bubbles anywhere in the image')
       end
 
+      it 'omits text control when text_elements is nil (LLM did not provide)' do
+        # Simulate LLM not returning text_elements
+        mock_panels = [
+          BookCore::ComicPanel.new(
+            sequence: 1,
+            scene_description: 'A programmer at desk',
+            characters: ['kenji_yamamoto'],
+            text_elements: nil
+          )
+        ]
+        allow_any_instance_of(BookCore::PanelDescriptionGenerator).to receive(:generate).and_return(mock_panels)
+
+        prompts = []
+        allow(llm_service).to receive(:generate_image) do |prompt, **_opts|
+          prompts << prompt
+          'mock_base64'
+        end
+
+        Dir.mktmpdir do |output_dir|
+          producer.produce(config: config.merge(panel_count: 1), output: output_dir)
+        end
+
+        # Should NOT have the no-text declaration or safeguard
+        expect(prompts[0]).not_to include('No text, no words, no letters')
+        expect(prompts[0]).not_to include('Do not add any text')
+      end
+
       it 'includes sound effect text instructions' do
         prompts = []
         allow(llm_service).to receive(:generate_image) do |prompt, **_opts|
