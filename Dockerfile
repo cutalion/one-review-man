@@ -9,11 +9,11 @@ RUN apt-get update -qq && apt-get install -y build-essential libffi-dev nodejs n
 WORKDIR /app
 
 # Copy the Gemfiles and gemspecs first to cache dependencies
-COPY book-generator/Gemfile book-generator/book-generator.gemspec /app/book-generator/
+COPY eidos/Gemfile eidos/eidos.gemspec /app/eidos/
 COPY site/Gemfile /app/site/
 
-# Install dependencies for book-generator
-WORKDIR /app/book-generator
+# Install dependencies for eidos
+WORKDIR /app/eidos
 RUN bundle install
 
 # Install dependencies for site

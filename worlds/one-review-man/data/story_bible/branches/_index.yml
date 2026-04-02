@@ -1,0 +1,10 @@
+---
+branches:
+- name: what-if-kenji-quits
+  parent_branch: main
+  created_at: '2026-03-31T00:12:39+04:00'
+  created_from:
+    branch: main
+    revision: 
+  status: active
+  description: What if Kenji leaves HeroTech?

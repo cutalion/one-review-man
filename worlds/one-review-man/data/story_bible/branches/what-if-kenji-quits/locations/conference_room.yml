@@ -1,0 +1,7 @@
+---
+id: conference_room
+name: Main Conference Room
+description: Room with whiteboards for technical discussions and sprint planning
+type: location
+first_mentioned: 3
+status: established

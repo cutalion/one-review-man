@@ -6,45 +6,48 @@ This document provides a comprehensive guide for AI agents working with this rep
 
 ## Project Overview: One Review Man
 
-This repository contains "One Review Man," an AI-generated programming comedy book. The project is structured as a monorepo and includes a command-line interface (CLI) for generating book content, the book's source files, and a Jekyll-based website for publication. The content is written in English and translated into Russian.
+This repository contains "One Review Man," an AI-generated programming comedy IP (storyworld). The project is structured as a monorepo and includes domain-specific CLI tools for world management, content production, and publication. The content is written in English and translated into Russian.
 
-The core of the project is the `book-generator` CLI, a Ruby application responsible for:
-*   **Chapter Generation:** Creating new chapters using AI models.
-*   **Character Generation:** Creating new characters that appear in the story.
-*   **Translation:** Translating chapters and character descriptions.
-*   **Jekyll Site Generation:** Assembling the book content into a runnable Jekyll website.
+The core of the project is the `eidos` gem, a Ruby engine responsible for:
+*   **World Management:** Creating and managing IP worlds (storyworlds) via the `world` CLI.
+*   **Story Bible:** Managing canonical world lore via the `bible` CLI.
+*   **Canon Versioning:** Tracking and versioning world state via the `canon` CLI.
+*   **Content Production:** Generating chapters, comics, and illustrations via the `produce` CLI.
+*   **Translation:** Translating content to other languages via the `translate` CLI.
+*   **Publishing:** Assembling content into a Jekyll website via the `publish` CLI.
 
-The book's content is stored in `books/one-review-man`, and the Jekyll website is in `site/`.
+The world's content is stored in `worlds/one-review-man`, and the Jekyll website is in `site/`.
 
 ## Project Structure
 
 ```
-├── book-generator/          # Core Ruby gem and CLI
-│   ├── lib/book_core/      # Modular generation engine
-│   ├── lib/book/           # Legacy CLI interfaces
-│   ├── bin/book            # Main CLI entrypoint (Thor-based)
-│   └── templates/jekyll/   # Jekyll site template
-│   └── spec/               # RSpec tests
-├── books/one-review-man/   # Book-specific content and configuration
-│   ├── content/           # Generated chapters and characters
-│   └── data/              # Metadata, characters, and LLM configuration
-└── site/                  # Generated Jekyll site (build target)
+├── eidos/                     # Core Ruby gem and CLI
+│   ├── lib/eidos/            # Modular generation engine (Eidos:: namespace)
+│   ├── lib/eidos/cli/        # Domain-specific CLI classes
+│   ├── bin/world             # World management CLI
+│   ├── bin/bible             # Story Bible CLI
+│   ├── bin/canon             # Canon versioning CLI
+│   ├── bin/produce           # Content production CLI
+│   ├── bin/translate         # Translation CLI
+│   ├── bin/publish           # Publishing CLI
+│   └── templates/jekyll/     # Jekyll site template
+│   └── spec/                 # RSpec tests
+├── worlds/one-review-man/    # World-specific content and configuration
+│   ├── content/             # Generated chapters, characters, comics
+│   └── data/                # Metadata, characters, and LLM configuration
+└── site/                    # Generated Jekyll site (build target)
 ```
 
 ## Common Development Commands
 
 #### Setup
 ```bash
-# Jules Setup
-./setup_jules.sh
-
 # Docker Setup
 docker compose build
 docker compose up -d
 
 # Manual Setup
-# Install dependencies for the CLI
-cd book-generator
+cd eidos
 bundle install
 
 # Install dependencies for the Jekyll site
@@ -54,8 +57,8 @@ bundle install
 
 #### Testing
 ```bash
-# Run all tests from the book-generator directory
-cd book-generator
+# Run all tests from the eidos directory
+cd eidos
 bundle exec rspec
 
 # Run a specific test file
@@ -67,30 +70,30 @@ MOCK_AI=true bundle exec rspec
 
 #### Content Generation & Management
 ```bash
-# All commands can be run from the repo root using the --book-dir (or -b) flag.
-# Initialize a new book
-book-generator/bin/book init --book-dir books/one-review-man
+# All commands use --world-dir (or -w) to specify the world directory.
+# Initialize a new world
+eidos/bin/world new -w worlds/one-review-man
 
 # Generate the next chapter
-book-generator/bin/book generate chapter --model gpt-4o-mini -b books/one-review-man
+eidos/bin/produce chapter -w worlds/one-review-man
 
 # Generate with auto-acceptance of prompts (for scripting)
-MOCK_AI=true book-generator/bin/book generate chapter -b books/one-review-man --auto
+MOCK_AI=true eidos/bin/produce chapter -w worlds/one-review-man --auto
 
 # Show the generation prompt without calling the AI
-book-generator/bin/book generate prompt [CHAPTER_NUMBER] -b books/one-review-man
+eidos/bin/produce prompt [CHAPTER_NUMBER] -w worlds/one-review-man
 
 # Translate all content to Russian
-book-generator/bin/book translate all ru -b books/one-review-man
+eidos/bin/translate all ru -w worlds/one-review-man
 
 # Translate a specific chapter
-book-generator/bin/book translate chapter 1 ru -b books/one-review-man
+eidos/bin/translate chapter 1 ru -w worlds/one-review-man
 ```
 
 #### Website
 ```bash
 # Generate the Jekyll site
-book-generator/bin/book jekyll generate --book-dir books/one-review-man --dest site
+eidos/bin/publish jekyll -w worlds/one-review-man --dest site
 
 # Run the Jekyll server locally
 cd site
@@ -117,7 +120,7 @@ bundle exec jekyll serve # Site available at http://localhost:4000
     *   Files: `snake_case.rb`
     *   Classes/Modules: `CamelCase`
     *   RSpec files: `*_spec.rb`
-*   **Linting:** Adhere to RuboCop rules defined in `book-generator/.rubocop.yml`. Run `bundle exec rubocop` to check.
+*   **Linting:** Adhere to RuboCop rules defined in `eidos/.rubocop.yml`. Run `bundle exec rubocop` to check.
 
 ### Development Modes
 *   `MOCK_AI=true`: Use deterministic mock AI responses from `spec/support/mock_responses.yml` instead of making live API calls. This is the preferred mode for testing.
@@ -134,13 +137,13 @@ bundle exec jekyll serve # Site available at http://localhost:4000
 ## Project Architecture
 
 ### Core Components
-*   **ChapterGenerator** (`book-generator/lib/book_core/chapter_generator.rb`): The main content generation engine. It uses dependency injection for services like the LLM, output adapter, and prompt provider.
-*   **LLMService** (`book-generator/lib/book_core/llm_service.rb`): An abstracted interface for interacting with AI models. The current implementation uses OpenAI.
-*   **JekyllAdapter** (`book-generator/lib/book_core/jekyll_adapter.rb`): Formats and writes content for the Jekyll website.
-*   **PromptProvider** (`book-generator/lib/book_core/prompt_provider.rb`): Manages and provides prompt templates for content generation.
+*   **ChapterGenerator** (`eidos/lib/eidos/chapter_generator.rb`): The main content generation engine. It uses dependency injection for services like the LLM, output adapter, and prompt provider.
+*   **LLMService** (`eidos/lib/eidos/llm_service.rb`): An abstracted interface for interacting with AI models. The current implementation uses OpenAI.
+*   **JekyllAdapter** (`eidos/lib/eidos/jekyll_adapter.rb`): Formats and writes content for the Jekyll website.
+*   **PromptProvider** (`eidos/lib/eidos/prompt_provider.rb`): Manages and provides prompt templates for content generation.
 
 ### Configuration System
-*   **LLM Configuration** is managed in `books/*/data/settings.yml`:
+*   **LLM Configuration** is managed in `worlds/*/data/settings.yml`:
     ```yaml
     llm:
       provider: openai
@@ -155,26 +158,15 @@ bundle exec jekyll serve # Site available at http://localhost:4000
         translation:
           max_tokens: 12000
     ```
-*   **Project Detection**: The CLI automatically finds the book root by searching for a `data/book_metadata.yml` file.
+*   **Project Detection**: The CLI automatically finds the world root by searching for a `data/world_config.yml` or `data/world_metadata.yml` file.
 
 ### Key Development Patterns
 *   **Dependency Injection**: Major components are designed to have their dependencies injected via constructor arguments, which is heavily used in tests.
 *   **Multi-language Support**: Content is generated in English and then translated into other languages using the AI.
-*   **CLI Structure**: The CLI is built with Thor and organized into subcommands (`generate`, `translate`, `jekyll`, `init`, `reset`).
+*   **CLI Structure**: The CLI is split into 6 domain-specific binaries: `world`, `bible`, `canon`, `produce`, `translate`, `publish`. Each is a Thor-based CLI with focused commands.
+*   **Namespace**: All core classes live under `Eidos::` namespace (e.g., `Eidos::ChapterGenerator`, `Eidos::StoryBible`, `Eidos::WorldConfig`).
 
 ## Active Technologies
-- Ruby 3.3.5 + Thor (CLI), Bundler, existing BookCore gem (StoryBible, BookConfig, LLMService, WriterAgent) (002-canon-branching-history)
-- YAML files on disk (extending existing `data/story_bible/` structure) (002-canon-branching-history)
-- Ruby 3.3.5 + Thor (CLI framework), Bundler (dependency management), OpenAI Ruby client (LLM access) (003-project-system-spec)
-- YAML files and Markdown files on disk — no external database (003-project-system-spec)
-- Ruby 3.3.5 + Thor (CLI), YAML (stdlib), FileUtils (stdlib) (004-canon-versioning)
-- Filesystem — YAML files under `data/story_bible/snapshots/` (004-canon-versioning)
-- Ruby 3.3.5, `frozen_string_literal: true` + Thor (CLI), Bundler, BookCore gem (ChapterGenerator, StoryBible, LLMService, SnapshotStore) (005-producer-contract)
-- YAML files on disk (story bible, snapshots, book metadata) (005-producer-contract)
-- Ruby 3.3.5, `frozen_string_literal: true` + Thor (CLI), Bundler, BookCore (Producer, LLMService, StoryBible, SnapshotStore) (006-instagram-comic-producer)
-- PNG images + YAML sidecar files on disk (006-instagram-comic-producer)
-- Ruby 3.3.5, `frozen_string_literal: true` + BookCore (existing), LLMService (existing) (007-comic-prompt-quality)
-- N/A — no new storage; existing YAML sidecar format unchanged (007-comic-prompt-quality)
-
-## Recent Changes
-- 002-canon-branching-history: Added Ruby 3.3.5 + Thor (CLI), Bundler, existing BookCore gem (StoryBible, BookConfig, LLMService, WriterAgent)
+- Ruby 3.3.5, `frozen_string_literal: true` + Thor ~> 1.3 (CLI), ruby-openai ~> 7.3 (LLM), tty-prompt ~> 0.23, rainbow ~> 3.1
+- YAML files on disk (world config, state, story bible)
+- Eidos gem (ChapterGenerator, StoryBible, LLMService, WorldConfig, WriterAgent, Producer)
