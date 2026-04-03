@@ -170,3 +170,8 @@ bundle exec jekyll serve # Site available at http://localhost:4000
 - Ruby 3.3.5, `frozen_string_literal: true` + Thor ~> 1.3 (CLI), ruby-openai ~> 7.3 (LLM), tty-prompt ~> 0.23, rainbow ~> 3.1
 - YAML files on disk (world config, state, story bible)
 - Eidos gem (ChapterGenerator, StoryBible, LLMService, WorldConfig, WriterAgent, Producer)
+- Ruby 3.3.5 + Thor ~> 1.3 (CLI), ruby-openai ~> 7.3, tty-prompt ~> 0.23, rainbow ~> 3.1 (010-storage-abstraction-layer)
+- YAML files on disk (current), in-memory hashes (new for tests) (010-storage-abstraction-layer)
+
+## Recent Changes
+- 010-storage-abstraction-layer: Added Ruby 3.3.5 + Thor ~> 1.3 (CLI), ruby-openai ~> 7.3, tty-prompt ~> 0.23, rainbow ~> 3.1

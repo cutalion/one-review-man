@@ -427,6 +427,9 @@ module Eidos
             'model' => 'dall-e-3',
             'style' => 'vivid',
             'orientation' => 'square'
+          },
+          'storage' => {
+            'backend' => 'yaml_file'
           }
         }
         write_yaml_file(File.join(target, 'data', 'settings.yml'), settings_data)

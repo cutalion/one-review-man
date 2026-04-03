@@ -26,13 +26,23 @@ module Eidos
 
     attr_reader :project_root
 
-    def initialize(project_root: Dir.pwd, revision_store: nil, impact_analyzer: nil, branch_manager: nil, frozen: false)
+    def initialize(project_root: Dir.pwd, revision_store: nil, impact_analyzer: nil, branch_manager: nil, frozen: false,
+                   entity_storage: nil)
       @project_root = File.expand_path(project_root)
       @cache = {}
       @revision_store = revision_store
       @impact_analyzer = impact_analyzer
       @branch_manager = branch_manager
       @frozen = frozen
+      @entity_storage = entity_storage
+    end
+
+    # Returns the entity storage adapter, lazily building a YamlFile one if not injected.
+    def entity_storage
+      @entity_storage ||= begin
+        require_relative 'storage/yaml_file/entity_storage'
+        Storage::YamlFile::EntityStorage.new(project_root: @project_root)
+      end
     end
 
     # Load a read-only Story Bible from a named snapshot.
@@ -49,13 +59,10 @@ module Eidos
       # Validate integrity
       validate_snapshot_integrity!(snapshot_dir)
 
-      # Create a StoryBible that reads from the snapshot directory.
-      # We set project_root to a synthetic path so that story_bible_path
-      # resolves to the snapshot directory.
-      # snapshot_dir IS the story_bible content, so we need project_root
-      # such that project_root/data/story_bible == snapshot_dir
-      # Instead, we create the instance and override the path.
-      instance = new(project_root: project_root, frozen: true)
+      # Create a read-only StoryBible backed by a YamlFile adapter pointing at snapshot dir
+      require_relative 'storage/yaml_file/entity_storage'
+      snapshot_entity_storage = Storage::YamlFile::EntityStorage.new(story_bible_path: snapshot_dir)
+      instance = new(project_root: project_root, frozen: true, entity_storage: snapshot_entity_storage)
       instance.instance_variable_set(:@snapshot_bible_path, snapshot_dir)
       instance
     end
@@ -91,28 +98,23 @@ module Eidos
     # === Directory Paths ===
 
     def story_bible_path
-      @snapshot_bible_path || File.join(@project_root, STORY_BIBLE_DIR)
+      @snapshot_bible_path || entity_storage.story_bible_path
     end
 
     def characters_dir
-      File.join(story_bible_path, 'characters')
+      entity_storage.characters_dir
     end
 
     def locations_dir
-      File.join(story_bible_path, 'locations')
+      entity_storage.locations_dir
     end
 
     # === Setup ===
 
     # Initialize the story bible directory structure
     def setup
-      FileUtils.mkdir_p(characters_dir)
-      FileUtils.mkdir_p(locations_dir)
+      entity_storage.setup
       FileUtils.mkdir_p(revisions_dir) if @revision_store
-      # Create empty files if they don't exist
-      touch_yaml_file(facts_path, { 'facts' => {} })
-      touch_yaml_file(relationships_path, { 'relationships' => [] })
-      touch_yaml_file(plot_threads_path, { 'plot_threads' => [] })
     end
 
     def revisions_dir
@@ -124,7 +126,7 @@ module Eidos
     # Get all characters
     # @return [Hash<String, Hash>] Character ID => Character data
     def characters
-      @cache[:characters] ||= load_entities_from_dir(characters_dir)
+      @cache[:characters] ||= entity_storage.all_characters
     end
 
     # Get a single character by ID
@@ -163,8 +165,7 @@ module Eidos
       operation = existing ? 'update' : 'create'
 
       merged = data.merge('id' => id)
-      path = File.join(characters_dir, "#{id}.yml")
-      write_yaml_file(path, merged)
+      entity_storage.save_character(id, data)
       invalidate_cache(:characters)
 
       record_revision('character', id, merged, operation, change_reason: change_reason)
@@ -175,7 +176,7 @@ module Eidos
     # Get all locations
     # @return [Hash<String, Hash>] Location ID => Location data
     def locations
-      @cache[:locations] ||= load_entities_from_dir(locations_dir)
+      @cache[:locations] ||= entity_storage.all_locations
     end
 
     # Get a single location by ID
@@ -195,8 +196,7 @@ module Eidos
       operation = existing ? 'update' : 'create'
 
       merged = data.merge('id' => id)
-      path = File.join(locations_dir, "#{id}.yml")
-      write_yaml_file(path, merged)
+      entity_storage.save_location(id, data)
       invalidate_cache(:locations)
 
       record_revision('location', id, merged, operation, change_reason: change_reason)
@@ -205,13 +205,13 @@ module Eidos
     # === Facts ===
 
     def facts_path
-      File.join(story_bible_path, 'facts.yml')
+      entity_storage.facts_path
     end
 
     # Get all facts
     # @return [Hash] Facts organized by category
     def facts
-      @cache[:facts] ||= load_yaml_file(facts_path)['facts'] || {}
+      @cache[:facts] ||= entity_storage.all_facts
     end
 
     # Get facts by category
@@ -231,11 +231,7 @@ module Eidos
       existing = get_facts_by_category(category)[id]
       operation = existing ? 'update' : 'create'
 
-      all_facts = load_yaml_file(facts_path)
-      all_facts['facts'] ||= {}
-      all_facts['facts'][category] ||= {}
-      all_facts['facts'][category][id] = data
-      write_yaml_file(facts_path, all_facts)
+      entity_storage.add_fact(category, id, data)
       invalidate_cache(:facts)
 
       fact_id = "#{category}/#{id}"
@@ -246,36 +242,19 @@ module Eidos
     # @param query [String] Search query
     # @return [Array<Hash>] Matching facts with category and id
     def search_facts(query)
-      results = []
-      query_downcase = query.downcase
-
-      facts.each do |category, category_facts|
-        category_facts.each do |id, data|
-          searchable = [
-            data['name'],
-            data['description'],
-            data['rule']
-          ].compact.join(' ').downcase
-
-          if searchable.include?(query_downcase)
-            results << { 'category' => category, 'id' => id, 'data' => data }
-          end
-        end
-      end
-
-      results
+      entity_storage.search_facts(query)
     end
 
     # === Relationships ===
 
     def relationships_path
-      File.join(story_bible_path, 'relationships.yml')
+      entity_storage.relationships_path
     end
 
     # Get all relationships
     # @return [Array<Hash>] List of relationships
     def relationships
-      @cache[:relationships] ||= load_yaml_file(relationships_path)['relationships'] || []
+      @cache[:relationships] ||= entity_storage.all_relationships
     end
 
     # Get relationships for a character
@@ -292,10 +271,7 @@ module Eidos
     # @param change_reason [String, nil] Optional reason for the change
     def add_relationship(data, change_reason: nil)
       check_frozen!
-      all_rels = load_yaml_file(relationships_path)
-      all_rels['relationships'] ||= []
-      all_rels['relationships'] << data
-      write_yaml_file(relationships_path, all_rels)
+      entity_storage.add_relationship(data)
       invalidate_cache(:relationships)
 
       rel_id = "#{data['character1']}-#{data['character2']}"
@@ -305,13 +281,13 @@ module Eidos
     # === Plot Threads ===
 
     def plot_threads_path
-      File.join(story_bible_path, 'plot_threads.yml')
+      entity_storage.plot_threads_path
     end
 
     # Get all plot threads
     # @return [Array<Hash>] List of plot threads
     def plot_threads
-      @cache[:plot_threads] ||= load_yaml_file(plot_threads_path)['plot_threads'] || []
+      @cache[:plot_threads] ||= entity_storage.all_plot_threads
     end
 
     # Get active plot threads
@@ -326,13 +302,10 @@ module Eidos
     def add_plot_thread(data, change_reason: nil)
       check_frozen!
       merged = data.merge('status' => 'active')
-      all_threads = load_yaml_file(plot_threads_path)
-      all_threads['plot_threads'] ||= []
-      all_threads['plot_threads'] << merged
-      write_yaml_file(plot_threads_path, all_threads)
+      entity_storage.add_plot_thread(data)
       invalidate_cache(:plot_threads)
 
-      thread_id = data['id'] || "thread-#{all_threads['plot_threads'].length}"
+      thread_id = data['id'] || "thread-#{plot_threads.length}"
       record_revision('plot_thread', thread_id, merged, 'create', change_reason: change_reason)
     end
 
@@ -391,18 +364,6 @@ module Eidos
       )
     end
 
-    def load_entities_from_dir(dir)
-      return {} unless Dir.exist?(dir)
-
-      entities = {}
-      Dir.glob(File.join(dir, '*.yml')).each do |file|
-        data = load_yaml_file(file)
-        id = data['id'] || File.basename(file, '.yml')
-        entities[id] = data
-      end
-      entities
-    end
-
     def load_yaml_file(path)
       return {} unless File.exist?(path)
 
@@ -410,17 +371,6 @@ module Eidos
     rescue Psych::SyntaxError => e
       warn "Warning: Failed to parse #{path}: #{e.message}"
       {}
-    end
-
-    def write_yaml_file(path, data)
-      FileUtils.mkdir_p(File.dirname(path))
-      File.write(path, data.to_yaml)
-    end
-
-    def touch_yaml_file(path, default_content = {})
-      return if File.exist?(path)
-
-      write_yaml_file(path, default_content)
     end
   end
 end
