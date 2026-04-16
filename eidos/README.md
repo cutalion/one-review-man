@@ -52,7 +52,15 @@ eidos chapter show 1 -w /path/to/my-world
 eidos character list -w /path/to/my-world
 eidos character show kenji_yamamoto -w /path/to/my-world
 eidos character update kenji_yamamoto role="senior engineer" --reason "promotion"
+
+# Cheap smoke-test for a provider/model (auth, reachability, latency)
+eidos probe gpt-4o-mini
+eidos probe anthropic/claude-3.5-haiku --provider openrouter
+eidos probe gpt-4o-mini --metrics --json      # include token counts, emit JSON
+eidos probe gpt-4o-mini -w /path/to/my-world  # read api_key_env from world settings
 ```
+
+`eidos probe` is deliberately tiny: one round-trip, ~30 input / ~5 output tokens, no world-file mutation. Failure categories: `unknown_model` / `auth` / `network` / `rate_limit` / `other`. Exit codes: 0 OK, 1 FAIL, 2 config error.
 
 During development, each subcommand is also exposed as a standalone binary in `bin/` (`bin/world`, `bin/bible`, `bin/canon`, `bin/produce`, `bin/translate`, `bin/publish`). These are identical to `eidos <subcommand>` and exist for convenience inside the monorepo.
 
