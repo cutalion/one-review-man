@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative 'world_config'
+require_relative 'chapter_collection'
 
 module Eidos
   class WorldNotFoundError < StandardError; end
@@ -31,6 +32,10 @@ module Eidos
         chapters: chapter_count,
         current_chapter: @world_config.current_chapter
       }
+    end
+
+    def chapters
+      @chapters ||= ChapterCollection.new(world_path: @path)
     end
 
     private

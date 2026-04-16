@@ -71,4 +71,18 @@ RSpec.describe Eidos::World do
       expect(status[:chapters]).to eq(3)
     end
   end
+
+  describe '#chapters' do
+    it 'returns a ChapterCollection' do
+      world = Eidos::World.new('test-world')
+      expect(world.chapters).to be_a(Eidos::ChapterCollection)
+      expect(world.chapters.count).to eq(3)
+    end
+
+    it 'accesses chapters by number' do
+      world = Eidos::World.new('test-world')
+      chapter = world.chapters[1]
+      expect(chapter.title).to eq('Chapter 1')
+    end
+  end
 end
