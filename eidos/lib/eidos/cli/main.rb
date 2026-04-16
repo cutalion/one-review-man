@@ -31,6 +31,7 @@ require 'eidos/cli/canon'
 require 'eidos/cli/produce'
 require 'eidos/cli/translate'
 require 'eidos/cli/publish'
+require 'eidos/cli/chapter_cli'
 
 module Eidos
   module CLI
@@ -52,6 +53,10 @@ module Eidos
 
       desc 'publish SUBCOMMAND ...ARGS', 'Publish content'
       subcommand 'publish', Eidos::CLI::Publish
+
+      # New SDK-based subcommands
+      desc 'chapter SUBCOMMAND ...ARGS', 'Chapter operations'
+      subcommand 'chapter', Eidos::CLI::ChapterCli
     end
   end
 end
