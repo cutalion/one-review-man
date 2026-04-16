@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative 'character_collection'
+require_relative 'location_collection'
 require_relative 'story_bible'
 
 module Eidos
@@ -19,7 +20,7 @@ module Eidos
     end
 
     def locations
-      @engine_bible.locations
+      @locations ||= LocationCollection.new(bible: self)
     end
 
     def facts
@@ -44,6 +45,10 @@ module Eidos
 
     def save_character(id, data, change_reason: nil)
       @engine_bible.save_character(id, data, change_reason: change_reason)
+    end
+
+    def save_location(id, data, change_reason: nil)
+      @engine_bible.save_location(id, data, change_reason: change_reason)
     end
 
     def character_history(_id)
