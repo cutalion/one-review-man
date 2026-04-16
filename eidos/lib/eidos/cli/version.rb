@@ -1,7 +1,9 @@
 # frozen_string_literal: true
 
+require_relative '../version'
+
 module Eidos
   module CLI
-    VERSION = '0.1.0'
+    VERSION = Eidos::VERSION
   end
 end

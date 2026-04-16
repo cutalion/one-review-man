@@ -1,8 +1,10 @@
 # frozen_string_literal: true
 
+require_relative 'lib/eidos/version'
+
 Gem::Specification.new do |spec|
   spec.name          = 'eidos'
-  spec.version       = '1.0.0'
+  spec.version       = Eidos::VERSION
   spec.authors       = ['One Review Man Contributors']
   spec.email         = ['eidos@example.com']
 
