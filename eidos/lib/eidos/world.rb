@@ -2,6 +2,7 @@
 
 require_relative 'world_config'
 require_relative 'chapter_collection'
+require_relative 'bible'
 
 module Eidos
   class WorldNotFoundError < StandardError; end
@@ -36,6 +37,10 @@ module Eidos
 
     def chapters
       @chapters ||= ChapterCollection.new(world_path: @path)
+    end
+
+    def bible
+      @bible ||= Bible.new(world_path: @path)
     end
 
     private
