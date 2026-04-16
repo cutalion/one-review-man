@@ -1,67 +1,107 @@
-# One Review Man — AI‑generated programming comedy
+# One Review Man — AI‑generated programming comedy IP
 
-A programming parody of “One‑Punch Man”, generated chapter‑by‑chapter with AI. Content is authored in English and translated to other languages (currently Russian). The project has been refactored into a modular, reusable monorepo with a dedicated generator CLI and a separate Jekyll site adapter.
+A programming parody of *One‑Punch Man*, generated chapter‑by‑chapter with AI. Content is authored in English and translated to other languages (currently Russian).
 
-## Project structure (monorepo)
+This repository is a **monorepo** for the project:
+
+- The **Eidos** gem: a Ruby engine + CLI for building and managing IP worlds ("storyworlds"). Eidos handles world management, canonical lore (Story Bible), canon versioning, content production, translation, and publishing.
+- The **One Review Man** storyworld: the actual content (chapters, characters, comics) produced by Eidos.
+- The generated **Jekyll site**: the public reading surface, built from the storyworld content.
+
+Eidos is reusable — you can install it as a gem (`gem install eidos`) and use it for any storyworld, not just this one.
+
+## Project structure
 
 ```
 one-review-man/
-├── book-generator/          # 📚 Core library + CLI (bin/book)
-│   ├── lib/book_core/       # Core generation/translation engine
-│   └── bin/book             # CLI entrypoint (Thor)
-├── book-generator/templates/
-│   └── jekyll/              # Jekyll site template (layouts, includes, assets)
-├── books/                   # 📖 Book content and per-book config
-│   └── one-review-man/
-│       ├── data/            # Book metadata, characters, logs
-│       ├── content/
-│       │   ├── chapters/    # English chapters + translations (*.ru.md)
-│       │   └── characters/  # English character pages + translations
-│       └── data/               # Book metadata, characters, settings
-└── README.md
+├── eidos/                     # 💎 Eidos gem (engine + CLI + SDK)
+│   ├── lib/eidos/             # Engine + SDK (Eidos:: namespace)
+│   ├── lib/eidos/cli/         # Thor-based CLI classes
+│   ├── exe/eidos              # Unified `eidos` binary (installed by the gem)
+│   ├── bin/{world,bible,canon,produce,translate,publish}
+│   │                          # Domain-specific dev binaries (same commands,
+│   │                          # split for convenience during development)
+│   ├── templates/jekyll/      # Jekyll site template
+│   └── spec/                  # RSpec tests
+├── worlds/one-review-man/     # 🌍 The storyworld content
+│   ├── content/               # Chapters, characters, comics (+ translations)
+│   └── data/                  # world_config.yml, story_bible, settings.yml
+└── site/                      # 📖 Generated Jekyll site
 ```
 
-- No root‑level runtime “bin”. All commands go through `book-generator/bin/book`.
-- Each book folder is self‑contained. You can create more books under `books/` and use the same generator.
-
-## CLI (new canonical flow)
-
-All commands accept `--book-dir` (or `-b`) to work from any current directory.
+## Quick start (monorepo dev mode)
 
 ```bash
-# Initialize a new (empty) book folder
-book-generator/bin/book init --book-dir books/one-review-man
-
-# Generate the next English chapter (set a model if needed)
-book-generator/bin/book generate chapter \
-  --model gpt-5 \
-  --book-dir books/one-review-man
-
-# Inspect the exact prompt used for the next (or specific) chapter
-book-generator/bin/book generate prompt --book-dir books/one-review-man
-book-generator/bin/book generate prompt 7 --book-dir books/one-review-man
-
-# Translate everything to Russian
-book-generator/bin/book translate all ru --book-dir books/one-review-man
-
-# Prepare a Jekyll site with the current book content
-book-generator/bin/book jekyll generate \
-  --book-dir books/one-review-man \
-  --dest books/one-review-man/site
-
-# Build/serve the site (run inside the generated site directory)
-cd books/one-review-man/site
+# Install Eidos dependencies
+cd eidos
 bundle install
-bundle exec jekyll serve
+
+# Generate the next chapter of One Review Man
+MOCK_AI=true bin/produce chapter -w ../worlds/one-review-man --auto
+
+# Or use the unified CLI
+exe/eidos chapter list -w ../worlds/one-review-man
+exe/eidos character show kenji_yamamoto -w ../worlds/one-review-man
+
+# Run the full test suite (544 examples)
+MOCK_AI=true bundle exec rspec
 ```
 
-Tips:
-- Use `MOCK_AI=true` for deterministic, offline runs (no API calls).
-- Use `--debug` (or `DEBUG_AI=1`) to write request/response artifacts to `BOOK_DIR/tmp/ai_debug/`.
+## Using Eidos as a gem (for your own storyworld)
+
+```bash
+gem install eidos
+eidos --version    # eidos 0.2.0
+eidos world new -w /path/to/my-world
+```
+
+From Ruby:
+
+```ruby
+require 'eidos'
+
+Eidos.configure { |c| c.worlds_path = '/path/to/worlds' }
+
+world = Eidos::World.new('my-world')
+puts world.status[:title]
+puts world.chapters.count
+world.bible.characters.each { |c| puts "#{c.id}: #{c.name}" }
+```
+
+See `eidos/README.md` for the full SDK and CLI reference.
+
+## CLI overview
+
+All commands accept `-w` / `--world-dir` to point at a storyworld directory.
+
+```bash
+eidos world   ...   # Create, inspect, manage worlds
+eidos bible   ...   # Manage the Story Bible (characters, locations, facts)
+eidos canon   ...   # Canon versioning (snapshots, branches)
+eidos produce ...   # Generate chapters, comics, illustrations
+eidos translate ... # Translate content to other languages
+eidos publish ...   # Build the Jekyll site
+eidos chapter ...   # SDK-based chapter browsing (list, show)
+eidos character ... # SDK-based character browsing (list, show, update)
+eidos version       # Show the installed Eidos version
+```
+
+The `bin/<subcommand>` scripts inside `eidos/bin/` are equivalent to `eidos <subcommand>` and exist for monorepo dev convenience.
+
+## Content workflow
+
+1. **Generate** — `eidos produce chapter` writes `worlds/one-review-man/content/chapters/NNN-chapter.md` and updates the Story Bible with any new characters/locations.
+2. **Translate** — `eidos translate all ru` writes `.ru.md` siblings, using a glossary built from existing character translations.
+3. **Publish** — `eidos publish jekyll --dest site` assembles content into the Jekyll template. `cd site && bundle exec jekyll serve` runs it at http://localhost:4000.
+
+## Development modes
+
+- `MOCK_AI=true` — deterministic offline responses from `eidos/spec/support/mock_responses.yml`. Use for tests and local iteration without API calls.
+- `DEBUG_AI=1` or `--debug` — write request/response artifacts to `tmp/ai_debug/`.
 
 ## LLM configuration
 
-Per‑book config lives at `BOOK_DIR/data/settings.yml`. Example LLM configuration:
+Per‑world config lives at `worlds/<name>/data/settings.yml`:
 
 ```yaml
 llm:
@@ -69,8 +109,6 @@ llm:
   model: gpt-4o-mini
   temperature: 0.7
   timeout: 240
-  # openai_base_url: "https://api.openai.com/v1"  # optional
-  # openai_api_key: "env-or-placeholder"          # typically use ENV OPENAI_API_KEY
   default_options:
     max_tokens: 12000
   task_options:
@@ -80,45 +118,17 @@ llm:
       max_tokens: 12000
 ```
 
-Model compatibility helpers:
-- `gpt-5*`/`o3*` use `max_completion_tokens` instead of `max_tokens` and may ignore `temperature`.
-- The generator handles these automatically and retries on specific API errors.
+Provide `OPENAI_API_KEY` via the environment. `gpt-5*` / `o3*` model quirks (`max_completion_tokens`, temperature) are handled automatically.
 
-## Content workflow
+## Docker
 
-1) Generate English chapter
-- Uses `book-generator/lib/book_core/chapter_generator.rb` with rich prompts from `book-generator/lib/book_core/prompts/`.
-- Writes to `BOOK_DIR/content/chapters/NNN-chapter.md` and updates `data/book_metadata.yml`.
-- If new characters appear, profiles are generated and saved to `data/characters.yml` and `content/characters/`.
-
-2) Translate
-- Translates chapters and characters (e.g., to Russian) and writes `.ru.md` files alongside English ones.
-- Glossary is auto‑built from existing character translations for name consistency.
-
-3) Build site
-- `book jekyll generate` copies the book content and template into a site folder.
-- Build locally with Bundler/Jekyll and deploy (including GitHub Pages).
-
-## Debugging
-
-- Show the effective prompt without calling the API:
-  - `book-generator/bin/book generate prompt [NUMBER] --book-dir BOOK_DIR`
-- Enable debug artifacts for real API calls:
-  - `--debug` flag (or `DEBUG_AI=1` env)
-  - Files: `tmp/ai_debug/request_parameters.json`, `response_raw.json`, `chapter_generation_raw*.json`
-- Offline mode:
-  - `MOCK_AI=true` disables API calls and produces deterministic content for tests.
-
-## Development
-
-Core library:
 ```bash
-cd book-generator
-bundle exec rspec
+docker compose build
+docker compose up -d
 ```
 
 ## License
 
-MIT
+MIT.
 
-— “One Review Man”: where AI meets programming parody, one perfect pull request at a time. 🤖📚💻⚡
+— *One Review Man*: where AI meets programming parody, one perfect pull request at a time. 🤖📚💻⚡
