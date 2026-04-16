@@ -3,6 +3,7 @@
 require_relative 'world_config'
 require_relative 'chapter_collection'
 require_relative 'bible'
+require_relative 'canon'
 
 module Eidos
   class WorldNotFoundError < StandardError; end
@@ -41,6 +42,10 @@ module Eidos
 
     def bible
       @bible ||= Bible.new(world_path: @path)
+    end
+
+    def canon
+      @canon ||= Canon.new(world_path: @path)
     end
 
     private
