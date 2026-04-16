@@ -1,8 +1,10 @@
 # frozen_string_literal: true
 
+require_relative 'lib/eidos/version'
+
 Gem::Specification.new do |spec|
   spec.name          = 'eidos'
-  spec.version       = '1.0.0'
+  spec.version       = Eidos::VERSION
   spec.authors       = ['One Review Man Contributors']
   spec.email         = ['eidos@example.com']
 
@@ -22,13 +24,13 @@ Gem::Specification.new do |spec|
   spec.files = Dir.glob(%w[
                           lib/**/*.rb
                           templates/**/*
-                          bin/*
+                          exe/*
                           LICENSE.txt
                           README.md
                         ], File::FNM_DOTMATCH).reject { |f| File.directory?(f) }
 
-  spec.bindir        = 'bin'
-  spec.executables   = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
+  spec.bindir        = 'exe'
+  spec.executables   = ['eidos']
   spec.require_paths = ['lib']
 
   # Runtime dependencies
