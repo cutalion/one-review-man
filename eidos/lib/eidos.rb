@@ -2,6 +2,7 @@
 
 require_relative 'eidos/version'
 require_relative 'eidos/sdk_configuration'
+require_relative 'eidos/world'
 
 # Eidos - IP World Engine
 # Main entry point for the Eidos gem
