@@ -59,6 +59,18 @@ RSpec.describe Eidos::Bible do
       names = bible.characters.map(&:name)
       expect(names).to contain_exactly('Kenji Yamamoto', 'Kai Nakamura')
     end
+
+    it 'exposes full character data when enumerating (not just id/name)' do
+      bible = Eidos::Bible.new(world_path: @world_path)
+      roles = bible.characters.map(&:role)
+      expect(roles).to contain_exactly('senior dev', 'junior dev')
+    end
+
+    it 'sets id on enumerated characters' do
+      bible = Eidos::Bible.new(world_path: @world_path)
+      ids = bible.characters.map(&:id)
+      expect(ids).to contain_exactly('kenji_yamamoto', 'kai_nakamura')
+    end
   end
 
   describe '#search' do

@@ -25,8 +25,8 @@ module Eidos
     private
 
     def load_all
-      @bible.engine_bible.list_characters.map do |char_data|
-        Character.new(data: char_data, bible: @bible)
+      @bible.engine_bible.characters.map do |id, data|
+        Character.new(data: data.merge('id' => id), bible: @bible)
       end
     end
   end
