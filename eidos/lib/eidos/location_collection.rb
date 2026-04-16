@@ -16,8 +16,7 @@ module Eidos
     end
 
     def [](location_id)
-      locs = @bible.engine_bible.locations
-      data = locs[location_id]
+      data = @bible.engine_bible.get_location(location_id)
       return nil unless data
 
       Location.new(data: data.merge('id' => location_id), bible: @bible)
