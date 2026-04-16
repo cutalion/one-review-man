@@ -32,6 +32,7 @@ require 'eidos/cli/produce'
 require 'eidos/cli/translate'
 require 'eidos/cli/publish'
 require 'eidos/cli/chapter_cli'
+require 'eidos/cli/character_cli'
 
 module Eidos
   module CLI
@@ -57,6 +58,9 @@ module Eidos
       # New SDK-based subcommands
       desc 'chapter SUBCOMMAND ...ARGS', 'Chapter operations'
       subcommand 'chapter', Eidos::CLI::ChapterCli
+
+      desc 'character SUBCOMMAND ...ARGS', 'Character operations'
+      subcommand 'character', Eidos::CLI::CharacterCli
     end
   end
 end
