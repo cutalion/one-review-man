@@ -22,25 +22,33 @@ module Eidos
 
     SUPPORTED_PROVIDERS = %w[openai openrouter].freeze
 
-    # Fixed prompt — small, cheap, provider-agnostic.
+    # Defaults for the reachability (PROBE OK) mode.
     SYSTEM_PROMPT = 'You are a probe. Reply with the exact text requested, nothing else.'
     USER_PROMPT   = 'Reply with exactly the two words: PROBE OK'
     MAX_TOKENS    = 20
-    EXCERPT_LEN   = 80
 
     OPENROUTER_BASE_URL = 'https://openrouter.ai/api/v1'
 
-    def initialize(provider:, model:, api_key:, base_url: nil, timeout: 60, client: nil)
+    # @param prompt [String, nil]        Custom user prompt. Defaults to USER_PROMPT.
+    # @param system_prompt [String, nil] Custom system prompt. Pass nil to omit the
+    #                                    system message entirely (sensible when using
+    #                                    a custom `prompt:` for free-form generation).
+    # @param max_tokens [Integer]        Output token cap. Defaults to MAX_TOKENS.
+    def initialize(provider:, model:, api_key:, base_url: nil, timeout: 60, client: nil,
+                   prompt: nil, system_prompt: :default, max_tokens: nil)
       @provider = provider.to_s
       raise UnsupportedProviderError, "Unsupported provider '#{@provider}'. Supported: #{SUPPORTED_PROVIDERS.join(', ')}" \
         unless SUPPORTED_PROVIDERS.include?(@provider)
       raise MissingCredentialError, "No API key provided for provider '#{@provider}'" if api_key.nil? || api_key.to_s.empty?
 
-      @model    = model.to_s
-      @api_key  = api_key
-      @base_url = base_url || default_base_url(@provider)
-      @timeout  = timeout
-      @client   = client # for injection in tests
+      @model         = model.to_s
+      @api_key       = api_key
+      @base_url      = base_url || default_base_url(@provider)
+      @timeout       = timeout
+      @client        = client # for injection in tests
+      @user_prompt   = prompt || USER_PROMPT
+      @system_prompt = system_prompt == :default ? SYSTEM_PROMPT : system_prompt
+      @max_tokens    = max_tokens || MAX_TOKENS
     end
 
     def run
@@ -56,7 +64,7 @@ module Eidos
         provider: @provider,
         model: @model,
         latency_ms: latency,
-        response_excerpt: sanitize(content)[0, EXCERPT_LEN],
+        response_text: sanitize(content),
         input_tokens: usage['prompt_tokens'],
         output_tokens: usage['completion_tokens']
       )
@@ -79,19 +87,18 @@ module Eidos
     # probe must work against *any* model id, adapt on-demand with a single
     # retry when the provider signals that specific error.
     def chat_with_token_key_fallback
-      base_params = {
-        model: @model,
-        messages: [
-          { role: 'system', content: SYSTEM_PROMPT },
-          { role: 'user',   content: USER_PROMPT }
-        ]
-      }
+      messages = []
+      messages << { role: 'system', content: @system_prompt } if @system_prompt
+      messages << { role: 'user',   content: @user_prompt }
+
+      base_params = { model: @model, messages: messages }
+
       begin
-        client.chat(parameters: base_params.merge(max_tokens: MAX_TOKENS))
+        client.chat(parameters: base_params.merge(max_tokens: @max_tokens))
       rescue StandardError => e
         raise unless unsupported_max_tokens?(e)
 
-        client.chat(parameters: base_params.merge(max_completion_tokens: MAX_TOKENS))
+        client.chat(parameters: base_params.merge(max_completion_tokens: @max_tokens))
       end
     end
 

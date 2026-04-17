@@ -55,18 +55,26 @@ module Eidos
           exit 2
         end
 
+        custom_prompt = @options['prompt']
+        max_tokens    = @options['max-tokens']&.to_i || (custom_prompt ? 500 : nil)
+
         result = Eidos::Probe.new(
           provider: provider,
           model: model,
           api_key: api_key,
           base_url: base_url,
-          timeout: (@options['timeout'] || 60).to_i
+          timeout: (@options['timeout'] || 60).to_i,
+          prompt: custom_prompt,
+          # When the user supplies their own prompt, the probe's terse
+          # system prompt would cripple generation — drop it.
+          system_prompt: custom_prompt ? nil : :default,
+          max_tokens: max_tokens
         ).run
 
         if @options['json']
           puts JSON.generate(result.to_h.transform_keys(&:to_s))
         else
-          puts format_human(result, metrics: !!@options['metrics'])
+          puts format_human(result, metrics: !!@options['metrics'], verbose: !!custom_prompt)
         end
 
         exit(result.ok? ? 0 : 1)
@@ -129,14 +137,23 @@ module Eidos
           "Pass --api-key=..., or set the appropriate environment variable."
       end
 
-      def format_human(result, metrics:)
+      EXCERPT_LEN = 80
+
+      def format_human(result, metrics:, verbose: false)
         if result.ok?
           head = "OK #{result.provider} #{result.model} (#{result.latency_ms}ms"
           if metrics && result.input_tokens && result.output_tokens
             head += ", #{result.input_tokens} in / #{result.output_tokens} out tokens"
           end
-          head += '): '
-          "#{head}#{result.response_excerpt.inspect}"
+          head += ')'
+
+          if verbose
+            # Multi-line: header, divider, full response.
+            "#{head}\n--- response ---\n#{result.response_text}"
+          else
+            # Compact: inline excerpt, quoted.
+            "#{head}: #{result.response_text.to_s[0, EXCERPT_LEN].inspect}"
+          end
         else
           "FAIL #{result.provider} #{result.model} [#{result.failure_category}]: #{result.error_message}"
         end

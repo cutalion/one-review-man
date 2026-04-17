@@ -58,9 +58,14 @@ eidos probe gpt-4o-mini
 eidos probe anthropic/claude-3.5-haiku --provider openrouter
 eidos probe gpt-4o-mini --metrics --json      # include token counts, emit JSON
 eidos probe gpt-4o-mini -w /path/to/my-world  # read api_key_env from world settings
+
+# Side-by-side model comparison: same prompt, diff the outputs
+eidos probe gpt-4o-mini      --prompt "Write a haiku about code review." > a.txt
+eidos probe gpt-5-turbo      --prompt "Write a haiku about code review." > b.txt
+diff a.txt b.txt
 ```
 
-`eidos probe` is deliberately tiny: one round-trip, ~30 input / ~5 output tokens, no world-file mutation. Failure categories: `unknown_model` / `auth` / `network` / `rate_limit` / `other`. Exit codes: 0 OK, 1 FAIL, 2 config error.
+`eidos probe` is deliberately tiny by default: one round-trip, ~30 input / ~5 output tokens, no world-file mutation. With `--prompt`, it turns into a cheap free-form generator (default cap bumped to 500 output tokens, override with `--max-tokens`). Failure categories: `unknown_model` / `auth` / `network` / `rate_limit` / `other`. Exit codes: 0 OK, 1 FAIL, 2 config error.
 
 During development, each subcommand is also exposed as a standalone binary in `bin/` (`bin/world`, `bin/bible`, `bin/canon`, `bin/produce`, `bin/translate`, `bin/publish`). These are identical to `eidos <subcommand>` and exist for convenience inside the monorepo.
 

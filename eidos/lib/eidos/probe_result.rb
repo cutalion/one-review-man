@@ -10,7 +10,7 @@ module Eidos
     :provider,
     :model,
     :latency_ms,
-    :response_excerpt,
+    :response_text,
     :input_tokens,
     :output_tokens,
     :failure_category,

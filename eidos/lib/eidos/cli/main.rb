@@ -83,6 +83,10 @@ module Eidos
       method_option :timeout,     type: :numeric, default: 60, desc: 'Hard timeout in seconds'
       method_option :metrics,     type: :boolean, default: false, desc: 'Show input/output token counts'
       method_option :json,        type: :boolean, default: false, desc: 'Emit a JSON object instead of human text'
+      method_option :prompt,      type: :string,
+                                  desc: 'Custom prompt (enables free-form generation; bumps default --max-tokens to 500)'
+      method_option :'max-tokens', type: :numeric,
+                                   desc: 'Output token cap (default: 20 for probe, 500 with --prompt)'
       def probe(model)
         Eidos::CLI::ProbeCli.run(model, options)
       end

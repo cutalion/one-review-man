@@ -42,7 +42,7 @@ RSpec.describe Eidos::CLI::ProbeCli do
       provider: 'openai',
       model: 'gpt-4o-mini',
       latency_ms: 842,
-      response_excerpt: 'PROBE OK',
+      response_text: 'PROBE OK',
       input_tokens: 23,
       output_tokens: 4
     )
@@ -84,8 +84,83 @@ RSpec.describe Eidos::CLI::ProbeCli do
         'provider' => 'openai',
         'model' => 'gpt-4o-mini',
         'latency_ms' => 842,
-        'response_excerpt' => 'PROBE OK'
+        'response_text' => 'PROBE OK'
       )
+    end
+  end
+
+  describe 'custom prompt' do
+    let(:haiku_result) do
+      Eidos::ProbeResult.new(
+        status: :ok,
+        provider: 'openai',
+        model: 'gpt-4o-mini',
+        latency_ms: 500,
+        response_text: "silent cursor blinks\nreviewer reads every line\nwhispered `LGTM`",
+        input_tokens: 12,
+        output_tokens: 30
+      )
+    end
+
+    it 'passes --prompt through to Probe and omits the default system prompt' do
+      captured = nil
+      allow(Eidos::Probe).to receive(:new) do |**opts|
+        captured = opts
+        instance_double(Eidos::Probe, run: haiku_result)
+      end
+
+      _out, _err, code = capture_run([
+        'gpt-4o-mini', '--api-key=sk-test',
+        '--prompt', 'Write a haiku about code review.'
+      ])
+      expect(code).to eq(0)
+      expect(captured[:prompt]).to eq('Write a haiku about code review.')
+      expect(captured[:system_prompt]).to be_nil
+    end
+
+    it 'bumps default max_tokens to 500 when --prompt is given' do
+      captured = nil
+      allow(Eidos::Probe).to receive(:new) do |**opts|
+        captured = opts
+        instance_double(Eidos::Probe, run: haiku_result)
+      end
+
+      capture_run(['gpt-4o-mini', '--api-key=sk-test', '--prompt', 'hi'])
+      expect(captured[:max_tokens]).to eq(500)
+    end
+
+    it 'honors an explicit --max-tokens override' do
+      captured = nil
+      allow(Eidos::Probe).to receive(:new) do |**opts|
+        captured = opts
+        instance_double(Eidos::Probe, run: haiku_result)
+      end
+
+      capture_run(['gpt-4o-mini', '--api-key=sk-test', '--prompt', 'hi', '--max-tokens=42'])
+      expect(captured[:max_tokens]).to eq(42)
+    end
+
+    it 'prints multi-line verbose output for --prompt' do
+      stub_probe(haiku_result)
+      out, _err, code = capture_run([
+        'gpt-4o-mini', '--api-key=sk-test',
+        '--prompt', 'Write a haiku about code review.'
+      ])
+      expect(code).to eq(0)
+      expect(out).to include('--- response ---')
+      expect(out).to include('silent cursor blinks')
+      expect(out).to include("whispered `LGTM`")
+    end
+
+    it 'emits JSON with the full response_text when --json is combined with --prompt' do
+      stub_probe(haiku_result)
+      out, _err, code = capture_run([
+        'gpt-4o-mini', '--api-key=sk-test', '--json',
+        '--prompt', 'Write a haiku about code review.'
+      ])
+      expect(code).to eq(0)
+      parsed = JSON.parse(out.strip)
+      expect(parsed['response_text']).to include('silent cursor blinks')
     end
   end
 

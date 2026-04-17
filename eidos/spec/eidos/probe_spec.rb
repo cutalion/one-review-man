@@ -64,7 +64,7 @@ RSpec.describe Eidos::Probe do
       expect(result.provider).to eq('openai')
       expect(result.model).to eq('gpt-4o-mini')
       expect(result.latency_ms).to be_a(Integer).and be >= 0
-      expect(result.response_excerpt).to eq('PROBE OK')
+      expect(result.response_text).to eq('PROBE OK')
       expect(result.input_tokens).to eq(23)
       expect(result.output_tokens).to eq(4)
       expect(result.failure_category).to be_nil
@@ -83,12 +83,32 @@ RSpec.describe Eidos::Probe do
       build_probe.run
     end
 
-    it 'truncates overlong responses to EXCERPT_LEN' do
+    it 'honors a custom prompt and max_tokens' do
+      expect(fake_client).to receive(:chat) do |parameters:|
+        expect(parameters[:max_tokens]).to eq(400)
+        expect(parameters[:messages].map { |m| m[:role] }).to eq(%w[user])
+        expect(parameters[:messages].first[:content]).to eq('Write a haiku about code review.')
+        response
+      end
+
+      build_probe(prompt: 'Write a haiku about code review.', system_prompt: nil, max_tokens: 400).run
+    end
+
+    it 'keeps the system prompt by default even with a custom user prompt' do
+      expect(fake_client).to receive(:chat) do |parameters:|
+        expect(parameters[:messages].first[:role]).to eq('system')
+        response
+      end
+
+      build_probe(prompt: 'hi').run
+    end
+
+    it 'returns the full response text without truncation' do
       allow(fake_client).to receive(:chat).and_return(
         'choices' => [{ 'message' => { 'content' => 'x' * 500 } }]
       )
       result = build_probe.run
-      expect(result.response_excerpt.length).to eq(Eidos::Probe::EXCERPT_LEN)
+      expect(result.response_text.length).to eq(500)
     end
 
     it 'leaves token counts nil when provider omits usage' do
@@ -230,14 +250,14 @@ RSpec.describe Eidos::Probe do
   end
 
   describe 'secret hygiene' do
-    it 'scrubs api_key from response_excerpt if it ever appears' do
+    it 'scrubs api_key from response_text if it ever appears' do
       echoed = "your key #{api_key} is valid"
       allow(fake_client).to receive(:chat).and_return(
         'choices' => [{ 'message' => { 'content' => echoed } }]
       )
       result = build_probe.run
-      expect(result.response_excerpt).not_to include(api_key)
-      expect(result.response_excerpt).to include('[REDACTED]')
+      expect(result.response_text).not_to include(api_key)
+      expect(result.response_text).to include('[REDACTED]')
     end
 
     it 'scrubs api_key from error_message if it ever appears' do
