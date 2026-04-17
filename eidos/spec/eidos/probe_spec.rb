@@ -22,6 +22,11 @@ RSpec.describe Eidos::Probe do
     Faraday::ClientError.new('boom', status: status, body: body.to_json)
   end
 
+  # ruby-openai parses JSON bodies into a Hash before raising.
+  def faraday_error_hash(status:, body:)
+    Faraday::ClientError.new('boom', status: status, body: body)
+  end
+
   describe 'initialization' do
     it 'raises on missing api_key' do
       expect {
@@ -163,6 +168,64 @@ RSpec.describe Eidos::Probe do
     it 'does not raise on provider errors — always returns a ProbeResult' do
       allow(fake_client).to receive(:chat).and_raise(StandardError.new('weird'))
       expect { build_probe.run }.not_to raise_error
+    end
+
+    it 'extracts the message from a Hash body (ruby-openai style)' do
+      allow(fake_client).to receive(:chat).and_raise(
+        faraday_error_hash(
+          status: 500,
+          body: { 'error' => { 'message' => 'internal server wobble' } }
+        )
+      )
+      result = build_probe.run
+      expect(result.error_message).to eq('internal server wobble')
+    end
+  end
+
+  describe 'adaptive max_tokens → max_completion_tokens retry' do
+    let(:unsupported_error) do
+      faraday_error_hash(
+        status: 400,
+        body: {
+          'error' => {
+            'message' => "Unsupported parameter: 'max_tokens' is not supported with this model. Use 'max_completion_tokens' instead.",
+            'type' => 'invalid_request_error',
+            'param' => 'max_tokens',
+            'code' => 'unsupported_parameter'
+          }
+        }
+      )
+    end
+
+    it 'retries with max_completion_tokens when provider rejects max_tokens' do
+      call_count = 0
+      allow(fake_client).to receive(:chat) do |parameters:|
+        call_count += 1
+        if call_count == 1
+          expect(parameters).to have_key(:max_tokens)
+          raise unsupported_error
+        else
+          expect(parameters).to have_key(:max_completion_tokens)
+          expect(parameters).not_to have_key(:max_tokens)
+          { 'choices' => [{ 'message' => { 'content' => 'PROBE OK' } }] }
+        end
+      end
+
+      result = build_probe.run
+      expect(call_count).to eq(2)
+      expect(result).to be_ok
+    end
+
+    it 'does not retry for unrelated 400 errors' do
+      other_400 = faraday_error_hash(
+        status: 400,
+        body: { 'error' => { 'message' => 'bad request', 'code' => 'invalid_something' } }
+      )
+      allow(fake_client).to receive(:chat).and_raise(other_400)
+
+      result = build_probe.run
+      expect(result.failure_category).to eq(:other)
+      expect(fake_client).to have_received(:chat).once
     end
   end
 

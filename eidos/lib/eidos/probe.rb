@@ -45,16 +45,7 @@ module Eidos
 
     def run
       started = monotonic_ms
-      response = client.chat(
-        parameters: {
-          model: @model,
-          messages: [
-            { role: 'system', content: SYSTEM_PROMPT },
-            { role: 'user',   content: USER_PROMPT }
-          ],
-          max_tokens: MAX_TOKENS
-        }
-      )
+      response = chat_with_token_key_fallback
       latency = monotonic_ms - started
 
       content = response.dig('choices', 0, 'message', 'content').to_s
@@ -83,6 +74,26 @@ module Eidos
     end
 
     private
+
+    # gpt-5*/o3* reject :max_tokens and demand :max_completion_tokens. Since
+    # probe must work against *any* model id, adapt on-demand with a single
+    # retry when the provider signals that specific error.
+    def chat_with_token_key_fallback
+      base_params = {
+        model: @model,
+        messages: [
+          { role: 'system', content: SYSTEM_PROMPT },
+          { role: 'user',   content: USER_PROMPT }
+        ]
+      }
+      begin
+        client.chat(parameters: base_params.merge(max_tokens: MAX_TOKENS))
+      rescue StandardError => e
+        raise unless unsupported_max_tokens?(e)
+
+        client.chat(parameters: base_params.merge(max_completion_tokens: MAX_TOKENS))
+      end
+    end
 
     def client
       @client ||= begin
@@ -164,18 +175,40 @@ module Eidos
 
     def extract_message(err)
       body = err.response[:body] if err.respond_to?(:response) && err.response.is_a?(Hash)
-      # Try to parse a JSON error body and pull the message out.
-      if body.is_a?(String) && !body.empty?
-        begin
-          parsed = JSON.parse(body)
-          msg = parsed.dig('error', 'message') || parsed['message']
-          return msg.to_s if msg && !msg.to_s.empty?
-        rescue JSON::ParserError
-          # fall through to raw body
+
+      # ruby-openai parses JSON error bodies into a Hash; plain proxies may
+      # leave them as String. Handle both.
+      case body
+      when Hash
+        msg = body.dig('error', 'message') || body.dig(:error, :message) || body['message'] || body[:message]
+        return msg.to_s if msg && !msg.to_s.empty?
+        return body.inspect[0, 500]
+      when String
+        unless body.empty?
+          begin
+            parsed = JSON.parse(body)
+            msg = parsed.dig('error', 'message') || parsed['message']
+            return msg.to_s if msg && !msg.to_s.empty?
+          rescue JSON::ParserError
+            # fall through to raw body
+          end
+          return body[0, 500]
         end
-        return body[0, 500]
       end
+
       err.message.to_s
+    end
+
+    # True if the error is OpenAI's "use max_completion_tokens instead" 400.
+    def unsupported_max_tokens?(err)
+      return false unless err.respond_to?(:response) && err.response.is_a?(Hash)
+      return false unless err.response[:status] == 400
+
+      body = err.response[:body]
+      error = body.is_a?(Hash) ? (body['error'] || body[:error] || {}) : {}
+      code  = error['code']  || error[:code]
+      param = error['param'] || error[:param]
+      code.to_s == 'unsupported_parameter' && param.to_s == 'max_tokens'
     end
 
     # Defensive scrub: never leak the api_key into any output field.
