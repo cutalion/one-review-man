@@ -3,7 +3,8 @@
 # This file contains all default values. Project-specific settings in data/settings.yml override these.
 
 llm:
-  provider: openai
+  provider: openrouter
+  model: google/gemini-3-flash-preview
   temperature: 0.7
   timeout: 240
   default_options:
@@ -53,8 +54,8 @@ summarization:
   max_tokens: 2000
 
 content:
-  provider: openai
-  model: gpt-4o-mini
+  provider: openrouter
+  model: google/gemini-3-flash-preview
 
 storage:
   backend: yaml_file

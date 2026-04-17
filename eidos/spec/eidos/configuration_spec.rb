@@ -22,7 +22,7 @@ RSpec.describe Eidos::Configuration do
   describe '.load' do
     it 'loads defaults when no project settings exist' do
       config = described_class.load(project_root)
-      expect(config['content']['model']).to eq('gpt-4o-mini')
+      expect(config['content']['model']).to eq('google/gemini-3-flash-preview')
       expect(config['summarization']['max_tokens']).to eq(2000)
     end
 
