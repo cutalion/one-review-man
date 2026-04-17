@@ -28,6 +28,16 @@ module Eidos
       end
 
       def run(model)
+        if %w[--help -h help].include?(model)
+          print_help
+          exit 0
+        end
+
+        if model.start_with?('-')
+          warn "MODEL looks like a flag ('#{model}'). Did you mean `eidos help probe`?"
+          exit 2
+        end
+
         provider = (@options['provider'] || 'openai').to_s.downcase
 
         unless Eidos::Probe::SUPPORTED_PROVIDERS.include?(provider)
@@ -63,6 +73,11 @@ module Eidos
       end
 
       private
+
+      def print_help
+        require 'eidos/cli/main'
+        Eidos::CLI::Main.new.help('probe')
+      end
 
       def load_world_settings(world_dir)
         return nil unless world_dir

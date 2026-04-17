@@ -120,6 +120,24 @@ RSpec.describe Eidos::CLI::ProbeCli do
       expect(code).to eq(2)
       expect(err).to include("Unsupported provider 'anthropic'")
     end
+  end
+
+  describe 'help-flag handling' do
+    %w[--help -h help].each do |arg|
+      it "shows help (not an error) for #{arg.inspect} as model arg" do
+        out, err, code = capture_run([arg])
+        expect(code).to eq(0)
+        expect(out).to include('probe')
+        expect(err).to be_empty
+      end
+    end
+
+    it 'rejects other flag-looking models with a pointer to help' do
+      _out, err, code = capture_run(['--something-weird', '--api-key=x'])
+      expect(code).to eq(2)
+      expect(err).to include('looks like a flag')
+      expect(err).to include('eidos help probe')
+    end
 
     it 'reads api_key_env from world settings when -w is given' do
       Dir.mktmpdir do |world|
