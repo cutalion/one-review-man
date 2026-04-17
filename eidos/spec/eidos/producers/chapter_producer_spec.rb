@@ -179,4 +179,21 @@ RSpec.describe Eidos::Producers::ChapterProducer do
       expect(Eidos::Producer.find(:chapter)).to eq(described_class)
     end
   end
+
+  # T011 / US1 / feature 012-fix-ux-unify-bible
+  describe '--content-model override routing' do
+    it 'routes config[:model] through Configuration.load as content.model (not llm.model)' do
+      producer = described_class.new(project_root: tmp_dir)
+      generator = instance_double(Eidos::ChapterGenerator)
+      allow(Eidos::ChapterGenerator).to receive(:new).and_return(generator)
+      allow(generator).to receive(:generate_next_chapter).and_return('content')
+      allow(Eidos::Configuration).to receive(:load).and_call_original
+
+      producer.produce(config: { auto_generate: true, model: 'gpt-test-xyz' })
+
+      expect(Eidos::Configuration).to have_received(:load).with(
+        File.expand_path(tmp_dir), hash_including('content.model' => 'gpt-test-xyz')
+      )
+    end
+  end
 end

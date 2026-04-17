@@ -14,14 +14,21 @@ module PromptUtils
     end
   end
 
+  # Placeholder names that are only meaningful inside {{#CHARACTER_SECTION}} blocks;
+  # suppress unused-placeholder warnings for them when the section is empty/elided.
+  CHARACTER_SECTION_KEYS = %w[CHARACTER_NAME CHARACTER_DESCRIPTION].freeze
+
   # Build a prompt from a template string and a hash of placeholders
-  # @param template [String] The template string with placeholders like {PLACEHOLDER_NAME}
+  # @param template [String] The template string with placeholders like {{PLACEHOLDER_NAME}}
   # @param placeholders [Hash] Hash with placeholder names as keys and replacement values as values
   # @param warn_unused [Boolean] Whether to warn about unused placeholders (default: true)
   # @param context [String] Context description for warning messages (default: nil)
+  # @param characters [Array, nil] Character entries that drive {{#CHARACTER_SECTION}}...
+  #   {{/CHARACTER_SECTION}} block rendering. When nil the template is left as-is;
+  #   when [] the block is stripped entirely; when populated the section is kept.
   # @return [String] The processed prompt with placeholders replaced
   # @raise [UnfilledPlaceholdersError] If any placeholders remain unfilled
-  def self.build_prompt(template, placeholders, warn_unused: true, context: nil)
+  def self.build_prompt(template, placeholders, warn_unused: true, context: nil, characters: nil)
     raise ArgumentError, 'Template cannot be nil' if template.nil?
     raise ArgumentError, 'Placeholders must be a Hash' unless placeholders.is_a?(Hash)
 
@@ -31,14 +38,16 @@ module PromptUtils
       normalized_placeholders[key.to_s] = value
     end
 
-    # Find all placeholders in the template
-    template_placeholders = extract_placeholders(template)
+    working_template = apply_character_section(template, characters)
+
+    # Find all placeholders in the (post-section-handling) template
+    template_placeholders = extract_placeholders(working_template)
 
     # Track which placeholders were used
     used_placeholders = Set.new
 
     # Replace placeholders
-    result = template.dup
+    result = working_template.dup
     template_placeholders.each do |placeholder|
       next unless normalized_placeholders.key?(placeholder)
 
@@ -53,9 +62,13 @@ module PromptUtils
     remaining_placeholders = extract_placeholders(result)
     raise UnfilledPlaceholdersError, remaining_placeholders if remaining_placeholders.any?
 
-    # Warn about unused placeholders
+    # Warn about unused placeholders. CHARACTER_NAME / CHARACTER_DESCRIPTION are
+    # advisory keys that callers may pre-populate even when the surrounding
+    # {{#CHARACTER_SECTION}}...{{/CHARACTER_SECTION}} block is absent or elided,
+    # so never include them in the warning noise.
     if warn_unused
       unused_placeholders = normalized_placeholders.keys - used_placeholders.to_a
+      unused_placeholders -= CHARACTER_SECTION_KEYS
       if unused_placeholders.any?
         warning_msg = "⚠️  Warning: Unused placeholders provided: #{unused_placeholders.join(', ')}"
         warning_msg += " (in #{context})" if context
@@ -64,6 +77,21 @@ module PromptUtils
     end
 
     result
+  end
+
+  # Handle {{#CHARACTER_SECTION}}...{{/CHARACTER_SECTION}} blocks based on the
+  # `characters:` kwarg. Empty array → strip the blocks; populated array → keep
+  # the contents; nil → leave template unchanged.
+  def self.apply_character_section(template, characters)
+    return template if characters.nil?
+
+    if characters.empty?
+      template.gsub(/\{\{#CHARACTER_SECTION\}\}.*?\{\{\/CHARACTER_SECTION\}\}/m, '')
+    else
+      template
+        .gsub('{{#CHARACTER_SECTION}}', '')
+        .gsub('{{/CHARACTER_SECTION}}', '')
+    end
   end
 
   # Extract all placeholder names from a template string

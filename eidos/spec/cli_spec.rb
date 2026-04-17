@@ -76,7 +76,6 @@ RSpec.describe 'world CLI' do
         'data/world_state.yml',
         'data/characters.yml',
         'data/generation_log.yml',
-        'data/world.yml',
         'data/strings.yml',
         'data/settings.yml'
       ]
@@ -86,6 +85,9 @@ RSpec.describe 'world CLI' do
         expect(File.exist?(full_path)).to be(true), "Expected #{file_path} to exist"
       end
 
+      expect(Dir.exist?(File.join(test_dir, 'data', 'story_bible'))).to be true
+      expect(File.exist?(File.join(test_dir, 'data', 'world.yml'))).to be(false),
+        'Expected data/world.yml NOT to exist (US2: unified bible)'
       expect(Dir.exist?(File.join(test_dir, 'content', 'chapters'))).to be true
       expect(Dir.exist?(File.join(test_dir, 'content', 'characters'))).to be true
     end

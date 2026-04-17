@@ -86,17 +86,8 @@ module Eidos::Utils
     data[lang] || data['en'] || {}
   end
 
-  def load_world_data(lang = 'en')
-    file_path = File.join(DATA_DIR, 'world.yml')
-    data = load_yaml_file(file_path) || {}
-
-    if lang && data[lang] && data[lang]['world']
-      data[lang]['world']
-    elsif data['en'] && data['en']['world']
-      data['en']['world']
-    else
-      {}
-    end
+  def load_world_data(_lang = 'en')
+    {}
   end
 
   # File operation helpers

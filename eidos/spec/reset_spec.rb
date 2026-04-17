@@ -97,4 +97,27 @@ RSpec.describe 'book reset' do
       end
     end
   end
+
+  # T012 / US1 / feature 012-fix-ux-unify-bible
+  describe '#reset_chapters target directory' do
+    let(:reset) { Eidos::Reset.new }
+
+    it 'deletes *.md files under content/chapters/ when forced' do
+      FileUtils.mkdir_p(File.join(test_dir, 'content', 'chapters'))
+      File.write(File.join(test_dir, 'content', 'chapters', '001-chapter.md'), 'content')
+      File.write(File.join(test_dir, 'content', 'chapters', '002-chapter.md'), 'content')
+
+      Dir.chdir(test_dir) do
+        original = $stdout
+        $stdout = StringIO.new
+        begin
+          reset.reset_chapters(force: true)
+        ensure
+          $stdout = original
+        end
+      end
+
+      expect(Dir.glob(File.join(test_dir, 'content', 'chapters', '*.md'))).to be_empty
+    end
+  end
 end

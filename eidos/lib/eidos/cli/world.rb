@@ -159,7 +159,7 @@ module Eidos
         author      = ask('Author name:', default: 'Anonymous')
         description = ask('Short description:', default: 'A generated world.')
         languages   = ask('Languages (comma-separated, e.g. en,ru):', default: 'en')
-        default_lang = ask('Default language code:', default: (languages || 'en').split(',').first.strip)
+        default_lang = resolve_default_language(languages)
 
         if options[:quick]
           collect_quick_setup_info(description)
@@ -200,10 +200,10 @@ module Eidos
         say "\nAdditional information needed for chapter generation:", :cyan
 
         genre_examples = 'fantasy, sci-fi, mystery, thriller, comedy, romance, adventure, horror'
-        genre = ask("What genre is your world? (#{genre_examples}):", default: 'fiction')
+        genre = ask("What genre is your world? (#{genre_examples}):", default: 'fantasy')
 
         style_examples = 'humorous, serious, adventurous, suspenseful, whimsical, dramatic'
-        style = ask("What writing style? (#{style_examples}):", default: 'narrative')
+        style = ask("What writing style? (#{style_examples}):", default: 'humorous')
 
         setting = ask('What is the main setting/location of your story?', default: 'contemporary setting')
 
@@ -222,12 +222,26 @@ module Eidos
         }
       end
 
+      # When only one language was provided there's nothing to choose between,
+      # so don't badger the user with a second prompt — just use that language.
+      def resolve_default_language(languages)
+        codes = (languages || 'en').split(',').map(&:strip).reject(&:empty?)
+        return codes.first if codes.size <= 1
+
+        ask('Default language code:', default: codes.first)
+      end
+
       def create_world_structure(target, world_info)
         create_directories(target)
         create_metadata_files(target, world_info)
-        create_world_data(target, world_info)
+        create_story_bible(target)
         create_strings_data(target, world_info)
         create_settings_data(target)
+      end
+
+      def create_story_bible(target)
+        require 'eidos/story_bible'
+        Eidos::StoryBible.new(project_root: target).setup
       end
 
       def create_directories(target)
@@ -298,52 +312,6 @@ module Eidos
           'description' => world_info[:description],
           'languages' => (world_info[:languages] || 'en').split(',').map(&:strip),
           'default_language' => world_info[:default_lang]
-        }
-      end
-
-      def create_world_data(target, world_info)
-        world_data = build_world_data(world_info)
-        add_russian_world_data(world_data, world_info) if includes_russian?(world_info[:languages])
-        write_yaml_file(File.join(target, 'data', 'world.yml'), world_data)
-      end
-
-      def build_world_data(world_info)
-        {
-          'en' => {
-            'world' => {
-              'main_setting' => {
-                'name' => world_info[:setting],
-                'description' => "The primary location where the story of #{world_info[:title]} unfolds",
-                'type' => 'primary',
-                'established_chapter' => 'Chapter 1'
-              },
-              'culture' => {
-                'narrative_style' => {
-                  'description' => "#{world_info[:style]} storytelling with engaging characters",
-                  'established_chapter' => 'Chapter 1'
-                }
-              },
-              'established_facts' => [
-                "Story takes place in #{world_info[:setting]}",
-                "Genre focuses on #{world_info[:genre]} elements",
-                "Primary theme is #{world_info[:primary_theme]}",
-                "Writing style is #{world_info[:style]}"
-              ]
-            }
-          }
-        }
-      end
-
-      def add_russian_world_data(world_data, world_info)
-        world_data['ru'] = {
-          'world' => {
-            'main_setting' => {
-              'name' => world_info[:setting],
-              'description' => "Основное место, где разворачивается история #{world_info[:title]}",
-              'type' => 'primary',
-              'established_chapter' => 'Глава 1'
-            }
-          }
         }
       end
 

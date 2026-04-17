@@ -1,6 +1,48 @@
 chapter_1: |
   # Heading
   Mock chapter 1 content.
+
+# Used by US1 specs (T007): the chapter generator parses a `title` field
+# from the LLM's structured response and uses it as the chapter title.
+# Shape mirrors the real chapter-generation response; only the `title`
+# field is consumed in the title-fix test. Update this fixture if the
+# chapter-generation prompt output schema changes.
+chapter_with_title: |
+  {
+    "title": "The Rejection Letter",
+    "body": "# The Rejection Letter\n\nJax opened his laptop and stared at the inbox...\n",
+    "word_count": 42
+  }
+
+# Used by US3 specs (T031, T034) and the first-run integration spec (T037).
+# SeedExtractor asks the LLM for premise-derived candidates and expects
+# strict JSON. Arrays are capped to ≤3 characters, ≤2 locations, ≤3 facts.
+# Every character/location hash carries origin: "seed".
+seed_extractor_default: |
+  {
+    "characters": [
+      {
+        "id": "jax_patel",
+        "name": "Jax Patel",
+        "description": "A laid-off mid-level backend engineer hunting for his next role.",
+        "origin": "seed",
+        "origin_note": "derived from premise"
+      }
+    ],
+    "locations": [
+      {
+        "id": "home_office",
+        "name": "The Home Office",
+        "description": "A cramped spare bedroom where Jax runs his job search.",
+        "origin": "seed",
+        "origin_note": "derived from premise"
+      }
+    ],
+    "facts": [
+      "The tech job market is in a prolonged downturn.",
+      "Most applications go unanswered for weeks."
+    ]
+  }
 chapter_2: |
   # Heading
   Mock chapter 2 content.

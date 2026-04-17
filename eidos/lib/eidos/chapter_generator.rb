@@ -57,9 +57,6 @@ module Eidos
       next_chapter = determine_next_chapter_number
       @current_chapter_number = next_chapter
 
-      # Auto-migrate world.yml to story_facts.yml if needed
-      migrate_world_data_to_story_facts
-
       puts "Generating Chapter #{next_chapter} using model #{@llm_service.get_model_for_task('generation')}..."
 
       # Determine characters for this chapter (parity with main)
@@ -72,7 +69,7 @@ module Eidos
       create_new_characters(chapter_data['new_characters']) if chapter_data['new_characters'].is_a?(Array)
       extract_and_store_story_facts(chapter_data['story_facts'], next_chapter) if chapter_data['story_facts'].is_a?(Hash)
 
-      update_book_progress(next_chapter)
+      update_book_progress(next_chapter, chapter_data)
 
       puts "✅ Chapter #{next_chapter} generated successfully!"
 
@@ -116,10 +113,22 @@ module Eidos
     def build_chapter_prompt(chapter_number, auto_generate: false)
       template = load_chapter_template(chapter_number)
       placeholders = build_chapter_context(chapter_number)
+      template = prefill_single_brace_placeholders(template, placeholders)
 
       PromptUtils.build_prompt(template, placeholders, warn_unused: false, context: "chapter #{chapter_number} generation")
     rescue PromptUtils::UnfilledPlaceholdersError => e
       handle_unfilled_placeholders(e, chapter_number, auto_generate)
+    end
+
+    # Templates on disk use `{PLACEHOLDER}` (single-brace); PromptUtils only
+    # recognizes `{{PLACEHOLDER}}`. Pre-substitute single-brace tokens so placeholders
+    # like CHARACTER_CONTEXT actually reach the LLM.
+    def prefill_single_brace_placeholders(template, placeholders)
+      result = template.dup
+      placeholders.each do |key, value|
+        result.gsub!("{#{key}}", value.to_s)
+      end
+      result
     end
 
     def load_chapter_template(chapter_number)
@@ -259,12 +268,11 @@ module Eidos
       end
     end
 
-    def update_book_progress(chapter_number)
+    def update_book_progress(chapter_number, chapter_data = {})
       @config.update_current_chapter(chapter_number).save!
 
       puts "📈 Updated world progress: Chapter #{chapter_number} completed"
 
-      # Simple summary
       puts "\n📊 Chapter Generation Summary"
       puts '=' * 40
       # Best-effort print: read back the file and count words
@@ -275,14 +283,18 @@ module Eidos
         parts = text.split(/^---\s*$/, 3)
         wc = parts.length >= 3 ? parts[2].split(/\s+/).length : 0
       end
-      puts "Title: #{chapter_data_title_for_print(chapter_number)}"
-      puts "Word Count: #{wc.positive? ? wc : 'Not specified'}"
-      puts 'Difficulty: Not specified'
+
+      title = title_for_summary(chapter_data, chapter_number)
+      puts "Title: #{title}"
+      puts "Word Count: #{wc}" if wc.positive?
+      difficulty = chapter_data['difficulty_level'].to_s.strip
+      puts "Difficulty: #{difficulty}" unless difficulty.empty?
       puts '=' * 40
     end
 
-    def chapter_data_title_for_print(chapter_number)
-      "Chapter #{chapter_number}"
+    def title_for_summary(chapter_data, chapter_number)
+      candidate = chapter_data.is_a?(Hash) ? chapter_data['title'].to_s.strip : ''
+      candidate.empty? ? "Chapter #{chapter_number}" : candidate
     end
 
     def determine_next_chapter_number
@@ -485,36 +497,22 @@ module Eidos
     def extract_and_store_story_facts(story_facts, chapter_number)
       return if story_facts.nil? || story_facts.empty?
 
-      facts_path = File.join(@project_root, 'data', 'story_facts.yml')
-      facts_data = File.exist?(facts_path) ? (YAML.safe_load_file(facts_path) || {}) : {}
-
-      # Ensure structure
-      facts_data['en'] ||= {}
-      facts_data['en']['facts'] ||= {}
-      store = facts_data['en']['facts']
-
-      # Process each fact type
       %w[locations events world_rules relationships].each do |fact_type|
         next unless story_facts[fact_type].is_a?(Array) && !story_facts[fact_type].empty?
 
-        store[fact_type] ||= {}
+        existing = story_bible.get_facts_by_category(fact_type)
+
         story_facts[fact_type].each do |fact|
           next if fact.nil? || !fact.is_a?(Hash)
 
           fact_key = generate_fact_key(fact, fact_type)
           next if ValidationUtils.blank?(fact_key)
+          next if existing.key?(fact_key)
 
-          # Avoid duplicates - check if fact already exists
-          unless store[fact_type].key?(fact_key)
-            normalized_fact = normalize_fact(fact, fact_type, chapter_number)
-            store[fact_type][fact_key] = normalized_fact if normalized_fact
-          end
+          normalized_fact = normalize_fact(fact, fact_type, chapter_number)
+          story_bible.add_fact(fact_type, fact_key, normalized_fact) if normalized_fact
         end
       end
-
-      # Persist story_facts.yml
-      FileUtils.mkdir_p(File.dirname(facts_path))
-      File.write(facts_path, facts_data.to_yaml)
     end
 
     def generate_fact_key(fact, fact_type)
@@ -593,10 +591,9 @@ module Eidos
     end
 
     def build_story_facts_context
-      story_facts = load_story_facts
-      return {} unless story_facts&.dig('en', 'facts')
+      facts = story_bible.facts
+      return {} if facts.nil? || facts.empty?
 
-      facts = story_facts['en']['facts']
       placeholders = {}
 
       # Build locations context
@@ -634,14 +631,8 @@ module Eidos
       placeholders
     end
 
-    def load_story_facts
-      facts_path = File.join(@project_root, 'data', 'story_facts.yml')
-      return {} unless File.exist?(facts_path)
-
-      YAML.safe_load_file(facts_path) || {}
-    rescue StandardError => e
-      puts "⚠️  Warning: Failed to load story facts: #{e.message}"
-      {}
+    def story_bible
+      @story_bible ||= Eidos::StoryBible.new(project_root: @project_root)
     end
 
     def build_content_rules_context(content_rules)
@@ -725,142 +716,6 @@ module Eidos
       placeholders['HUMOR_STYLE'] = content_rules['humor_style'] if content_rules['humor_style']
     end
 
-    def migrate_world_data_to_story_facts
-      world_path = File.join(@project_root, 'data', 'world.yml')
-      facts_path = File.join(@project_root, 'data', 'story_facts.yml')
-
-      return false unless migration_needed?(world_path, facts_path)
-
-      begin
-        world_data = YAML.safe_load_file(world_path)
-        return false unless world_data&.dig('en', 'world')
-
-        world = world_data['en']['world']
-        story_facts = create_story_facts_structure
-        facts = story_facts['en']['facts']
-
-        migrate_world_sections(world, facts)
-        save_migrated_facts(facts_path, story_facts, facts)
-
-        true
-      rescue StandardError => e
-        puts "⚠️  Warning: Failed to migrate world.yml: #{e.message}"
-        false
-      end
-    end
-
-    def migration_needed?(world_path, facts_path)
-      # Skip if no world.yml or story_facts.yml already exists
-      return false unless File.exist?(world_path)
-      return false if File.exist?(facts_path)
-
-      true
-    end
-
-    def create_story_facts_structure
-      { 'en' => { 'facts' => {} } }
-    end
-
-    def migrate_world_sections(world, facts)
-      migrate_locations(world['locations'], facts)
-      migrate_company_as_location(world['company'], facts)
-      migrate_meetings_as_events(world['meetings'], facts)
-      migrate_infrastructure_as_rules(world['infrastructure'], facts)
-      migrate_culture_as_rules(world['culture'], facts)
-      migrate_established_facts_as_rules(world['established_facts'], facts)
-    end
-
-    def migrate_locations(locations, facts)
-      return unless locations
-
-      facts['locations'] = {}
-      locations.each do |key, location|
-        facts['locations'][key] = {
-          'name' => location['name'],
-          'description' => location['description'],
-          'type' => location['type'] || 'location',
-          'first_mentioned' => location['established_chapter'] || 'Chapter 1',
-          'status' => 'established'
-        }.compact
-      end
-    end
-
-    def migrate_company_as_location(company, facts)
-      return unless company
-
-      facts['locations'] ||= {}
-      facts['locations']['company_office'] = {
-        'name' => company['name'],
-        'description' => company['description'],
-        'type' => company['type'] || 'office',
-        'first_mentioned' => company['established_chapter'] || 'Chapter 1',
-        'status' => 'established'
-      }.compact
-    end
-
-    def migrate_meetings_as_events(meetings, facts)
-      return unless meetings
-
-      facts['events'] ||= {}
-      meetings.each do |key, meeting|
-        facts['events'][key] = {
-          'name' => meeting['name'],
-          'description' => meeting['description'],
-          'chapter' => 1, # Default to chapter 1 for recurring meetings
-          'impact' => 'minor'
-        }.compact
-      end
-    end
-
-    def migrate_infrastructure_as_rules(infrastructure, facts)
-      return unless infrastructure
-
-      facts['world_rules'] ||= {}
-      infrastructure.each do |key, infra|
-        facts['world_rules'][key] = {
-          'rule' => "#{infra['name']}: #{infra['description']}",
-          'category' => 'technology',
-          'established' => infra['established_chapter'] || 'Chapter 1'
-        }.compact
-      end
-    end
-
-    def migrate_culture_as_rules(culture, facts)
-      return unless culture
-
-      facts['world_rules'] ||= {}
-      culture.each do |key, culture_item|
-        facts['world_rules']["culture_#{key}"] = {
-          'rule' => culture_item['description'],
-          'category' => 'culture',
-          'established' => culture_item['established_chapter'] || 'Chapter 1'
-        }.compact
-      end
-    end
-
-    def migrate_established_facts_as_rules(established_facts, facts)
-      return unless established_facts.is_a?(Array)
-
-      facts['world_rules'] ||= {}
-      established_facts.each_with_index do |fact, index|
-        facts['world_rules']["established_fact_#{index + 1}"] = {
-          'rule' => fact,
-          'category' => 'culture',
-          'established' => 'Chapter 1'
-        }
-      end
-    end
-
-    def save_migrated_facts(facts_path, story_facts, facts)
-      FileUtils.mkdir_p(File.dirname(facts_path))
-      File.write(facts_path, story_facts.to_yaml)
-
-      puts '✅ Migrated world.yml to story_facts.yml'
-      puts "   Locations: #{facts['locations']&.size || 0}"
-      puts "   Events: #{facts['events']&.size || 0}"
-      puts "   World Rules: #{facts['world_rules']&.size || 0}"
-    end
-
     def build_main_character_placeholders(config, chars)
       placeholders = {}
 
@@ -939,13 +794,21 @@ module Eidos
     def load_characters_abs
       path = File.join(@project_root, 'data', 'characters.yml')
       data = File.exist?(path) ? (YAML.safe_load_file(path) || {}) : {}
-      if data['en']
-        data['en']
-      elsif data['characters']
-        data
-      else
-        { 'characters' => {} }
+      base = if data['en']
+               data['en']
+             elsif data['characters']
+               data
+             else
+               { 'characters' => {} }
+             end
+
+      merged = (base['characters'] || {}).dup
+      story_bible.characters.each do |id, char|
+        next if merged.key?(id)
+
+        merged[id] = char.is_a?(Hash) ? char.merge('slug' => char['slug'] || id) : char
       end
+      base.merge('characters' => merged)
     end
 
     def load_generation_log_abs
@@ -1188,10 +1051,9 @@ module Eidos
       config.update_localized('en', 'themes' => current_themes)
     end
 
-    def save_interaction_result(config, en_metadata, updated)
+    def save_interaction_result(config, _en_metadata, updated)
       if updated
         config.save!
-        update_world_data_if_exists(en_metadata)
         puts ''
         puts '✅ Information saved! Continuing with chapter generation...'
         puts ''
@@ -1201,36 +1063,6 @@ module Eidos
       end
 
       updated
-    end
-
-    def update_world_data_if_exists(en_metadata)
-      world_path = File.join(@project_root, 'data', 'world.yml')
-      return unless File.exist?(world_path) && en_metadata['setting']
-
-      world_data = YAML.safe_load_file(world_path) || {}
-      world_data['en'] ||= {}
-      world_data['en']['world'] ||= {}
-
-      update_world_setting(world_data, en_metadata)
-      update_world_facts(world_data, en_metadata)
-
-      File.write(world_path, world_data.to_yaml)
-    end
-
-    def update_world_setting(world_data, en_metadata)
-      world_data['en']['world']['main_setting'] ||= {}
-      world_data['en']['world']['main_setting']['name'] = en_metadata['setting']
-      world_data['en']['world']['main_setting']['description'] = 'The primary location where the story unfolds'
-      world_data['en']['world']['established_facts'] ||= []
-    end
-
-    def update_world_facts(world_data, en_metadata)
-      facts = world_data['en']['world']['established_facts']
-      facts.clear # Remove old facts
-      facts << "Story takes place in #{en_metadata['setting']}" if en_metadata['setting']
-      facts << "Genre focuses on #{en_metadata['genre']} elements" if en_metadata['genre']
-      facts << "Primary theme is #{en_metadata.dig('themes', 'primary')}" if en_metadata.dig('themes', 'primary')
-      facts << "Writing style is #{en_metadata['humor_style']}" if en_metadata['humor_style']
     end
 
     def extract_front_matter(file_path)

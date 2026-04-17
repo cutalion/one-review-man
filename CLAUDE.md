@@ -219,6 +219,8 @@ world.canon.current_branch
 - Ruby 3.3.5, `# frozen_string_literal: true`
 - Thor ~> 1.3 (CLI), ruby-openai ~> 7.3 (LLM), tty-prompt ~> 0.23, tty-spinner ~> 0.9, rainbow ~> 3.1, dotenv ~> 3.1
 - YAML files on disk for world config / state / story bible / revisions / snapshots; in-memory hashes available for tests
+- Ruby 3.3.5, `# frozen_string_literal: true` on every file + Thor ~> 1.3 (CLI), ruby-openai ~> 7.3 (LLM), tty-prompt ~> 0.23 (interactive prompts), tty-spinner ~> 0.9, YAML (stdlib) (012-fix-ux-unify-bible)
+- YAML files under `worlds/<name>/data/story_bible/` (pluggable via `Eidos::Storage` backends: `:yaml_file` default, `:memory` for tests) (012-fix-ux-unify-bible)
 
 ## Recent Changes
 - 011-eidos-sdk-and-installable-cli: Unified `eidos` CLI (`exe/eidos`), Ruby SDK (`Eidos::World`, `Chapter`, `Character`, `Location`, `Bible`, `Canon`), `Eidos.configure` global config, installable gem (`gem install eidos`), new SDK-based `eidos chapter` and `eidos character` subcommands.

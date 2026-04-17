@@ -188,7 +188,7 @@ module Eidos
           'data/world_state.yml' => 'World state',
           'data/characters.yml' => 'Characters data',
           'data/generation_log.yml' => 'Generation log',
-          'data/world.yml' => 'World data',
+          'data/story_bible' => 'Story Bible',
           'data/strings.yml' => 'Site strings'
         }
 
