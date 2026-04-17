@@ -33,6 +33,9 @@ module Eidos
     def generate_text(prompt:, context: {})
       # Deterministic mock mode for tests/validation
       if EnvUtils.mock_ai_enabled?
+        seed_fixture = mock_seed_extractor_payload(prompt)
+        return seed_fixture if seed_fixture
+
         chapter_num = prompt.to_s.match(/chapter\s*(\d+)/i)&.captures&.first || context[:chapter_number] || '1'
         return "Mock chapter content for Chapter #{chapter_num}"
       end
@@ -849,6 +852,18 @@ module Eidos
       end
 
       rules_text.empty? ? build_generic_translation_rules(target_lang) : "\n#{rules_text.join("\n")}"
+    end
+
+    # Returns the SeedExtractor fixture payload when the prompt looks like a
+    # seed request, otherwise nil. Keeps MOCK_AI=true seed wiring honest end-to-end.
+    def mock_seed_extractor_payload(prompt)
+      return nil unless prompt.to_s.match?(/seeding a Story Bible/i)
+
+      fixtures_path = File.expand_path('../../spec/support/mock_responses.yml', __dir__)
+      return nil unless File.exist?(fixtures_path)
+
+      fixtures = YAML.safe_load(File.read(fixtures_path)) || {}
+      fixtures['seed_extractor_default']
     end
 
     def build_generic_translation_rules(target_lang)

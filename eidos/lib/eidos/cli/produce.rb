@@ -19,6 +19,8 @@ module Eidos
       desc 'chapter [NUMBER]', 'Generate the next chapter'
       method_option :snapshot, type: :string, desc: 'Pin generation to a specific canon snapshot'
       method_option :output, type: :string, desc: 'Output directory for generated artifacts'
+      method_option :prompt, type: :string,
+                             desc: 'Extra guidance appended to the generation prompt (e.g. "keep it under 3 sentences")'
       def chapter(_number = nil)
         abs_root = resolve_project_root!(options['world-dir'])
 
@@ -31,7 +33,8 @@ module Eidos
             snapshot: options[:snapshot],
             config: {
               auto_generate: options[:auto],
-              model: options['content-model']
+              model: options['content-model'],
+              extra_guidance: options[:prompt]
             },
             output: options[:output]
           )

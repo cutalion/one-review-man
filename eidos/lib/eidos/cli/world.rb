@@ -21,12 +21,15 @@ module Eidos
                                  desc: 'Path to the world directory (defaults to current directory)'
       method_option :quick, type: :boolean, default: false,
                             desc: 'Quick setup with minimal prompts (uses intelligent defaults)'
+      method_option 'no-seed', type: :boolean, default: false,
+                               desc: 'Skip the Story Bible seed prompt (also implied by --quick)'
       def new
         target = File.expand_path(options['world-dir'] || Dir.pwd)
 
         validate_target_directory(target)
         world_info = collect_world_information
         create_world_structure(target, world_info)
+        maybe_seed_story_bible(target, world_info)
 
         say "Initialised world at: #{target}", :green
         say 'World is ready for chapter generation!', :green
@@ -191,8 +194,7 @@ module Eidos
           style: style,
           setting: setting,
           primary_theme: primary_theme,
-          secondary_themes: '',
-          target_chapters: 10
+          secondary_themes: ''
         }
       end
 
@@ -210,15 +212,12 @@ module Eidos
         primary_theme    = ask('What is the primary theme? (e.g., friendship, mystery, adventure):', default: 'adventure')
         secondary_themes = ask('Secondary themes (comma-separated, optional):', default: '')
 
-        target_chapters = ask('Target number of chapters:', default: '10').to_i
-
         {
           genre: genre,
           style: style,
           setting: setting,
           primary_theme: primary_theme,
-          secondary_themes: secondary_themes,
-          target_chapters: target_chapters
+          secondary_themes: secondary_themes
         }
       end
 
@@ -242,6 +241,58 @@ module Eidos
       def create_story_bible(target)
         require 'eidos/story_bible'
         Eidos::StoryBible.new(project_root: target).setup
+      end
+
+      # Offers to seed the Story Bible from the user's premise. Silent under
+      # --quick and --no-seed; otherwise prompts (default Yes). All errors
+      # inside SeedExtractor are non-fatal — they collapse to an empty result
+      # with a warning, which we render as a skip-reason.
+      def maybe_seed_story_bible(target, world_info)
+        return if options[:quick]
+        return if options['no-seed']
+        return unless yes?('Seed the Story Bible from your premise? [Y/n]', :cyan)
+
+        require 'eidos/seed_extractor'
+        require 'eidos/story_bible'
+        require 'eidos/llm_service'
+        require 'eidos/configuration'
+
+        bible = Eidos::StoryBible.new(project_root: target)
+        llm = Eidos::LLMService.new(Eidos::Configuration.load(target))
+        result = Eidos::SeedExtractor.new(llm_service: llm, story_bible: bible).extract(
+          premise: world_info[:description].to_s
+        )
+
+        persist_seed_result(bible, result)
+        report_seed_result(result)
+      end
+
+      def persist_seed_result(bible, result)
+        result.characters.each do |char|
+          id = char['id'].to_s
+          next if id.empty?
+
+          bible.save_character(id, char, change_reason: 'Seeded from premise')
+        end
+        result.locations.each do |loc|
+          id = loc['id'].to_s
+          next if id.empty?
+
+          bible.save_location(id, loc, change_reason: 'Seeded from premise')
+        end
+        result.facts.each_with_index do |fact, idx|
+          data = { 'description' => fact, 'origin' => 'seed', 'origin_note' => 'derived from premise' }
+          bible.add_fact('world_rules', "seed_#{idx + 1}", data, change_reason: 'Seeded from premise')
+        end
+      end
+
+      def report_seed_result(result)
+        if result.warnings.any?
+          say "Seed skipped: #{result.warnings.first}", :yellow
+        else
+          say "Seeded #{result.characters.size} characters, #{result.locations.size} locations, " \
+              "#{result.facts.size} facts.", :green
+        end
       end
 
       def create_directories(target)
@@ -277,7 +328,6 @@ module Eidos
       def build_world_metadata(world_info, secondary_themes_array)
         {
           'world' => {
-            'target_chapters' => world_info[:target_chapters],
             'current_chapter' => 0
           },
           'generation' => {

@@ -27,7 +27,10 @@ module Eidos
         FileUtils.mkdir_p(output) if output && !Dir.exist?(output)
 
         generator = build_generator(snapshot: snapshot, config: config, output: output)
-        content = generator.generate_next_chapter(auto_generate: config[:auto_generate] || config['auto_generate'])
+        content = generator.generate_next_chapter(
+          auto_generate: config[:auto_generate] || config['auto_generate'],
+          extra_guidance: config[:extra_guidance] || config['extra_guidance']
+        )
 
         ProducerResult.new(
           success: true,

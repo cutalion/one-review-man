@@ -53,7 +53,7 @@ module Eidos
       @output_adapter.setup_project(@project_root)
     end
 
-    def generate_next_chapter(auto_generate: false)
+    def generate_next_chapter(auto_generate: false, extra_guidance: nil)
       next_chapter = determine_next_chapter_number
       @current_chapter_number = next_chapter
 
@@ -63,7 +63,7 @@ module Eidos
       character_objects = select_characters_for_chapter(next_chapter)
       character_slugs = character_objects.map { |c| c['slug'] || slugify(c['name'].to_s) }
 
-      chapter_data = generate_chapter_structured(next_chapter, auto_generate: auto_generate)
+      chapter_data = generate_chapter_structured(next_chapter, auto_generate: auto_generate, extra_guidance: extra_guidance)
 
       write_chapter_file(next_chapter, chapter_data, character_slugs)
       create_new_characters(chapter_data['new_characters']) if chapter_data['new_characters'].is_a?(Array)
@@ -78,8 +78,9 @@ module Eidos
 
     private
 
-    def generate_chapter_structured(chapter_number, auto_generate: false)
+    def generate_chapter_structured(chapter_number, auto_generate: false, extra_guidance: nil)
       prompt = build_chapter_prompt(chapter_number, auto_generate: auto_generate)
+      prompt = append_extra_guidance(prompt, extra_guidance)
       data = @llm_service.generate_chapter_structured(prompt, {})
       # Replace placeholders if present
       if data.is_a?(Hash)
@@ -118,6 +119,14 @@ module Eidos
       PromptUtils.build_prompt(template, placeholders, warn_unused: false, context: "chapter #{chapter_number} generation")
     rescue PromptUtils::UnfilledPlaceholdersError => e
       handle_unfilled_placeholders(e, chapter_number, auto_generate)
+    end
+
+    # Append user-supplied guidance (from `eidos produce chapter --prompt "..."`)
+    # as its own final section so the LLM treats it as an override, not decoration.
+    def append_extra_guidance(prompt, extra_guidance)
+      return prompt if extra_guidance.nil? || extra_guidance.to_s.strip.empty?
+
+      "#{prompt}\n\nADDITIONAL GUIDANCE FROM USER (apply this on top of everything above):\n#{extra_guidance.strip}\n"
     end
 
     # Templates on disk use `{PLACEHOLDER}` (single-brace); PromptUtils only
@@ -431,7 +440,8 @@ module Eidos
 
       chars = load_characters_abs
       placeholders = build_character_creation_placeholders(name, description || 'Brief mention only', chars)
-      PromptUtils.build_prompt(template, placeholders, context: "character '#{name}' creation")
+      template = prefill_single_brace_placeholders(template, placeholders)
+      PromptUtils.build_prompt(template, placeholders, warn_unused: false, context: "character '#{name}' creation")
     end
 
     def load_character_template

@@ -102,8 +102,12 @@ module Eidos
 
       def show_progress_info(config)
         current = config.current_chapter
-        target = config.get('world')&.dig('target_chapters') || 'Not set'
-        say "Progress: #{current}/#{target} chapters", :yellow
+        target = config.get('world')&.dig('target_chapters')
+        if target
+          say "Progress: #{current}/#{target} chapters", :yellow
+        else
+          say "Progress: #{current} chapter#{current == 1 ? '' : 's'} written", :yellow
+        end
       end
 
       def show_configuration_status(config)

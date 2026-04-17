@@ -39,12 +39,12 @@ module Eidos
 
         case type.downcase
         when 'characters', 'chars'
-          chars = bible.list_characters
+          chars = bible.characters
           if chars.empty?
             say 'No characters found.', :yellow
           else
             say "Characters (#{chars.size}):", :cyan
-            chars.each { |c| say "  • #{c['id']}: #{c['name']}", :green }
+            chars.each { |id, data| say "  • #{id}: #{data['name']}#{seed_marker(data)}", :green }
           end
         when 'locations', 'locs'
           locs = bible.locations
@@ -52,7 +52,7 @@ module Eidos
             say 'No locations found.', :yellow
           else
             say "Locations (#{locs.size}):", :cyan
-            locs.each { |id, data| say "  • #{id}: #{data['name']}", :green }
+            locs.each { |id, data| say "  • #{id}: #{data['name']}#{seed_marker(data)}", :green }
           end
         when 'facts'
           facts = bible.facts
@@ -199,6 +199,14 @@ module Eidos
         ctx = bible.chapter_context(chapter.to_i)
         say "Chapter #{chapter} Context:", :cyan
         say ctx.to_yaml
+      end
+
+      no_commands do
+        def seed_marker(data)
+          return '' unless data.is_a?(Hash) && data['origin'].to_s == 'seed'
+
+          ' (seed)'
+        end
       end
     end
   end

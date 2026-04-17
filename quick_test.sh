@@ -64,7 +64,6 @@ echo "4. Testing required files creation..."
 required_files=(
     "data/world_config.yml"
     "data/world_state.yml"
-    "data/world.yml"
     "data/strings.yml"
     "data/characters.yml"
     "data/generation_log.yml"

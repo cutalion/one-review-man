@@ -101,4 +101,82 @@ RSpec.describe Eidos::CLI::World do
       expect(File.exist?(File.join(tmp_dir, 'data', 'story_facts.yml'))).to be(false)
     end
   end
+
+  # ----- T032 ---------------------------------------------------------------
+
+  describe 'seed-the-bible prompt (T032 / US3 / feature 012)' do
+    let(:recorded_yes) { [] }
+    let(:extractor_double) { instance_double('Eidos::SeedExtractor') }
+    let(:seed_result) do
+      Eidos::SeedResult.new(
+        characters: [{ 'id' => 'jax_patel', 'name' => 'Jax Patel',
+                       'description' => 'A laid-off backend engineer.',
+                       'origin' => 'seed', 'origin_note' => 'derived from premise' }],
+        locations: [{ 'id' => 'home_office', 'name' => 'Home Office',
+                      'description' => 'Cramped spare bedroom.',
+                      'origin' => 'seed', 'origin_note' => 'derived from premise' }],
+        facts: ['The tech job market is in a downturn.'],
+        warnings: []
+      )
+    end
+
+    before do
+      require 'eidos/seed_extractor'
+
+      # Capture yes? confirmations (one for directory create, one for seed prompt).
+      allow_any_instance_of(described_class).to receive(:yes?) do |_, prompt, *_rest|
+        recorded_yes << prompt.to_s
+        true
+      end
+    end
+
+    it 'shows the seed prompt in interactive mode and invokes SeedExtractor on Yes' do
+      allow(Eidos::SeedExtractor).to receive(:new).and_return(extractor_double)
+      allow(extractor_double).to receive(:extract).and_return(seed_result)
+
+      capture_stdout do
+        described_class.start(['new', '--world-dir', tmp_dir])
+      end
+
+      seed_prompts = recorded_yes.select { |p| p.downcase.include?('seed') }
+      expect(seed_prompts.size).to eq(1)
+      expect(seed_prompts.first.downcase).to include('premise')
+
+      expect(extractor_double).to have_received(:extract).with(
+        hash_including(premise: kind_of(String))
+      )
+
+      # Verify persisted entities are readable back through the bible.
+      require 'eidos/story_bible'
+      bible = Eidos::StoryBible.new(project_root: tmp_dir)
+      expect(bible.characters.keys).to include('jax_patel')
+      expect(bible.locations.keys).to include('home_office')
+    end
+
+    it 'skips the seed prompt and does NOT call SeedExtractor when --no-seed is passed' do
+      allow(Eidos::SeedExtractor).to receive(:new).and_return(extractor_double)
+      allow(extractor_double).to receive(:extract)
+
+      capture_stdout do
+        described_class.start(['new', '--world-dir', tmp_dir, '--no-seed'])
+      end
+
+      expect(recorded_yes.none? { |p| p.downcase.include?('seed') }).to be(true)
+      expect(Eidos::SeedExtractor).not_to have_received(:new)
+      expect(extractor_double).not_to have_received(:extract)
+    end
+
+    it 'skips the seed prompt and does NOT call SeedExtractor under --quick' do
+      allow(Eidos::SeedExtractor).to receive(:new).and_return(extractor_double)
+      allow(extractor_double).to receive(:extract)
+
+      capture_stdout do
+        described_class.start(['new', '--world-dir', tmp_dir, '--quick'])
+      end
+
+      expect(recorded_yes.none? { |p| p.downcase.include?('seed') }).to be(true)
+      expect(Eidos::SeedExtractor).not_to have_received(:new)
+      expect(extractor_double).not_to have_received(:extract)
+    end
+  end
 end

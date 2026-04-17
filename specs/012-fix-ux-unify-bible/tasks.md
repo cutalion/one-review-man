@@ -111,29 +111,29 @@ Ruby gem living in `eidos/`. Library code under `eidos/lib/eidos/`, specs under 
 
 ### Tests for User Story 3 (write first; must FAIL before implementation) ⚠️
 
-- [ ] T031 [P] [US3] Create `eidos/spec/eidos/seed_extractor_spec.rb` with examples:
+- [X] T031 [P] [US3] Create `eidos/spec/eidos/seed_extractor_spec.rb` with examples:
   - Success path: mocked LLM returns well-shaped JSON → `SeedResult` populated, arrays capped (≤3 characters, ≤2 locations, ≤3 facts), no warnings.
   - Malformed JSON: `SeedResult` has empty arrays and one warning; method does NOT raise.
   - Timeout / error: same — non-fatal, warning recorded.
   - Origin: every returned character/location hash has `origin: "seed"` and `origin_note: "derived from premise"`.
-- [ ] T032 [P] [US3] Add RSpec examples in `eidos/spec/eidos/cli/world_spec.rb`:
+- [X] T032 [P] [US3] Add RSpec examples in `eidos/spec/eidos/cli/world_spec.rb`:
   - Interactive mode shows the seed prompt and defaults to Yes.
   - `--no-seed` suppresses the prompt and does not call `SeedExtractor`.
   - `--quick` suppresses the prompt and does not call `SeedExtractor`.
   - On Yes, `SeedExtractor#extract` is invoked with the captured premise, and returned entities are persisted to `world.bible`.
-- [ ] T033 [P] [US3] Add RSpec example in `eidos/spec/eidos/cli/bible_cli_spec.rb` (create if missing): a character with `origin: "seed"` renders with a `(seed)` marker in `bible list` output.
+- [X] T033 [P] [US3] Add RSpec example in `eidos/spec/eidos/cli/bible_cli_spec.rb` (create if missing): a character with `origin: "seed"` renders with a `(seed)` marker in `bible list` output.
 
 ### Implementation for User Story 3
 
-- [ ] T034 [US3] Create `eidos/lib/eidos/seed_extractor.rb` implementing `Eidos::SeedExtractor` per `contracts/sdk-surface.md`:
+- [X] T034 [US3] Create `eidos/lib/eidos/seed_extractor.rb` implementing `Eidos::SeedExtractor` per `contracts/sdk-surface.md`:
   - Constructor takes `llm_service:` and `story_bible:` (DI per Principle III).
   - `#extract(premise:)` returns `Eidos::SeedResult` (declared as `Struct.new(:characters, :locations, :facts, :warnings, keyword_init: true)` in the same file).
   - Builds a short prompt asking for ≤3 characters, ≤2 locations, ≤3 facts in strict JSON.
   - Never raises; maps all errors to an empty `SeedResult` + single warning.
   - Caps arrays to the documented sizes regardless of LLM output.
   - Tags every returned entity hash with `origin: "seed"`, `origin_note: "derived from premise"`. Verifies T031.
-- [ ] T035 [US3] Add the `--no-seed` option to the `eidos world new` Thor command in `eidos/lib/eidos/cli/world.rb`. After the premise is captured, if not in `--quick` and not in `--no-seed`, prompt with tty-prompt `Yes?("Seed the Story Bible from your premise?")`. On Yes, instantiate `SeedExtractor` via the world's `LLMService` and `StoryBible`, call `#extract`, persist each returned entity through `world.bible.add_character` / `add_location` / `add_fact`. Print a one-line summary ("Seeded N characters, M locations, K facts.") or skip-reason on failure. Verifies T032.
-- [ ] T036 [US3] In the bible-list CLI command (`eidos/lib/eidos/cli/bible_cli.rb` or wherever list rendering lives), append `(seed)` to the displayed name when the underlying record has `origin == "seed"`. Verifies T033.
+- [X] T035 [US3] Add the `--no-seed` option to the `eidos world new` Thor command in `eidos/lib/eidos/cli/world.rb`. After the premise is captured, if not in `--quick` and not in `--no-seed`, prompt with tty-prompt `Yes?("Seed the Story Bible from your premise?")`. On Yes, instantiate `SeedExtractor` via the world's `LLMService` and `StoryBible`, call `#extract`, persist each returned entity through `world.bible.add_character` / `add_location` / `add_fact`. Print a one-line summary ("Seeded N characters, M locations, K facts.") or skip-reason on failure. Verifies T032.
+- [X] T036 [US3] In the bible-list CLI command (`eidos/lib/eidos/cli/bible_cli.rb` or wherever list rendering lives), append `(seed)` to the displayed name when the underlying record has `origin == "seed"`. Verifies T033.
 
 **Checkpoint**: Run `MOCK_AI=true bundle exec rspec` — all green. Manually run quickstart step 7. US1 + US2 + US3 all independently shippable.
 
@@ -143,11 +143,11 @@ Ruby gem living in `eidos/`. Library code under `eidos/lib/eidos/`, specs under 
 
 **Purpose**: Final verification against spec's measurable outcomes (SC-001 through SC-006) and constitutional compliance.
 
-- [ ] T037 [P] Flesh out the first-run integration spec (`eidos/spec/eidos/integration/first_run_spec.rb`) to cover the full SC-001 check: spawn `world new --quick` + `produce chapter` via `Open3.capture3` on a tmp dir under `MOCK_AI=true`, assert combined stdout contains zero occurrences of `"Migrated"`, `"CHARACTER_NAME"`, `"CHARACTER_DESCRIPTION"`, `"Not specified"`. Replaces the `pending` scaffold from T002.
+- [X] T037 [P] Flesh out the first-run integration spec (`eidos/spec/eidos/integration/first_run_spec.rb`) to cover the full SC-001 check: spawn `world new --quick` + `produce chapter` via `Open3.capture3` on a tmp dir under `MOCK_AI=true`, assert combined stdout contains zero occurrences of `"Migrated"`, `"CHARACTER_NAME"`, `"CHARACTER_DESCRIPTION"`, `"Not specified"`. Replaces the `pending` scaffold from T002.
 - [ ] T038 [P] Run each step of `quickstart.md` manually (steps 1–8), record pass/fail in the PR description. If any step fails, file a follow-up task, do not merge.
-- [ ] T039 Run `MOCK_AI=true bundle exec rspec` one last time. Expected: 100% green, total count ≥ baseline + new examples.
-- [ ] T040 Run `cd eidos && bundle exec rubocop` and fix any style violations introduced.
-- [ ] T041 Update repo-level docs (`CLAUDE.md`, `AGENTS.md`, `eidos/README.md`) to note: there is no `data/world.yml` / `data/story_facts.yml` in the canonical world layout; any user-facing command snippets that reference them are corrected.
+- [X] T039 Run `MOCK_AI=true bundle exec rspec` one last time. Expected: 100% green, total count ≥ baseline + new examples. **Result: 610 examples, 0 failures.**
+- [X] T040 Run `cd eidos && bundle exec rubocop` and fix any style violations introduced. **Result: no new offenses on touched files; pre-existing offenses in `llm_service.rb` and `cli/bible.rb` are outside scope.**
+- [X] T041 Update repo-level docs (`CLAUDE.md`, `AGENTS.md`, `eidos/README.md`) to note: there is no `data/world.yml` / `data/story_facts.yml` in the canonical world layout; any user-facing command snippets that reference them are corrected. **Result: CLAUDE.md/AGENTS.md/eidos/README.md already clean; removed obsolete `data/world.yml` check from `quick_test.sh`. `WORLD_CONSISTENCY_README.md` is a historical design doc, left as-is.**
 
 ---
 

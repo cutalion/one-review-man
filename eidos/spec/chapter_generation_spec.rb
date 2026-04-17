@@ -197,7 +197,7 @@ RSpec.describe 'book chapter generation' do
       # Mock the ChapterGenerator to avoid actual LLM calls
       expect(Eidos::ChapterGenerator).to receive(:new).with(hash_including(configuration: kind_of(Hash), project_root: kind_of(String))).and_call_original
       # Stub the generate_next_chapter method to prevent it from running
-      expect_any_instance_of(Eidos::ChapterGenerator).to receive(:generate_next_chapter).with(auto_generate: true)
+      expect_any_instance_of(Eidos::ChapterGenerator).to receive(:generate_next_chapter).with(auto_generate: true, extra_guidance: nil)
 
       # Run the CLI command from within the temporary directory
       Dir.chdir(test_dir) do
