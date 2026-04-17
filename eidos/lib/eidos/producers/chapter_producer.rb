@@ -65,7 +65,7 @@ module Eidos
 
         model = config[:model] || config['model']
         if model
-          kwargs[:configuration] = Eidos::Configuration.load(@project_root, { 'llm.model' => model })
+          kwargs[:configuration] = Eidos::Configuration.load(@project_root, { 'content.model' => model })
         else
           kwargs[:configuration] = Eidos::Configuration.load(@project_root, {})
         end

@@ -33,6 +33,7 @@ require 'eidos/cli/translate'
 require 'eidos/cli/publish'
 require 'eidos/cli/chapter_cli'
 require 'eidos/cli/character_cli'
+require 'eidos/cli/probe_cli'
 
 module Eidos
   module CLI
@@ -61,6 +62,34 @@ module Eidos
 
       desc 'character SUBCOMMAND ...ARGS', 'Character operations'
       subcommand 'character', Eidos::CLI::CharacterCli
+
+      desc 'probe MODEL', 'Smoke-test a provider/model for reachability'
+      long_desc <<~LONG
+        Sends one tiny, cheap request to the named model and reports
+        pass/fail plus latency.
+
+        Credential resolution (first match wins):
+          1. --api-key=KEY
+          2. -w WORLD_DIR  (reads data/settings.yml providers[<provider>].api_key_env)
+          3. ENV[OPENAI_API_KEY] or ENV[OPENROUTER_API_KEY]
+
+        Exits 0 on OK, 1 on FAIL, 2 on config error (missing creds).
+      LONG
+      method_option :provider,    type: :string, default: 'openai',
+                                  desc: 'Provider name: openai or openrouter'
+      method_option :'api-key',   type: :string, desc: 'Explicit API key (overrides world settings and ENV)'
+      method_option :'base-url',  type: :string, desc: 'Override provider base URL'
+      method_option :'world-dir', aliases: '-w', type: :string, desc: "Use this world's settings.yml for creds"
+      method_option :timeout,     type: :numeric, default: 60, desc: 'Hard timeout in seconds'
+      method_option :metrics,     type: :boolean, default: false, desc: 'Show input/output token counts'
+      method_option :json,        type: :boolean, default: false, desc: 'Emit a JSON object instead of human text'
+      method_option :prompt,      type: :string,
+                                  desc: 'Custom prompt (enables free-form generation; bumps default --max-tokens to 500)'
+      method_option :'max-tokens', type: :numeric,
+                                   desc: 'Output token cap (default: 20 for probe, 500 with --prompt)'
+      def probe(model)
+        Eidos::CLI::ProbeCli.run(model, options)
+      end
     end
   end
 end

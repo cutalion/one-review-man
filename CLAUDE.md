@@ -88,6 +88,17 @@ eidos/exe/eidos world status -w worlds/one-review-man
 eidos/exe/eidos chapter list -w worlds/one-review-man
 eidos/exe/eidos character show kenji_yamamoto -w worlds/one-review-man
 
+# Cheap smoke-test for a provider/model (auth, reachability, latency).
+# Does NOT mutate world files; uses one tiny round-trip (~30 in / ~5 out tokens).
+eidos/exe/eidos probe gpt-4o-mini
+eidos/exe/eidos probe anthropic/claude-3.5-haiku --provider openrouter --metrics
+
+# Side-by-side model comparison: same prompt, diff the outputs.
+# --prompt turns probe into a cheap free-form generator (default max-tokens bumps to 500).
+eidos/exe/eidos probe gpt-4o-mini --prompt "Write a haiku about code review." > a.txt
+eidos/exe/eidos probe gpt-5-turbo --prompt "Write a haiku about code review." > b.txt
+diff a.txt b.txt
+
 # The domain-specific binaries in `eidos/bin/` are equivalent:
 eidos/bin/world new -w worlds/one-review-man
 eidos/bin/produce chapter -w worlds/one-review-man

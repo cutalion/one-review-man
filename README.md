@@ -83,6 +83,7 @@ eidos translate ... # Translate content to other languages
 eidos publish ...   # Build the Jekyll site
 eidos chapter ...   # SDK-based chapter browsing (list, show)
 eidos character ... # SDK-based character browsing (list, show, update)
+eidos probe MODEL   # Cheap smoke-test for a provider/model (auth, reachability, latency)
 eidos version       # Show the installed Eidos version
 ```
 
