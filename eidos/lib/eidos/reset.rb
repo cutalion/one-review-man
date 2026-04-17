@@ -111,7 +111,7 @@ module Eidos
     def reset_chapters(force: false)
       unless force
         puts "\n📊 Chapter Reset Preview:"
-        chapter_files = Dir.glob('_chapters/*.md')
+        chapter_files = Dir.glob('content/chapters/*.md')
         if chapter_files.empty?
           puts '  No chapter files found.'
           return true # Nothing to reset
@@ -137,7 +137,7 @@ module Eidos
       puts "\n📚 Resetting chapters..."
 
       # Remove chapter files
-      chapter_files = Dir.glob('_chapters/*.md')
+      chapter_files = Dir.glob('content/chapters/*.md')
       chapter_files.each do |file|
         File.delete(file)
         puts "  🗑️  Deleted: #{file}"
@@ -200,7 +200,7 @@ module Eidos
       puts "  💾 In YAML: #{char_count}"
 
       # Chapters
-      chapter_files = Dir.glob('_chapters/*.md')
+      chapter_files = Dir.glob('content/chapters/*.md')
       chapters_data = get_all_chapters
 
       puts "\nChapters:"
