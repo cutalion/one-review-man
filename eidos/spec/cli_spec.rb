@@ -50,8 +50,10 @@ RSpec.describe 'world CLI' do
 
       settings = YAML.load_file(settings_path)
       expect(settings['llm']).to be_a(Hash)
-      expect(settings['llm']['provider']).to eq('openai')
-      expect(settings['content']['model']).to eq('gpt-4o-mini')
+      expect(settings['llm']['provider']).to eq('openrouter')
+      expect(settings['llm']['model']).to eq('google/gemini-3-flash-preview')
+      expect(settings['content']['provider']).to eq('openrouter')
+      expect(settings['content']['model']).to eq('google/gemini-3-flash-preview')
       expect(settings['summarization']['model']).to eq('gpt-5-nano')
       expect(settings['llm']['temperature']).to eq(0.7)
       expect(settings['llm']['timeout']).to eq(240)

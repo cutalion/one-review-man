@@ -392,7 +392,8 @@ module Eidos
       def create_settings_data(target)
         settings_data = {
           'llm' => {
-            'provider' => 'openai',
+            'provider' => 'openrouter',
+            'model' => 'google/gemini-3-flash-preview',
             'temperature' => 0.7,
             'timeout' => 240,
             'default_options' => {
@@ -416,7 +417,8 @@ module Eidos
             'models' => {}
           },
           'content' => {
-            'model' => 'gpt-4o-mini'
+            'provider' => 'openrouter',
+            'model' => 'google/gemini-3-flash-preview'
           },
           'summarization' => {
             'model' => 'gpt-5-nano',
