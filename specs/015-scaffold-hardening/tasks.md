@@ -131,17 +131,17 @@ Single monorepo. All Ruby source and specs live under `eidos/`. CLAUDE.md and `s
 
 ### Tests for User Story 2
 
-- [ ] T039 [P] [US2] Unit spec in `eidos/spec/eidos/canon_delta_spec.rb`: `normalize_section` derives `id` from `name` via `ValidationUtils.slugify` when `id` is absent. `{"name" => "Arthur's Apartment"}` → normalized `id == "arthurs-apartment"` (per existing slugify rules).
-- [ ] T040 [P] [US2] Unit spec in the same file: entry with neither `id` nor `name` lands in `parse_error.drops` with reason `"missing both id and name"`. Covers the safety net from R3.
-- [ ] T041 [P] [US2] Unit spec for apply-path raise in `eidos/spec/eidos/canon_delta_spec.rb`: directly constructing a `CanonDelta` with a `new_characters` entry that has no `id` (bypassing normalization) and calling `apply!` raises a clear error — not `return nil` silently. Defense-in-depth per R3.
-- [ ] T042 [US2] Integration spec `eidos/spec/integration/user_scale/canon_delta_persists_to_bible_spec.rb`: uses `MOCK_RESPONSE=canon_delta_arthur_well_formed` (T005) to produce a piece in a fresh world, then asserts `data/story_bible/characters/arthur.yml` exists on disk and its `description` field matches the mock's declaration. Covers SC-003.
+- [X] T039 [P] [US2] Unit spec in `eidos/spec/eidos/canon_delta_spec.rb`: `normalize_section` derives `id` from `name` via `ValidationUtils.slugify` when `id` is absent. `{"name" => "Arthur's Apartment"}` → normalized `id == "arthurs-apartment"` (per existing slugify rules).
+- [X] T040 [P] [US2] Unit spec in the same file: entry with neither `id` nor `name` lands in `parse_error.drops` with reason `"missing both id and name"`. Covers the safety net from R3.
+- [X] T041 [P] [US2] Unit spec for apply-path raise in `eidos/spec/eidos/canon_delta_spec.rb`: directly constructing a `CanonDelta` with a `new_characters` entry that has no `id` (bypassing normalization) and calling `apply!` raises a clear error — not `return nil` silently. Defense-in-depth per R3.
+- [X] T042 [US2] Integration spec `eidos/spec/integration/user_scale/canon_delta_persists_to_bible_spec.rb`: uses `MOCK_RESPONSE=canon_delta_arthur_well_formed` (T005) to produce a piece in a fresh world, then asserts `data/story_bible/characters/arthur.yml` exists on disk and its `description` field matches the mock's declaration. Covers SC-003.
 
 ### Implementation for User Story 2
 
-- [ ] T043 [US2] Update `CanonDelta.normalize_section` in `eidos/lib/eidos/canon_delta.rb` (the method already changed in T032) to, after the `entry.is_a?(Hash)` guard, derive `id` from `name` via `ValidationUtils.slugify(normalized['name'])` when `normalized['id']` is absent. If both are absent, push a drop record and skip. Covers R3 fix (1) and the corresponding US1 "missing both" case.
-- [ ] T044 [US2] Update `CanonDelta#apply_character` in the same file (line 235): replace `return nil unless id` with `raise ArgumentError, "canon-delta new_characters entry reached apply with no id (should have been dropped in normalize_section)"`. Same change in `apply_location` (line 248). Per R3 fix (2) and the silent-fallback ban.
-- [ ] T045 [US2] Same replace pattern in `CanonDelta#apply_update` (line 284): current early return on `id.nil? || attr.empty?` — split the conditions, raise on `id.nil?`, keep graceful handling for `attr.empty?` (or raise both — choose per spec FR-022 to raise; empty attr should also have been caught earlier).
-- [ ] T046 [US2] [P] Verify no other engine path relies on `apply_*` silently no-oping on missing id. Search `eidos/lib/` for `return nil unless id` and similar patterns. Per FR-022, each needs to raise, return a Result, or emit a finding.
+- [X] T043 [US2] Update `CanonDelta.normalize_section` in `eidos/lib/eidos/canon_delta.rb` (the method already changed in T032) to, after the `entry.is_a?(Hash)` guard, derive `id` from `name` via `ValidationUtils.slugify(normalized['name'])` when `normalized['id']` is absent. If both are absent, push a drop record and skip. Covers R3 fix (1) and the corresponding US1 "missing both" case.
+- [X] T044 [US2] Update `CanonDelta#apply_character` in the same file (line 235): replace `return nil unless id` with `raise ArgumentError, "canon-delta new_characters entry reached apply with no id (should have been dropped in normalize_section)"`. Same change in `apply_location` (line 248). Per R3 fix (2) and the silent-fallback ban.
+- [X] T045 [US2] Same replace pattern in `CanonDelta#apply_update` (line 284): current early return on `id.nil? || attr.empty?` — split the conditions, raise on `id.nil?`, keep graceful handling for `attr.empty?` (or raise both — choose per spec FR-022 to raise; empty attr should also have been caught earlier).
+- [X] T046 [US2] [P] Verify no other engine path relies on `apply_*` silently no-oping on missing id. Search `eidos/lib/` for `return nil unless id` and similar patterns. Per FR-022, each needs to raise, return a Result, or emit a finding.
 
 **Checkpoint**: US2 complete. Produced pieces whose LLM emitted well-formed canon deltas result in bible entries on disk. The demo run's empty `data/story_bible/characters/` is fixed.
 

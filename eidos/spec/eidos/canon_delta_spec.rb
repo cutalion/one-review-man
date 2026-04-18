@@ -261,4 +261,69 @@ RSpec.describe Eidos::CanonDelta do
       expect(delta.parse_error).to be_nil
     end
   end
+
+  # T039 (feature 015 US2): when the LLM emits an entity record by name
+  # only (no `id`), the parser derives `id` via ValidationUtils.slugify
+  # so the downstream apply path can persist it. Previously a
+  # `return nil unless id` guard in #apply_character silently no-op'd
+  # these entries — the comic-script delta in the 014 job-hunt demo
+  # declared Arthur + "Arthur's Apartment" and wrote zero bible files.
+  describe '.parse id-from-name derivation (US2)' do
+    it 'derives id from name via slugify when id is absent' do
+      text = <<~TEXT
+        Body.
+
+        ---CANON-DELTA---
+        new_characters:
+          - name: Arthur
+            description: A programmer
+        new_locations:
+          - name: "Arthur's Apartment"
+            description: Open-plan office with disappointment.
+        new_facts: []
+        new_events: []
+        new_relationships: []
+        entity_updates: []
+      TEXT
+
+      delta = described_class.parse(text)
+
+      aggregate_failures do
+        expect(delta.parse_error).to be_nil
+        expect(delta.new_characters.first['id']).to eq('arthur')
+        expect(delta.new_characters.first['name']).to eq('Arthur')
+        expect(delta.new_locations.first['id']).to eq('arthurs-apartment')
+      end
+    end
+  end
+
+  # T041 (feature 015 US2): defense-in-depth on apply_character /
+  # apply_location — the existing `return nil unless id` guards were
+  # silent-fallback patterns. A hand-constructed CanonDelta that
+  # bypasses normalize_section (hash passed straight to from_hash)
+  # and still has a no-id entry must raise, not silently no-op.
+  describe '#apply! raises on missing id (US2)' do
+    it 'raises ArgumentError when a new_characters entry has no id at apply time' do
+      delta = described_class.from_hash(
+        'id' => '01NOID',
+        'piece_id' => 'PIECE1',
+        'body' => 'x',
+        'new_characters' => [{ 'description' => 'just a description' }],
+        'new_locations' => [],
+        'new_facts' => [],
+        'new_events' => [],
+        'new_relationships' => [],
+        'entity_updates' => []
+      )
+
+      bible = instance_double('Eidos::StoryBible')
+      audit_log = instance_double('Eidos::AuditLog', world_path: '/tmp')
+
+      expect do
+        delta.apply!(bible: bible, audit_log: audit_log,
+                     canon_version_before: 'v0', canon_version_after: 'v1',
+                     piece_id: 'PIECE1')
+      end.to raise_error(ArgumentError, /no id/i)
+    end
+  end
 end
