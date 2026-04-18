@@ -77,11 +77,12 @@ module Eidos
         say '=' * 50, :cyan
 
         show_basic_info(config)
-        show_progress_info(config)
+        pieces_by_form = enumerate_pieces_by_form(abs_root)
+        show_pieces_by_form(pieces_by_form)
         missing_fields = show_configuration_status(config)
         show_file_structure_status(abs_root)
-        show_generation_readiness(missing_fields)
-        show_recent_chapters(abs_root)
+        show_next_step_hint(pieces_by_form, missing_fields)
+        show_recent_pieces(abs_root, pieces_by_form)
 
         say "\n#{'=' * 50}", :cyan
       end
@@ -100,14 +101,48 @@ module Eidos
         say "Author: #{config.author}", :green
       end
 
-      def show_progress_info(config)
-        current = config.current_chapter
-        target = config.get('world')&.dig('target_chapters')
-        if target
-          say "Progress: #{current}/#{target} chapters", :yellow
-        else
-          say "Progress: #{current} chapter#{current == 1 ? '' : 's'} written", :yellow
+      # Feature 015 US6: enumerate pieces on disk by form. Chapters live
+      # under content/chapters/ (legacy layout); all other forms live
+      # under content/pieces/<form>/. Returns a {form => count} hash
+      # sorted by form name for deterministic output.
+      def enumerate_pieces_by_form(world_path)
+        counts = {}
+
+        chapter_dir = File.join(world_path, 'content', 'chapters')
+        if Dir.exist?(chapter_dir)
+          chapter_count = Dir.glob(File.join(chapter_dir, '*.md'))
+                             .count { |f| !f.end_with?('.ru.md') }
+          counts['chapter'] = chapter_count if chapter_count.positive?
         end
+
+        pieces_root = File.join(world_path, 'content', 'pieces')
+        if Dir.exist?(pieces_root)
+          Dir.children(pieces_root).sort.each do |form|
+            form_dir = File.join(pieces_root, form)
+            next unless File.directory?(form_dir)
+
+            form_count = Dir.glob(File.join(form_dir, '*.md')).count
+            counts[form] = form_count if form_count.positive?
+          end
+        end
+
+        counts.sort.to_h
+      end
+
+      def show_pieces_by_form(pieces_by_form)
+        say "\n[Pieces by form]", :cyan
+        if pieces_by_form.empty?
+          say '  (none yet)', :yellow
+          say '  Total: 0', :yellow
+          return
+        end
+
+        width = pieces_by_form.keys.map(&:length).max + 1
+        pieces_by_form.each do |form, count|
+          label = "#{form}:".ljust(width + 1)
+          say "  #{label} #{count}", :green
+        end
+        say "  Total: #{pieces_by_form.values.sum}", :yellow
       end
 
       def show_configuration_status(config)
@@ -230,30 +265,44 @@ module Eidos
         end
       end
 
-      def show_generation_readiness(missing_fields)
-        say "\nGeneration Readiness:", :cyan
-        if missing_fields.empty?
-          say '  Ready for chapter generation!', :green
-          say '  Run: produce chapter', :blue
+      # Feature 015 US6 + contracts/cli-flags.md: the "next step" block is
+      # form-agnostic. When no pieces exist we recommend `produce piece`
+      # generically; when some exist we stay silent (or surface metadata
+      # gaps). Chapters are never the default suggestion.
+      def show_next_step_hint(pieces_by_form, missing_fields)
+        say "\n[Next step]", :cyan
+        if pieces_by_form.empty?
+          say '  No pieces yet. Run:', :yellow
+          say '    eidos produce piece --form <form> --prompt "…"', :blue
+          say '  See `eidos produce --help` for available forms.', :yellow
+        elsif missing_fields.any?
+          say '  Metadata gaps remain — edit data/world_config.yml or re-run', :yellow
+          say '    world new --quick --genre … --style … --setting … --theme …', :yellow
         else
-          say '  Missing required information for chapter generation', :red
-          say '  Fix by running: world init (in new directory) or update metadata manually', :yellow
+          say '  World ready. Produce another piece or run `eidos canon review`.', :green
         end
       end
 
-      def show_recent_chapters(abs_root)
-        chapters_dir = File.join(abs_root, 'content', 'chapters')
-        return unless Dir.exist?(chapters_dir)
+      # Feature 015 US6: show up to three most-recently-modified pieces
+      # from any form. Falls back to silence when no pieces exist (the
+      # [Next step] block already covers the empty case).
+      def show_recent_pieces(abs_root, pieces_by_form)
+        return if pieces_by_form.empty?
 
-        chapters = Dir.glob(File.join(chapters_dir, '*.md')).reject { |f| f.end_with?('.ru.md') }.sort
-        if chapters.any?
-          say "\nRecent Chapters:", :cyan
-          chapters.last(3).each do |chapter_file|
-            chapter_name = File.basename(chapter_file, '.md')
-            say "  #{chapter_name}", :blue
-          end
-        else
-          say "\nNo chapters generated yet", :yellow
+        files = []
+        chapter_dir = File.join(abs_root, 'content', 'chapters')
+        if Dir.exist?(chapter_dir)
+          files += Dir.glob(File.join(chapter_dir, '*.md')).reject { |f| f.end_with?('.ru.md') }
+        end
+        pieces_root = File.join(abs_root, 'content', 'pieces')
+        files += Dir.glob(File.join(pieces_root, '*', '*.md')) if Dir.exist?(pieces_root)
+
+        return if files.empty?
+
+        say "\nRecent Pieces:", :cyan
+        files.sort_by { |f| File.mtime(f) }.last(3).each do |file|
+          rel = file.sub(/\A#{Regexp.escape(abs_root)}\/?/, '')
+          say "  #{rel}", :blue
         end
       end
 

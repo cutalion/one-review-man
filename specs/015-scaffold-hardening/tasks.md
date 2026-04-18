@@ -177,15 +177,15 @@ Single monorepo. All Ruby source and specs live under `eidos/`. CLAUDE.md and `s
 
 ### Tests for User Story 6
 
-- [ ] T053 [P] [US6] Unit spec in `eidos/spec/eidos/cli/world_status_piece_first_spec.rb` (new file): given a world path with `content/pieces/vignette/a.md`, `b.md`, `content/pieces/haiku/c.md`, `Eidos::CLI::World#status` output contains `vignette: 2` and `haiku: 1` and total 3.
-- [ ] T054 [P] [US6] Unit spec in the same file: empty world (zero piece files) output contains generic "produce piece" hint and does NOT contain `produce chapter` as the primary suggestion. Covers FR-018.
-- [ ] T055 [P] [US6] Unit spec in the same file: world containing `content/chapters/chapter-01.md` (legacy chapter form) shows `chapter: 1` in the counts table — chapters remain a valid form.
-- [ ] T056 [US6] Integration spec `eidos/spec/integration/user_scale/world_status_piece_first_spec.rb`: uses T002 helper to scaffold + produce two forms (mock LLM), shells `world status`, asserts stdout per the above scenarios. Covers SC-006.
+- [X] T053 [P] [US6] Unit spec in `eidos/spec/eidos/cli/world_status_piece_first_spec.rb` (new file): given a world path with `content/pieces/vignette/a.md`, `b.md`, `content/pieces/haiku/c.md`, `Eidos::CLI::World#status` output contains `vignette: 2` and `haiku: 1` and total 3.
+- [X] T054 [P] [US6] Unit spec in the same file: empty world (zero piece files) output contains generic "produce piece" hint and does NOT contain `produce chapter` as the primary suggestion. Covers FR-018.
+- [X] T055 [P] [US6] Unit spec in the same file: world containing `content/chapters/chapter-01.md` (legacy chapter form) shows `chapter: 1` in the counts table — chapters remain a valid form.
+- [X] T056 [US6] Integration spec `eidos/spec/integration/user_scale/world_status_piece_first_spec.rb`: uses T002 helper to scaffold + produce two forms (mock LLM), shells `world status`, asserts stdout per the above scenarios. Covers SC-006.
 
 ### Implementation for User Story 6
 
-- [ ] T057 [US6] Rewrite the progress/next-step section of `Eidos::CLI::World#status` in `eidos/lib/eidos/cli/world.rb` to: (a) enumerate `content/pieces/*/` and `content/chapters/` on disk, (b) build a `{form => count}` hash, (c) render the `[Pieces by form]` block per `contracts/cli-flags.md`, (d) choose the next-step hint based on total count (generic when zero; optional when non-zero). Remove any hardcoded "chapters written" / "produce chapter" strings.
-- [ ] T058 [US6] Extract the disk-enumeration helper to a small private method `enumerate_pieces_by_form(world_path)` returning the hash, so it is reusable and testable in isolation.
+- [X] T057 [US6] Rewrite the progress/next-step section of `Eidos::CLI::World#status` in `eidos/lib/eidos/cli/world.rb` to: (a) enumerate `content/pieces/*/` and `content/chapters/` on disk, (b) build a `{form => count}` hash, (c) render the `[Pieces by form]` block per `contracts/cli-flags.md`, (d) choose the next-step hint based on total count (generic when zero; optional when non-zero). Remove any hardcoded "chapters written" / "produce chapter" strings.
+- [X] T058 [US6] Extract the disk-enumeration helper to a small private method `enumerate_pieces_by_form(world_path)` returning the hash, so it is reusable and testable in isolation.
 
 **Checkpoint**: US6 complete. `world status` describes any world (chapter-based, piece-based, or mixed) in terms of what is on disk.
 

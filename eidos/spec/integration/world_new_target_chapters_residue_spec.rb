@@ -51,7 +51,9 @@ RSpec.describe 'world new + world status: no target_chapters residue' do
     aggregate_failures do
       expect(status_stdout).not_to include('target_chapters')
       expect(status_stdout).not_to include('Not set')
-      expect(status_stdout).to include('Progress:')
+      # Feature 015 US6: progress section is now piece-first; the
+      # previous `Progress: 0 chapters written` line was removed.
+      expect(status_stdout).to include('[Pieces by form]')
     end
   end
 
