@@ -8,6 +8,11 @@ module Eidos
   class Configuration
     DEFAULTS_PATH = File.expand_path('defaults/settings.yml', __dir__)
 
+    # Raised when a settings file exists but cannot be parsed. Replaces
+    # the former stderr-warn-and-fall-back-to-defaults path (feature 015
+    # US1 / FR-023 — no silent fallback on data-loss events).
+    class ConfigurationError < StandardError; end
+
     def self.load(project_root, cli_options = {})
       new(project_root, cli_options).resolve
     end
@@ -43,8 +48,8 @@ module Eidos
 
       YAML.load_file(settings_path) || {}
     rescue StandardError => e
-      warn "⚠️  Failed to load project settings: #{e.message}"
-      {}
+      raise ConfigurationError,
+            "Failed to load project settings from #{settings_path}: #{e.message}"
     end
 
     def deep_merge(target, source)

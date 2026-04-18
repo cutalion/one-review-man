@@ -113,7 +113,8 @@ RSpec.describe Eidos::CanonDelta do
   describe '.parse (failure paths)' do
     it 'returns empty delta with parse_error when sentinel is missing' do
       delta = described_class.parse("Just a body, no sentinel here.")
-      expect(delta.parse_error).to match(/sentinel/i)
+      expect(delta.parse_error['summary']).to match(/sentinel/i)
+      expect(delta.parse_error['drops']).to eq([])
       expect(delta).to be_empty
     end
 
@@ -126,8 +127,9 @@ RSpec.describe Eidos::CanonDelta do
           unclosed bracket:
       TEXT
       delta = described_class.parse(garbage)
-      expect(delta.parse_error).to be_a(String)
-      expect(delta.parse_error).not_to be_empty
+      expect(delta.parse_error).to be_a(Hash)
+      expect(delta.parse_error['summary']).not_to be_empty
+      expect(delta.parse_error['drops']).to eq([])
       expect(delta).to be_empty
     end
 
@@ -141,11 +143,17 @@ RSpec.describe Eidos::CanonDelta do
         - list
       TEXT
       delta = described_class.parse(text)
-      expect(delta.parse_error).to match(/mapping/i)
+      expect(delta.parse_error['summary']).to match(/mapping/i)
+      expect(delta.parse_error['drops']).to eq([])
       expect(delta).to be_empty
     end
 
-    it 'drops non-mapping list entries with a debug warning' do
+    # T027 (feature 015 US1): non-mapping entries used to `warn` to stderr
+    # and silently drop (three of four deltas in the 014 job-hunt demo lost
+    # their entities this way). Now each drop must materialize in
+    # `parse_error.drops[]` so it's visible in `canon review`. The
+    # well-formed siblings still apply — drops don't block application.
+    it 'records non-mapping list entries in parse_error.drops' do
       text = <<~TEXT
         Body.
 
@@ -161,9 +169,77 @@ RSpec.describe Eidos::CanonDelta do
         entity_updates: []
       TEXT
       delta = described_class.parse(text)
-      expect(delta.parse_error).to be_nil
-      expect(delta.new_characters.length).to eq(1)
-      expect(delta.new_characters.first['id']).to eq('arthur')
+
+      aggregate_failures do
+        expect(delta.parse_error).to be_a(Hash)
+        expect(delta.parse_error['summary']).to be_a(String)
+        expect(delta.parse_error['summary']).not_to be_empty
+        expect(delta.parse_error['drops']).to be_an(Array)
+        expect(delta.parse_error['drops'].length).to eq(1)
+
+        drop = delta.parse_error['drops'].first
+        expect(drop['section']).to eq('new_characters')
+        expect(drop['value']).to eq('oops a string')
+        expect(drop['reason']).to match(/expected mapping/i)
+
+        # The well-formed entry sibling still lands (partial success).
+        expect(delta.new_characters.length).to eq(1)
+        expect(delta.new_characters.first['id']).to eq('arthur')
+      end
+    end
+
+    # T027 (cont.): aggregate summary when drops span multiple sections.
+    it 'aggregates drops from multiple sections into a single parse_error' do
+      text = <<~TEXT
+        Body.
+
+        ---CANON-DELTA---
+        new_characters:
+          - "arthur is a programmer"
+        new_locations: []
+        new_facts:
+          - "the office is grim"
+        new_events: []
+        new_relationships: []
+        entity_updates: []
+      TEXT
+      delta = described_class.parse(text)
+
+      expect(delta.parse_error['drops'].map { |d| d['section'] })
+        .to contain_exactly('new_characters', 'new_facts')
+    end
+
+    # T028 (feature 015 US1): on-disk legacy deltas carry `parse_error` as
+    # a bare String ("YAML parse error: ..."). The new reader normalizes
+    # that to the new Hash shape with empty drops so downstream code only
+    # handles one schema.
+    describe '.from_hash backwards compatibility' do
+      it 'normalizes a legacy String parse_error into the new Hash shape' do
+        delta = described_class.from_hash(
+          'id' => '01LEGACY',
+          'body' => 'x',
+          'parse_error' => 'YAML parse error: unclosed bracket'
+        )
+
+        aggregate_failures do
+          expect(delta.parse_error).to be_a(Hash)
+          expect(delta.parse_error['summary']).to eq('YAML parse error: unclosed bracket')
+          expect(delta.parse_error['drops']).to eq([])
+        end
+      end
+
+      it 'passes a Hash parse_error through unchanged' do
+        delta = described_class.from_hash(
+          'id' => '01NEW',
+          'body' => 'x',
+          'parse_error' => {
+            'summary' => '1 drop',
+            'drops' => [{ 'section' => 'new_facts', 'value' => 'x', 'reason' => 'expected mapping, got String' }]
+          }
+        )
+
+        expect(delta.parse_error['drops'].first['reason']).to match(/expected mapping/)
+      end
     end
   end
 

@@ -11,7 +11,7 @@ module Eidos
   # Per contracts/audit-finding.md the finding is the unit of work for
   # `canon review`; append-only on disk, closed-in-place.
   class AuditFinding
-    KINDS = %w[conflict malformed-delta orphaned-reference].freeze
+    KINDS = %w[conflict malformed-delta orphaned-reference parse-drop].freeze
     STATUSES = %w[open closed].freeze
     RESOLUTIONS = %w[revert accept patch-canon other].freeze
 

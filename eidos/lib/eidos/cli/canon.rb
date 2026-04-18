@@ -217,7 +217,7 @@ module Eidos
       desc 'review', 'List audit findings against applied canon'
       method_option :status, type: :string, default: 'open', enum: %w[open closed all],
                              desc: 'Filter by finding status'
-      method_option :kind, type: :string, enum: %w[conflict malformed-delta orphaned-reference],
+      method_option :kind, type: :string, enum: %w[conflict malformed-delta orphaned-reference parse-drop],
                            desc: 'Filter by finding kind'
       method_option :piece, type: :string, desc: 'Filter by originating piece id'
       method_option :format, type: :string, default: 'text', enum: %w[text json],

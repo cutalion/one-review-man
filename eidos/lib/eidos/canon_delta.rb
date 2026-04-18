@@ -25,7 +25,7 @@ module Eidos
 
     def self.parse(raw_text)
       raw = raw_text.to_s
-      return new(body: raw.rstrip, parse_error: 'missing sentinel ---CANON-DELTA---') unless raw.include?(SENTINEL)
+      return new(body: raw.rstrip, parse_error: build_doc_parse_error('missing sentinel ---CANON-DELTA---')) unless raw.include?(SENTINEL)
 
       body, tail = raw.split(/^#{Regexp.escape(SENTINEL)}\s*$/m, 2)
       body = body.to_s.rstrip
@@ -34,16 +34,47 @@ module Eidos
       begin
         doc = YAML.safe_load(tail, permitted_classes: [Date, Time, Symbol])
       rescue Psych::SyntaxError => e
-        return new(body: body, parse_error: "YAML parse error: #{e.message}")
+        return new(body: body, parse_error: build_doc_parse_error("YAML parse error: #{e.message}"))
       end
 
-      return new(body: body, parse_error: 'delta document must be a YAML mapping') unless doc.is_a?(Hash)
+      return new(body: body, parse_error: build_doc_parse_error('delta document must be a YAML mapping')) unless doc.is_a?(Hash)
 
-      sections = SECTIONS.to_h do |key|
-        [key, normalize_section(doc[key], key)]
+      sections = {}
+      all_drops = []
+      SECTIONS.each do |key|
+        entries, drops = normalize_section(doc[key], key)
+        sections[key] = entries
+        all_drops.concat(drops)
       end
 
-      new(body: body, parse_error: nil, sections: sections)
+      parse_error =
+        if all_drops.empty?
+          nil
+        else
+          { 'summary' => summarize_drops(all_drops), 'drops' => all_drops }
+        end
+
+      new(body: body, parse_error: parse_error, sections: sections)
+    end
+
+    # Feature 015 US1: the on-disk `parse_error` shape is now a Hash
+    # `{summary, drops}`. Legacy deltas serialized under 014 carry it as
+    # a bare String — normalize those into the new shape on read so
+    # downstream code only handles one schema. Data-model §1 BC rules.
+    def self.normalize_parse_error(raw)
+      case raw
+      when nil, false then nil
+      when Hash
+        h = raw.transform_keys(&:to_s)
+        {
+          'summary' => h['summary'].to_s,
+          'drops' => Array(h['drops']).map { |d| d.transform_keys(&:to_s) }
+        }
+      when String
+        raw.empty? ? nil : { 'summary' => raw, 'drops' => [] }
+      else
+        { 'summary' => raw.to_s, 'drops' => [] }
+      end
     end
 
     # Reconstruct a CanonDelta from its persisted YAML (see #to_hash).
@@ -70,27 +101,64 @@ module Eidos
       from_hash(raw)
     end
 
+    # Feature 015 US1: returns [normalized_entries, drops]. The caller
+    # (CanonDelta.parse) aggregates all sections' drops into a single
+    # parse_error record. No stderr warning is emitted — the drops are
+    # the user-visible signal. See data-model.md §1.
     def self.normalize_section(value, section_name)
-      return [] if value.nil?
-      return [] unless value.is_a?(Array)
+      return [[], []] if value.nil?
+      return [[], []] unless value.is_a?(Array)
 
-      value.filter_map do |entry|
+      entries = []
+      drops = []
+      value.each do |entry|
         unless entry.is_a?(Hash)
-          warn "⚠️  canon-delta #{section_name}: dropping non-mapping entry #{entry.inspect}"
-          next nil
+          drops << {
+            'section' => section_name,
+            'value' => entry,
+            'reason' => "expected mapping, got #{entry.class}"
+          }
+          next
         end
         normalized = entry.transform_keys(&:to_s)
         normalized['id'] = ValidationUtils.slugify(normalized['id']) if normalized.key?('id') && normalized['id']
+        # US2 (T043): derive id from name when absent so the entity actually
+        # persists. If both are absent, record a drop and skip.
+        if SECTIONS_WITH_NAMED_ENTITIES.include?(section_name) && (normalized['id'].nil? || normalized['id'].to_s.empty?)
+          name = normalized['name']
+          if name.nil? || name.to_s.strip.empty?
+            drops << {
+              'section' => section_name,
+              'value' => entry,
+              'reason' => 'missing both id and name'
+            }
+            next
+          end
+          normalized['id'] = ValidationUtils.slugify(name)
+        end
         normalized['entity_id'] = ValidationUtils.slugify(normalized['entity_id']) if section_name == 'entity_updates' && normalized.key?('entity_id') && normalized['entity_id']
-        normalized
+        entries << normalized
       end
+      [entries, drops]
+    end
+
+    SECTIONS_WITH_NAMED_ENTITIES = %w[new_characters new_locations].freeze
+    private_constant :SECTIONS_WITH_NAMED_ENTITIES
+
+    def self.summarize_drops(drops)
+      sections = drops.map { |d| d['section'] }.uniq
+      "#{drops.size} entr#{drops.size == 1 ? 'y' : 'ies'} dropped across #{sections.join(', ')}"
+    end
+
+    def self.build_doc_parse_error(summary)
+      { 'summary' => summary, 'drops' => [] }
     end
 
     def initialize(body:, parse_error:, sections: nil, id: nil,
                    applied_at: nil, reverted_at: nil, piece_id: nil)
       @id = id || generate_id
       @body = body.to_s
-      @parse_error = parse_error
+      @parse_error = self.class.normalize_parse_error(parse_error)
       @applied_at = applied_at
       @reverted_at = reverted_at
       @piece_id = piece_id
@@ -125,7 +193,12 @@ module Eidos
       }
     end
 
-    # Apply the delta. On parse_error, opens :malformed-delta and returns.
+    # Apply the delta. Behavior by @parse_error shape (feature 015 US1):
+    #   - nil                                        → apply normally
+    #   - {summary, drops: [...]} with drops present → apply well-formed
+    #     siblings AND open one :parse-drop finding per drop
+    #   - {summary} without drops (document-level)   → open :malformed-delta
+    #     and return (no entities to apply)
     # Otherwise: records changes under an in-memory rollback journal; any
     # raise reverts everything. Conflicts are recorded as findings but do
     # NOT raise (optimistic; FR-020).
@@ -134,7 +207,7 @@ module Eidos
       @piece_id = piece_id.to_s
       world_path ||= audit_log.respond_to?(:world_path) ? audit_log.world_path : nil
 
-      if @parse_error
+      if document_level_parse_error?
         open_malformed_finding(audit_log, canon_version_before, canon_version_after)
         return
       end
@@ -178,6 +251,17 @@ module Eidos
                            canon_version_before: canon_version_before,
                            canon_version_after: canon_version_after,
                            explanation: info
+                         ))
+      end
+
+      parse_drops.each do |drop|
+        audit_log.append(AuditFinding.open(
+                           kind: 'parse-drop',
+                           piece_id: @piece_id,
+                           canon_delta_id: @id,
+                           canon_version_before: canon_version_before,
+                           canon_version_after: canon_version_after,
+                           explanation: format_parse_drop(drop)
                          ))
       end
 
@@ -231,6 +315,31 @@ module Eidos
     end
 
     private
+
+    # A document-level parse issue (bad YAML, missing sentinel, non-mapping
+    # top-level) has a summary but NO entries could be recovered. A
+    # drops-only parse_error means the doc parsed fine and well-formed
+    # sibling entries should still apply.
+    def document_level_parse_error?
+      return false if @parse_error.nil?
+
+      drops = Array(@parse_error['drops'])
+      drops.empty? && !@parse_error['summary'].to_s.empty?
+    end
+
+    def parse_drops
+      return [] if @parse_error.nil?
+
+      Array(@parse_error['drops'])
+    end
+
+    def format_parse_drop(drop)
+      section = drop['section']
+      value = drop['value']
+      reason = drop['reason']
+      rendered = value.is_a?(String) ? value.inspect : value.inspect
+      "Dropped #{section} entry #{rendered} (reason: #{reason})"
+    end
 
     def apply_character(bible, entry, journal)
       id = entry['id']

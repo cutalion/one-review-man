@@ -33,6 +33,9 @@ module Eidos
     def generate_text(prompt:, context: {})
       # Deterministic mock mode for tests/validation
       if EnvUtils.mock_ai_enabled?
+        override_fixture = mock_response_override
+        return override_fixture if override_fixture
+
         seed_fixture = mock_seed_extractor_payload(prompt)
         return seed_fixture if seed_fixture
 
@@ -875,6 +878,22 @@ module Eidos
       text = prompt.to_s
       key = MOCK_FORM_SIGNATURES.find { |_, pat| pat.match?(text) }&.first
       return nil unless key
+
+      fixtures_path = File.expand_path('../../spec/support/mock_responses.yml', __dir__)
+      return nil unless File.exist?(fixtures_path)
+
+      fixtures = YAML.safe_load_file(fixtures_path) || {}
+      fixtures[key]
+    end
+
+    # Feature 015 US1: integration specs set MOCK_RESPONSE=<fixture-key>
+    # to pin a specific canned response (typically a malformed canon-delta
+    # shape) that overrides the form-signature matching. Returns the
+    # fixture string when the env var is set and matches a fixture key,
+    # nil otherwise — caller falls through to the form / seed / default path.
+    def mock_response_override
+      key = ENV.fetch('MOCK_RESPONSE', nil)
+      return nil if key.nil? || key.empty?
 
       fixtures_path = File.expand_path('../../spec/support/mock_responses.yml', __dir__)
       return nil unless File.exist?(fixtures_path)
