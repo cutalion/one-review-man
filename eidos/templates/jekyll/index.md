@@ -1,6 +1,6 @@
 ---
 layout: default
-title: "All Chapters - {{BOOK_TITLE}}"
+title: "All Chapters - {{STORY_TITLE}}"
 lang: en
 permalink: /
 nav_order: 1

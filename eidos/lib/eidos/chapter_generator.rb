@@ -144,7 +144,7 @@ module Eidos
       template = begin
         @prompt_provider.load('chapter_prompts.txt')
       rescue StandardError
-        'Write Chapter {CHAPTER_NUMBER} of a programming comedy story'
+        'Write Chapter {CHAPTER_NUMBER} of a {{STORY_GENRE}} story'
       end
       # Fail-safe: pre-fill the chapter number in case template contains extra occurrences
       template.to_s.gsub('{CHAPTER_NUMBER}', chapter_number.to_s)
@@ -206,18 +206,18 @@ module Eidos
 
     def show_missing_information_guide(unfilled_placeholders)
       puts '📖 Missing Information Guide:'
-      puts '  • BOOK_GENRE: What type of story is this? (fantasy, sci-fi, mystery, etc.)' if unfilled_placeholders.include?('BOOK_GENRE')
+      puts '  • STORY_GENRE: What type of story is this? (fantasy, sci-fi, mystery, etc.)' if unfilled_placeholders.include?('STORY_GENRE')
       puts '  • Writing Style: How should the story be told? (humorous, serious, adventurous, etc.)' if includes_style_placeholder?(unfilled_placeholders)
       puts '  • Setting: Where does your story take place? (medieval castle, space station, modern city, etc.)' if includes_setting_placeholder?(unfilled_placeholders)
       puts '  • World Details: What makes your story world unique?' if unfilled_placeholders.include?('WORLD_DETAILS')
     end
 
     def includes_style_placeholder?(unfilled_placeholders)
-      unfilled_placeholders.include?('BOOK_STYLE') || unfilled_placeholders.include?('BOOK_HUMOR_STYLE')
+      unfilled_placeholders.include?('STORY_STYLE')
     end
 
     def includes_setting_placeholder?(unfilled_placeholders)
-      unfilled_placeholders.include?('BOOK_SETTING') || unfilled_placeholders.include?('PRIMARY_LOCATION')
+      unfilled_placeholders.include?('STORY_SETTING') || unfilled_placeholders.include?('PRIMARY_LOCATION')
     end
 
     public
@@ -335,10 +335,6 @@ module Eidos
       # Then root-level _chapters
       legacy_dir = File.join(@project_root, '_chapters')
       return legacy_dir if Dir.exist?(legacy_dir)
-
-      # Avoid nested paths like worlds/one-review-man/worlds/one-review-man/_chapters
-      nested_legacy = File.join(@project_root, 'books', 'one-review-man', '_chapters')
-      return nested_legacy if Dir.exist?(nested_legacy)
 
       # Default to content/chapters to create if missing
       content_dir
@@ -729,27 +725,17 @@ module Eidos
     def build_main_character_placeholders(config, chars)
       placeholders = {}
 
-      # Check for new-style main character configuration
       main_characters = config.main_characters
-      if main_characters.is_a?(Array) && !main_characters.empty?
-        # New generic approach: iterate through configured main characters
-        main_characters.each do |char_config|
-          display_name = char_config['display_name']
-          placeholder_key = char_config['placeholder_key']
+      return placeholders unless main_characters.is_a?(Array) && !main_characters.empty?
 
-          next unless display_name && placeholder_key
+      main_characters.each do |char_config|
+        display_name = char_config['display_name']
+        placeholder_key = char_config['placeholder_key']
 
-          real_name = find_character_real_name(chars, display_name) || '[to be generated]'
-          placeholders[placeholder_key] = real_name
-        end
-      elsif config.one_review_man_world?
-        # Fallback: backward compatibility for OneReviewMan book
-        one_review_man_real = find_character_real_name(chars, 'One Review Man') || '[to be generated]'
-        quantum_android_real = find_character_real_name(chars, 'Quantum Android') || '[to be generated]'
-        placeholders.merge!({
-                              'ONE_REVIEW_MAN_REAL_NAME' => one_review_man_real,
-                              'QUANTUM_ANDROID_REAL_NAME' => quantum_android_real
-                            })
+        next unless display_name && placeholder_key
+
+        real_name = find_character_real_name(chars, display_name) || '[to be generated]'
+        placeholders[placeholder_key] = real_name
       end
 
       placeholders
@@ -846,20 +832,22 @@ module Eidos
         'CHARACTER_RELATIONSHIP' => ''
       }
 
-      # Add generic book metadata placeholders
-      if @config.localized_structure?
-        en_metadata = @config.en_metadata
-        placeholders.merge!({
-                              'BOOK_TITLE' => @config.title,
-                              'BOOK_GENRE' => @config.genre,
-                              'BOOK_SETTING' => determine_book_setting(en_metadata),
-                              'BOOK_STYLE' => @config.humor_style,
-                              'PRIMARY_LOCATION' => extract_primary_location(en_metadata),
-                              'WORLD_DETAILS' => build_world_details_summary(en_metadata),
-                              'CHARACTER_GUIDELINES' => build_character_guidelines(en_metadata),
-                              'GENRE_GUIDELINES' => build_genre_guidelines(en_metadata)
-                            })
-      end
+      # Add generic book metadata placeholders. Fill unconditionally — the
+      # WorldConfig accessors already supply safe defaults ('Untitled',
+      # 'Fiction', 'narrative') and the `determine_*` / `build_*` helpers
+      # accept an empty Hash, so non-localized / minimal worlds still
+      # receive every STORY_* token the template needs.
+      en_metadata = @config.localized_structure? ? @config.en_metadata : {}
+      placeholders.merge!({
+                            'STORY_TITLE' => @config.story_title,
+                            'STORY_GENRE' => @config.story_genre,
+                            'STORY_SETTING' => determine_story_setting(en_metadata),
+                            'STORY_STYLE' => @config.story_style,
+                            'PRIMARY_LOCATION' => extract_primary_location(en_metadata),
+                            'WORLD_DETAILS' => build_world_details_summary(en_metadata),
+                            'CHARACTER_GUIDELINES' => build_character_guidelines(en_metadata),
+                            'GENRE_GUIDELINES' => build_genre_guidelines(en_metadata)
+                          })
 
       # Add story facts context to placeholders
       story_facts_placeholders = build_story_facts_context
@@ -890,10 +878,10 @@ module Eidos
       placeholders
     end
 
-    def determine_book_setting(en_metadata)
+    def determine_story_setting(en_metadata)
       themes = en_metadata['themes']
       return 'Modern tech company/startup environment' if themes&.dig('primary') == 'workplace comedy'
-      return 'Contemporary setting' if en_metadata['genre']&.downcase&.include?('comedy')
+      return 'Contemporary setting' if @config.story_genre.to_s.downcase.include?('comedy')
 
       'Generic setting'
     end
@@ -907,8 +895,8 @@ module Eidos
 
     def build_world_details_summary(en_metadata)
       details = []
-      details << "Genre: #{en_metadata['genre']}" if en_metadata['genre']
-      details << "Style: #{en_metadata['humor_style']}" if en_metadata['humor_style']
+      details << "Genre: #{@config.story_genre}" if @config.story_genre
+      details << "Style: #{@config.story_style}" if @config.story_style
       if (themes = en_metadata['themes'])
         details << "Primary theme: #{themes['primary']}" if themes['primary']
         details << "Secondary themes: #{themes['secondary']&.join(', ')}" if themes['secondary']&.any?
@@ -920,7 +908,7 @@ module Eidos
       return 'Characters should fit the genre and established world' unless en_metadata
 
       guidelines = []
-      if en_metadata['genre']&.downcase&.include?('comedy')
+      if @config.story_genre.to_s.downcase.include?('comedy')
         guidelines << 'Characters should have comedic elements and quirks'
         guidelines << 'Dialogue should be humorous and character-appropriate'
       end
@@ -936,10 +924,10 @@ module Eidos
     def build_genre_guidelines(en_metadata)
       return 'Follow general fiction conventions' unless en_metadata
 
-      genre = en_metadata['genre']&.downcase
-      return 'Focus on humor, character comedy, and amusing situations' if genre&.include?('comedy')
-      return 'Build suspense and include mystery elements' if genre&.include?('mystery')
-      return 'Include fantastical elements and world-building' if genre&.include?('fantasy')
+      genre = @config.story_genre.to_s.downcase
+      return 'Focus on humor, character comedy, and amusing situations' if genre.include?('comedy')
+      return 'Build suspense and include mystery elements' if genre.include?('mystery')
+      return 'Include fantastical elements and world-building' if genre.include?('fantasy')
 
       'Follow conventions appropriate to the established genre and style'
     end
@@ -1005,7 +993,7 @@ module Eidos
     end
 
     def collect_genre_info(missing_placeholders, config)
-      return unless missing_placeholders.include?('BOOK_GENRE') && config.genre.to_s.strip.empty?
+      return unless missing_placeholders.include?('STORY_GENRE') && config.story_genre.to_s.strip.empty?
 
       puts '📖 What genre is your world?'
       puts '   Examples: fantasy, sci-fi, mystery, thriller, comedy, romance, adventure, horror'
@@ -1013,12 +1001,11 @@ module Eidos
       genre = $stdin.gets&.chomp&.strip
       return if genre.empty?
 
-      config.update_localized('en', 'genre' => genre)
+      config.update_localized('en', 'story_genre' => genre)
     end
 
     def collect_style_info(missing_placeholders, config)
-      style_missing = missing_placeholders.include?('BOOK_STYLE') || missing_placeholders.include?('BOOK_HUMOR_STYLE')
-      return unless style_missing && config.humor_style.to_s.strip.empty?
+      return unless missing_placeholders.include?('STORY_STYLE') && config.story_style.to_s.strip.empty?
 
       puts ''
       puts '✍️ What writing style should I use?'
@@ -1027,12 +1014,12 @@ module Eidos
       style = $stdin.gets&.chomp&.strip
       return if style.empty?
 
-      config.update_localized('en', 'humor_style' => style)
+      config.update_localized('en', 'story_style' => style)
     end
 
     def collect_setting_info(missing_placeholders, config)
-      setting_missing = missing_placeholders.include?('BOOK_SETTING') || missing_placeholders.include?('PRIMARY_LOCATION')
-      return unless setting_missing && config.setting.to_s.strip.empty?
+      setting_missing = missing_placeholders.include?('STORY_SETTING') || missing_placeholders.include?('PRIMARY_LOCATION')
+      return unless setting_missing && config.story_setting.to_s.strip.empty?
 
       puts ''
       puts '🌍 What is the main setting/location of your story?'
@@ -1041,7 +1028,7 @@ module Eidos
       setting = $stdin.gets&.chomp&.strip
       return if setting.empty?
 
-      config.update_localized('en', 'setting' => setting)
+      config.update_localized('en', 'story_setting' => setting)
     end
 
     def collect_theme_info(missing_placeholders, config)

@@ -7,9 +7,9 @@ Name: {CHARACTER_NAME}
 Description: {CHARACTER_DESCRIPTION}
 
 STORY CONTEXT:
-- Title: {BOOK_TITLE}
-- Genre: {BOOK_GENRE}
-- Setting: {BOOK_SETTING}
+- Title: {STORY_TITLE}
+- Genre: {STORY_GENRE}
+- Setting: {STORY_SETTING}
 - World Details: {WORLD_DETAILS}
 
 REQUIREMENTS:

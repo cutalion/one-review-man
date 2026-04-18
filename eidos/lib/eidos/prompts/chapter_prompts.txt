@@ -3,10 +3,10 @@
 Generate Chapter {CHAPTER_NUMBER}
 
 ## Story Context
-- Title: {BOOK_TITLE}
-- Genre: {BOOK_GENRE}
-- Setting: {BOOK_SETTING}
-- Style: {BOOK_STYLE}
+- Title: {STORY_TITLE}
+- Genre: {STORY_GENRE}
+- Setting: {STORY_SETTING}
+- Style: {STORY_STYLE}
 - Length: {TARGET_LENGTH}
 - Previous chapters: {PREVIOUS_CHAPTERS_SUMMARY}
 

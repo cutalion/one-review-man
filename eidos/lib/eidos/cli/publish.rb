@@ -122,7 +122,7 @@ module Eidos
         config_file = File.join(dest_dir, '_config.yml')
         return false unless File.exist?(config_file)
 
-        # Check if _config.yml contains hardcoded values (not template placeholders like {{BOOK_TITLE}})
+        # Check if _config.yml contains hardcoded values (not template placeholders like {{STORY_TITLE}})
         config_content = File.read(config_file)
         has_title = config_content.include?('title:')
         # Check for our specific template placeholders, not Jekyll's {{ site.* }} syntax
@@ -205,12 +205,12 @@ module Eidos
         return unless en_data
 
         placeholders.merge!({
-                              'BOOK_TITLE' => en_data['title'] || 'Untitled Book',
-                              'BOOK_AUTHOR' => en_data['author'] || 'Unknown Author',
-                              'BOOK_GENRE' => en_data['genre'] || 'Fiction',
-                              'BOOK_SUBTITLE' => en_data['subtitle'] || '',
+                              'STORY_TITLE' => en_data['story_title'] || en_data['title'] || 'Untitled Story',
+                              'STORY_AUTHOR' => en_data['author'] || 'Unknown Author',
+                              'STORY_GENRE' => en_data['story_genre'] || en_data['genre'] || 'Fiction',
+                              'STORY_SUBTITLE' => en_data['subtitle'] || '',
                               'AUTHOR_EMAIL' => en_data['author_email'] || 'author@example.com',
-                              'BOOK_DESCRIPTION' => en_data['description'] || book_metadata['description'] || 'An AI-generated book'
+                              'STORY_DESCRIPTION' => en_data['description'] || book_metadata['description'] || 'An AI-generated story'
                             })
       end
 
@@ -218,18 +218,19 @@ module Eidos
         ru_data = book_metadata.dig('localized', 'ru') || {}
 
         placeholders.merge!({
-                              'BOOK_TITLE_RU' => ru_data['title'] || placeholders['BOOK_TITLE'] || 'Untitled Book',
-                              'BOOK_AUTHOR_RU' => ru_data['author'] || placeholders['BOOK_AUTHOR'] || 'Unknown Author',
-                              'BOOK_GENRE_RU' => ru_data['genre'] || placeholders['BOOK_GENRE'] || 'Fiction',
-                              'BOOK_SUBTITLE_RU' => ru_data['subtitle'] || '',
-                              'BOOK_GENRE_DESCRIPTION_RU' => build_russian_genre_description(ru_data, placeholders)
+                              'STORY_TITLE_RU' => ru_data['story_title'] || ru_data['title'] || placeholders['STORY_TITLE'] || 'Untitled Story',
+                              'STORY_AUTHOR_RU' => ru_data['author'] || placeholders['STORY_AUTHOR'] || 'Unknown Author',
+                              'STORY_GENRE_RU' => ru_data['story_genre'] || ru_data['genre'] || placeholders['STORY_GENRE'] || 'Fiction',
+                              'STORY_SUBTITLE_RU' => ru_data['subtitle'] || '',
+                              'STORY_GENRE_DESCRIPTION_RU' => build_russian_genre_description(ru_data, placeholders)
                             })
       end
 
       def build_russian_genre_description(ru_data, placeholders)
         return ru_data['genre_description'] if ru_data['genre_description']
-        return "#{ru_data['genre']} истории" if ru_data['genre']
-        return "#{placeholders['BOOK_GENRE']} истории" if placeholders['BOOK_GENRE']
+        ru_genre = ru_data['story_genre'] || ru_data['genre']
+        return "#{ru_genre} истории" if ru_genre
+        return "#{placeholders['STORY_GENRE']} истории" if placeholders['STORY_GENRE']
 
         'истории'
       end
@@ -239,8 +240,9 @@ module Eidos
         return unless en_data
 
         genre_desc = en_data['genre_description']
-        genre_desc ||= en_data['genre'] ? "#{en_data['genre']} story" : 'story'
-        placeholders['BOOK_GENRE_DESCRIPTION'] = genre_desc
+        en_genre = en_data['story_genre'] || en_data['genre']
+        genre_desc ||= en_genre ? "#{en_genre} story" : 'story'
+        placeholders['STORY_GENRE_DESCRIPTION'] = genre_desc
       end
 
       def add_site_configuration_placeholders(placeholders, book_metadata)

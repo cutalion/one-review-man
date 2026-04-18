@@ -1,6 +1,6 @@
 ---
 layout: default
-title: "Персонажи - {{BOOK_TITLE_RU}}"
+title: "Персонажи - {{STORY_TITLE_RU}}"
 lang: ru
 permalink: /characters/
 nav_order: 2
@@ -8,7 +8,7 @@ nav_order: 2
 
 # Персонажи
 
-Познакомьтесь с командой **{{BOOK_TITLE_RU}}** - каждый со своей уникальной личностью, предысторией и ролью в нашем {{BOOK_GENRE_DESCRIPTION_RU}}!
+Познакомьтесь с командой **{{STORY_TITLE_RU}}** - каждый со своей уникальной личностью, предысторией и ролью в нашем {{STORY_GENRE_DESCRIPTION_RU}}!
 
 {% assign characters = site.characters | where: "lang", page.lang %}
 

@@ -344,12 +344,12 @@ module Eidos
           },
           'localized' => {
             'en' => {
-              'title' => world_info[:title],
+              'story_title' => world_info[:title],
               'subtitle' => world_info[:description],
               'author' => world_info[:author],
-              'genre' => world_info[:genre],
-              'humor_style' => world_info[:style],
-              'setting' => world_info[:setting],
+              'story_genre' => world_info[:genre],
+              'story_style' => world_info[:style],
+              'story_setting' => world_info[:setting],
               'themes' => {
                 'primary' => world_info[:primary_theme],
                 'secondary' => secondary_themes_array

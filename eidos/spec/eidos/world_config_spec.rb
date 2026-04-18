@@ -455,17 +455,6 @@ RSpec.describe Eidos::WorldConfig do
   describe 'predicates' do
     let(:config) { described_class.new(sample_config, sample_state) }
 
-    describe '#one_review_man_world?' do
-      it 'returns true for One Review Man book' do
-        expect(config).to be_one_review_man_world
-      end
-
-      it 'returns false for other books' do
-        config = described_class.new({ 'localized' => { 'en' => { 'title' => 'Other Book' } } }, {})
-        expect(config).not_to be_one_review_man_world
-      end
-    end
-
     describe '#language?' do
       it 'returns true for languages with data' do
         expect(config.language?('en')).to be true

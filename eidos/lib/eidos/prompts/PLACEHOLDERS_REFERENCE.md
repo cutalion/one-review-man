@@ -5,10 +5,10 @@ This document lists all placeholders used in the generic prompt templates that m
 **Note:** These placeholders are used by the `PromptUtils.build_prompt()` method to replace template variables with actual content.
 
 ## Story Context Placeholders
-- `{BOOK_TITLE}` - The title of the book being generated
-- `{BOOK_GENRE}` - The genre/style of the book (e.g., "fantasy", "mystery", "comedy")
-- `{BOOK_SETTING}` - The primary setting of the book
-- `{BOOK_STYLE}` - Writing style guidelines
+- `{STORY_TITLE}` - The title of the story being generated
+- `{STORY_GENRE}` - The genre/style of the story (e.g., "fantasy", "mystery", "comedy")
+- `{STORY_SETTING}` - The primary setting of the story
+- `{STORY_STYLE}` - Writing style guidelines
 - `{PRIMARY_LOCATION}` - Main location where story takes place
 - `{WORLD_DETAILS}` - Important world-building information
 
@@ -35,6 +35,6 @@ This document lists all placeholders used in the generic prompt templates that m
 
 ## Notes
 - All placeholders MUST be replaced before sending prompts to LLM
-- Book-specific placeholders should be consistent across all chapters
+- Story-specific placeholders should be consistent across all chapters
 - Character context should include relevant character information for the specific generation task
 - Special instructions should be empty string if not needed

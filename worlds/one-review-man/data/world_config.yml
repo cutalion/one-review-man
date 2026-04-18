@@ -49,11 +49,12 @@ generation:
     - End chapters with setup for next programming comedy scenario
 localized:
   en:
-    title: One Review Man
+    story_title: One Review Man
     subtitle: An AI-Generated Comedy of Errors
     author: AI Collective
-    genre: Humor/Comedy
-    humor_style: absurdist
+    story_genre: Humor/Comedy
+    story_style: absurdist
+    story_setting: contemporary tech workplace
     themes:
       primary: workplace comedy
       secondary:
@@ -61,11 +62,12 @@ localized:
       - bureaucratic absurdity
       - everyday situations gone wrong
   ru:
-    title: Ванревьюмэн
+    story_title: Ванревьюмэн
     subtitle: ИИ-генерируемая Комедия Ошибок
     author: ИИ Коллектив
-    genre: Юмор/Комедия
-    humor_style: абсурдистский
+    story_genre: Юмор/Комедия
+    story_style: абсурдистский
+    story_setting: современная айти-контора
     themes:
       primary: рабочая комедия
       secondary:

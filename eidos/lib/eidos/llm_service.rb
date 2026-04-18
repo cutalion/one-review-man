@@ -656,14 +656,13 @@ module Eidos
                        end
 
       <<~PROMPT
-        Translate the following programming comedy chapter from English to #{target_language_name}.
+        Translate the following chapter from English to #{target_language_name}.
 
         PRESERVE:
-        - Programming humor and technical jokes
-        - One-Punch Man parody references
+        - Humor, tone, and stylistic voice of the source
         - Character personalities and catchphrases
         - Markdown formatting
-        - Technical terms (translate context, keep some English technical terms where appropriate)
+        - Domain-specific terminology (translate context; keep source-language terms where commonly used)
         - Naming conventions and character address patterns
         #{special_instructions}
 
@@ -678,9 +677,9 @@ module Eidos
 
         TRANSLATION INSTRUCTIONS:
         - Translate all narrative text to #{target_language_name}
-        - Keep programming terms in English where commonly used (e.g., "pull request", "merge", "deployment")
-        - Adapt jokes to work in #{target_language_name} while keeping the programming humor
-        - Maintain the One-Punch Man parody style
+        - Keep domain-specific terms in the source language where commonly used
+        - Adapt jokes to work in #{target_language_name} while preserving the original humor
+        - Maintain the stylistic register of the source
         - Follow character naming and address conventions for #{target_language_name}
 
         IMPORTANT: Respond with valid JSON that matches this exact schema:

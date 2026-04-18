@@ -117,18 +117,17 @@ module Eidos
     end
 
     def build_system_prompt(chapter_number)
-      world_config = load_world_config
-      
+      config = world_config_object
+
       <<~PROMPT
-        You are a creative writer for "#{world_config['title'] || 'One Review Man'}", a programming comedy book.
-        
-        BOOK CONCEPT:
-        #{world_config['description'] || 'A One-Punch Man parody where the hero is a programmer so skilled that all his code reviews are approved with a single review.'}
-        
+        You are a creative writer for "#{config.story_title}", a #{config.story_genre.to_s.downcase} story.
+
+        STORY CONCEPT:
+        #{config.story_description}
+
         STYLE:
-        - Programming humor and parody
-        - One-Punch Man style absurdist comedy
-        - Technical jokes that developers will appreciate
+        - #{config.story_style} narrative voice
+        - Tone and humor consistent with the established genre
         - Engaging narrative with character development
         
         YOUR TASK:
@@ -298,6 +297,10 @@ module Eidos
       YAML.safe_load_file(config_path) || {}
     rescue StandardError
       {}
+    end
+
+    def world_config_object
+      @world_config_object ||= WorldConfig.load_from_project(@project_root)
     end
 
     def mock_chapter(chapter_number)

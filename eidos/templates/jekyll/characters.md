@@ -1,6 +1,6 @@
 ---
 layout: default
-title: "Characters - {{BOOK_TITLE}}"
+title: "Characters - {{STORY_TITLE}}"
 lang: en
 permalink: /characters/
 nav_order: 2
@@ -8,7 +8,7 @@ nav_order: 2
 
 # Characters
 
-Meet the cast of **{{BOOK_TITLE}}** - each with their own unique personality, backstory, and role in our story!
+Meet the cast of **{{STORY_TITLE}}** - each with their own unique personality, backstory, and role in our story!
 
 {% assign characters = site.characters | where: "lang", page.lang %}
 

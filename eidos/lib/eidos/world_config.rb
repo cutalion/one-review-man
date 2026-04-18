@@ -117,20 +117,49 @@ module Eidos
     end
 
     # Convenient accessors (Config)
+    # -----------------------------------------------------------------
+    # Canonical `story_*` accessors per Clarifications Q2 + FR-021.
+    # Read precedence: `story_<field>` wins; then `book_<field>` (pre-0.3
+    # key shape); then the bare `<field>` (pre-localized key shape). Any
+    # fallback path emits a one-time deprecation notice to $stderr.
+    # Contract: specs/013-spec-coverage-backfill/contracts/story-placeholder-compat.md
+    # TODO(follow-up): remove the book_/bare-name branches after two releases.
+    def story_title(lang = 'en')
+      localized_field_with_compat(lang, 'title') || @config_data['title'] || 'Untitled'
+    end
+
+    def story_genre(lang = 'en')
+      localized_field_with_compat(lang, 'genre') || 'Fiction'
+    end
+
+    def story_setting(lang = 'en')
+      localized_field_with_compat(lang, 'setting')
+    end
+
+    def story_style(lang = 'en')
+      localized_field_with_compat(lang, 'style', extra_bare_names: %w[humor_style]) || 'narrative'
+    end
+
+    # Legacy accessors — kept for back-compat; delegate to the story_*
+    # versions so a single read-path change propagates everywhere.
     def title(lang = 'en')
-      localized_data(lang)['title'] || @config_data['title'] || 'Untitled'
+      story_title(lang)
+    end
+
+    def genre(lang = 'en')
+      story_genre(lang)
+    end
+
+    def setting(lang = 'en')
+      story_setting(lang)
+    end
+
+    def humor_style(lang = 'en')
+      story_style(lang)
     end
 
     def author(lang = 'en')
       localized_data(lang)['author'] || @config_data['author'] || 'Unknown'
-    end
-
-    def genre(lang = 'en')
-      localized_data(lang)['genre'] || 'Fiction'
-    end
-
-    def humor_style(lang = 'en')
-      localized_data(lang)['humor_style'] || 'narrative'
     end
 
     def themes(lang = 'en')
@@ -141,12 +170,17 @@ module Eidos
       themes(lang)['primary']
     end
 
-    def setting(lang = 'en')
-      localized_data(lang)['setting']
-    end
-
     def description(lang = 'en')
       localized_data(lang)['description'] || @config_data['description']
+    end
+
+    # Neutral, genre-agnostic default so new worlds don't inherit ORM framing.
+    def story_description(lang = 'en')
+      localized_data(lang)['story_description'] ||
+        localized_data(lang)['description'] ||
+        localized_data(lang)['subtitle'] ||
+        @config_data['description'] ||
+        'A fresh story to be developed.'
     end
 
     # Site configuration (Config)
@@ -243,10 +277,6 @@ module Eidos
     end
 
     # Useful predicates
-    def one_review_man_world?
-      title.include?('One Review Man') || title.include?('Ванревьюмэн')
-    end
-
     def language?(lang)
       localized_lang_data = @config_data.dig('localized', lang.to_s)
       return false unless localized_lang_data.is_a?(Hash)
@@ -263,6 +293,46 @@ module Eidos
     end
 
     private
+
+    # Read a localized field with the BOOK→STORY back-compat chain.
+    # `extra_bare_names` carries pre-migration aliases for fields whose
+    # bare spelling isn't the same as the suffix (e.g. `style` fell out
+    # of the legacy `humor_style` key).
+    def localized_field_with_compat(lang, field, extra_bare_names: [])
+      localized = localized_data(lang)
+      story_key = "story_#{field}"
+      return localized[story_key] if localized.key?(story_key)
+
+      book_key = "book_#{field}"
+      if localized.key?(book_key) && !localized[book_key].nil?
+        emit_deprecation_notice_once(lang, field, key: book_key)
+        return localized[book_key]
+      end
+
+      ([field] + extra_bare_names).each do |bare|
+        next unless localized.key?(bare) && !localized[bare].nil?
+
+        emit_deprecation_notice_once(lang, field, key: bare)
+        return localized[bare]
+      end
+
+      nil
+    end
+
+    # Process-scoped memoization of deprecation notices. Key shape:
+    # (config_file_path, locale, field) — fires at most once per tuple
+    # per process so multi-world sessions don't spam stderr.
+    @@emitted_deprecation_notices = {} # rubocop:disable Style/ClassVars
+    def emit_deprecation_notice_once(locale, field, key:)
+      path = @config_path.to_s
+      tuple = [path, locale.to_s, field.to_s]
+      return if @@emitted_deprecation_notices[tuple]
+
+      @@emitted_deprecation_notices[tuple] = true
+      warn "⚠️  DEPRECATED: #{path.empty? ? '<unsaved world>' : path} uses legacy `#{key}` key for locale `#{locale}`."
+      warn "   Rename to `story_#{field}` before the next release."
+      warn '   See specs/013-spec-coverage-backfill/spec.md Clarifications Q2.'
+    end
 
     def mark_config_dirty!
       @dirty_config = true
