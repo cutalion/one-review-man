@@ -2,8 +2,11 @@
 
 require_relative 'world_config'
 require_relative 'chapter_collection'
+require_relative 'piece_collection'
+require_relative 'form_registry'
 require_relative 'bible'
 require_relative 'canon'
+require_relative 'audit_log'
 
 module Eidos
   class WorldNotFoundError < StandardError; end
@@ -40,12 +43,24 @@ module Eidos
       @chapters ||= ChapterCollection.new(world_path: @path)
     end
 
+    def pieces
+      @pieces ||= PieceCollection.new(world_path: @path)
+    end
+
+    def forms
+      @forms ||= FormRegistry.new(world_path: @path)
+    end
+
     def bible
       @bible ||= Bible.new(world_path: @path)
     end
 
     def canon
       @canon ||= Canon.new(world_path: @path)
+    end
+
+    def audit_log
+      @audit_log ||= AuditLog.new(world_path: @path)
     end
 
     private

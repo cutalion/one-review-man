@@ -33,6 +33,7 @@ require 'eidos/cli/translate'
 require 'eidos/cli/publish'
 require 'eidos/cli/chapter_cli'
 require 'eidos/cli/character_cli'
+require 'eidos/cli/piece_cli'
 require 'eidos/cli/probe_cli'
 
 module Eidos
@@ -44,10 +45,10 @@ module Eidos
       desc 'bible SUBCOMMAND ...ARGS', 'Manage the Story Bible'
       subcommand 'bible', Eidos::CLI::Bible
 
-      desc 'canon SUBCOMMAND ...ARGS', 'Manage canon versioning'
+      desc 'canon SUBCOMMAND ...ARGS', 'Manage canon versioning and audit review (review/revert/accept/patch)'
       subcommand 'canon', Eidos::CLI::Canon
 
-      desc 'produce SUBCOMMAND ...ARGS', 'Generate content'
+      desc 'produce SUBCOMMAND ...ARGS', 'Generate pieces of any form (chapter, haiku, vignette, portrait, …)'
       subcommand 'produce', Eidos::CLI::Produce
 
       desc 'translate SUBCOMMAND ...ARGS', 'Translate content'
@@ -62,6 +63,9 @@ module Eidos
 
       desc 'character SUBCOMMAND ...ARGS', 'Character operations'
       subcommand 'character', Eidos::CLI::CharacterCli
+
+      desc 'piece SUBCOMMAND ...ARGS', 'Browse pieces across all forms (list/show)'
+      subcommand 'piece', Eidos::CLI::PieceCli
 
       desc 'probe MODEL', 'Smoke-test a provider/model for reachability'
       long_desc <<~LONG

@@ -1,0 +1,9 @@
+---
+name: illustration
+category: image
+default_shape: "image prompt for a single scene illustration anchored in current canon"
+prompt_template_path: ./illustration.prompt.txt
+canon_context:
+  - all_characters
+  - all_locations
+  - recent_events

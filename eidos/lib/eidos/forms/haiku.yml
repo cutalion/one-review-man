@@ -1,0 +1,8 @@
+---
+name: haiku
+category: text
+default_length: 3
+default_shape: "3 lines, 5-7-5 syllables"
+prompt_template_path: ./haiku.prompt.txt
+canon_context:
+  - all_characters

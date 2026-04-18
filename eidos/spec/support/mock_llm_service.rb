@@ -135,8 +135,13 @@ class MockLLMService
   def generate_text(prompt:, context: {})
     assert_prompt!(prompt, :generate_text)
     capture_during_call do
-      chapter_num = extract_chapter_number(prompt) || context[:chapter_number] || '1'
-      @responses["chapter_#{chapter_num}"] || 'Mock chapter content for testing'
+      form_key = extract_form_hint(prompt)
+      if form_key && @responses[form_key]
+        @responses[form_key]
+      else
+        chapter_num = extract_chapter_number(prompt) || context[:chapter_number] || '1'
+        @responses["chapter_#{chapter_num}"] || 'Mock chapter content for testing'
+      end
     end
   end
 
@@ -288,5 +293,23 @@ class MockLLMService
 
   def extract_chapter_number(prompt)
     prompt.to_s.match(/chapter\s*(\d+)/i)&.captures&.first
+  end
+
+  FORM_PROMPT_SIGNATURES = {
+    'form_vignette' => /You are writing a short vignette/i,
+    'form_haiku' => /You are writing a haiku/i,
+    'form_portrait' => /image-generation prompt for a single character portrait/i,
+    'form_illustration' => /image-generation prompt for a single scene illustration/i,
+    'form_social_post' => /drafting a single social-media post/i,
+    'form_short_story' => /You are writing a short story/i,
+    'form_comic_script' => /You are writing a comic-panel script/i
+  }.freeze
+
+  def extract_form_hint(prompt)
+    text = prompt.to_s
+    FORM_PROMPT_SIGNATURES.each do |key, pattern|
+      return key if pattern.match?(text)
+    end
+    nil
   end
 end

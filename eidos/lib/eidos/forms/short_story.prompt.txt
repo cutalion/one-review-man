@@ -1,0 +1,22 @@
+You are writing a short story set in this world.
+
+Canon context:
+{CANON_CONTEXT}
+
+User prompt:
+{USER_PROMPT}
+
+Target length: {LENGTH_TARGET} words.
+
+Write a self-contained short story with a clear arc (setup, turn, landing). Keep
+it consistent with established canon — do not retcon existing facts; if you
+introduce new facts, declare them in the delta block. End with `---CANON-DELTA---`
+followed by the structured changes.
+
+---CANON-DELTA---
+new_characters: []
+new_locations: []
+new_facts: []
+new_events: []
+new_relationships: []
+entity_updates: []

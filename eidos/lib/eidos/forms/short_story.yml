@@ -1,0 +1,9 @@
+---
+name: short-story
+category: text
+default_length: 1200
+prompt_template_path: ./short_story.prompt.txt
+canon_context:
+  - all_characters
+  - recent_events
+  - all_locations

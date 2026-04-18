@@ -1,0 +1,24 @@
+You are producing an image-generation prompt for a single character portrait in
+this world's house style.
+
+Canon context:
+{CANON_CONTEXT}
+
+User prompt:
+{USER_PROMPT}
+
+Shape: {LENGTH_TARGET}
+
+Emit only the text that should be sent to the image model. Describe subject,
+pose, expression, costume details, environment, lighting, and house style in a
+single paragraph. Do not narrate meta-commentary. After the image prompt, emit
+`---CANON-DELTA---` and a YAML block — for a portrait, this is typically empty,
+unless the user prompt also asserted new canon facts.
+
+---CANON-DELTA---
+new_characters: []
+new_locations: []
+new_facts: []
+new_events: []
+new_relationships: []
+entity_updates: []

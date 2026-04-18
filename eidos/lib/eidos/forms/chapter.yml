@@ -1,0 +1,13 @@
+---
+# Chapter form declines to declare a default_length — the world's
+# generation.chapter_length_target takes precedence for this form alone
+# (FR-004), preserving pre-014 behavior. If the world config is missing a
+# target, PieceProducer falls back to default_shape.
+name: chapter
+category: text
+default_shape: "1500 words"
+prompt_template_path: ./chapter.prompt.txt
+canon_context:
+  - all_characters
+  - recent_events
+  - current_chapter

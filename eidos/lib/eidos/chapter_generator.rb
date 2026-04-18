@@ -13,11 +13,27 @@ require 'eidos/world_config'
 require 'eidos/snapshot_store'
 require 'eidos/story_bible'
 require 'eidos/canon_version_reference'
+require 'eidos/form_registry'
 
 module Eidos
-  # Main engine for generating book chapters using AI models
+  # Main engine for generating chapter-form Pieces using AI models.
+  # Chapter is one form among many in the 014-storyworld-pivot model, but
+  # its structured generation flow (title/summary/new_characters JSON) is
+  # more involved than PieceProducer's generic text path. For US1 we keep
+  # the existing flow here to preserve SC-002 (byte-identical frontmatter
+  # on pre-014 worlds); the chapter form is registered in FormRegistry so
+  # callers can discover it alongside the generic forms.
   class ChapterGenerator
     include WorldUtils
+
+    # The FormRegistry entry that represents this generator's contract.
+    # Exposed so SDK callers / tests can inspect the chapter form's
+    # declared canon_context without coupling to PieceProducer.
+    def self.chapter_form(world_path: nil)
+      FormRegistry.new(world_path: world_path).find('chapter')
+    rescue FormRegistry::FormNotFound
+      nil
+    end
 
     def initialize(model_override = nil, snapshot: nil, **kwargs)
       @model_override = model_override

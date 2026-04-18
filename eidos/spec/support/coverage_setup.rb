@@ -8,9 +8,10 @@
 # This file is required from the TOP of spec_helper.rb, before any
 # eidos/** code is loaded, so SimpleCov can instrument it from the start.
 
-# Committed baseline floor measured on commit 4966b5f (T001 baseline:
-# 46.81% → rounded down to 46).
-EIDOS_DEFAULT_COVERAGE_FLOOR = 46
+# Committed baseline floor. Originally measured on commit 4966b5f at
+# 46.81% → rounded down to 46. Bumped to 52 after feature 014-storyworld-pivot
+# (measured 52.21% with the new piece/canon-delta/audit-log coverage).
+EIDOS_DEFAULT_COVERAGE_FLOOR = 52
 
 def coverage_enabled?
   return false if ENV['SIMPLECOV'] == 'false'

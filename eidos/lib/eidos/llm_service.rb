@@ -36,6 +36,9 @@ module Eidos
         seed_fixture = mock_seed_extractor_payload(prompt)
         return seed_fixture if seed_fixture
 
+        form_fixture = mock_form_payload(prompt)
+        return form_fixture if form_fixture
+
         chapter_num = prompt.to_s.match(/chapter\s*(\d+)/i)&.captures&.first || context[:chapter_number] || '1'
         return "Mock chapter content for Chapter #{chapter_num}"
       end
@@ -48,17 +51,15 @@ module Eidos
 
     # Summarize text using a lightweight model
     def summarize_text(text)
-      if EnvUtils.mock_ai_enabled?
-        return "Mock summary of: #{text[0..20]}..."
-      end
+      return "Mock summary of: #{text[0..20]}..." if EnvUtils.mock_ai_enabled?
 
       prompt = "Summarize the following text into a short description suitable for an image alt text (max 20 words):\n\n#{text}"
-      
+
       # Use gpt-5-nano by default for summarization if not overridden
       # Model is now resolved from config via get_model_for_task('summarization')
-      options = get_task_options('summarization', { 
-        system_prompt: 'You are a helpful assistant that summarizes text for image descriptions.' 
-      })
+      options = get_task_options('summarization', {
+                                   system_prompt: 'You are a helpful assistant that summarizes text for image descriptions.'
+                                 })
 
       response = call_llm(prompt, options, 'summarization')
       raise APIError, 'Failed to summarize text' unless response && response['content']
@@ -227,9 +228,7 @@ module Eidos
     # @param model [String] Model name (e.g., 'dall-e-3', 'google/gemini-3-pro-image-preview')
     # @param provider [String] Provider name ('openai' or 'openrouter')
     def generate_image(prompt, size: nil, quality: 'standard', style: nil, model: nil, provider: nil)
-      if EnvUtils.mock_ai_enabled?
-        return 'https://placehold.co/1024x1024/png?text=Mock+Image'
-      end
+      return 'https://placehold.co/1024x1024/png?text=Mock+Image' if EnvUtils.mock_ai_enabled?
 
       opts = resolve_image_options(provider: provider, model: model, style: style, size: size)
       provider = opts[:provider]
@@ -279,20 +278,20 @@ module Eidos
     # @return [OpenAI::Client, nil] Client instance
     def get_client(provider_name)
       return nil if EnvUtils.mock_ai_enabled?
-      
+
       validate_provider!(provider_name)
-      
+
       @clients[provider_name] ||= setup_client_for_provider(provider_name)
     end
 
     def resolve_image_options(provider: nil, model: nil, style: nil, size: nil, orientation: nil)
       illustration_config = @settings['illustration'] || {}
-      
+
       # Use explicit args, then illustration config, then hardcoded fallbacks
       provider ||= illustration_config['provider'] || 'openai'
       model ||= illustration_config['model'] || 'dall-e-3'
       style ||= illustration_config['style'] || 'vivid'
-      
+
       # Resolve size from orientation if size is not explicit
       unless size
         orientation ||= illustration_config['orientation']
@@ -349,17 +348,15 @@ module Eidos
       raise ConfigurationError, 'No OpenRouter client configured' unless client
 
       messages = [{ role: 'user', content: prompt }]
-      
+
       parameters = {
         model: model,
         messages: messages,
-        modalities: ['image', 'text']
+        modalities: %w[image text]
       }
 
       # Add aspect ratio configuration if a ratio is provided (e.g., '16:9')
-      if size.include?(':')
-        parameters[:image_config] = { aspect_ratio: size }
-      end
+      parameters[:image_config] = { aspect_ratio: size } if size.include?(':')
 
       debug_dump('openrouter_image_params.json', JSON.pretty_generate(parameters))
 
@@ -372,13 +369,13 @@ module Eidos
       # OpenRouter returns images in message.images array, not content
       # Format: { choices: [{ message: { images: [{ image_url: { url: "data:image/..." } }] } }] }
       message = response.dig('choices', 0, 'message')
-      
+
       # Debug: log what we got
-      puts "DEBUG: Response structure:" if @debug
+      puts 'DEBUG: Response structure:' if @debug
       puts "  choices present: #{response['choices']&.any?}" if @debug
       puts "  message keys: #{message&.keys&.inspect}" if @debug
       puts "  images present: #{message&.dig('images')&.any?}" if @debug
-      
+
       # Check for images in the correct location
       images = message&.dig('images')
       if images&.any?
@@ -410,11 +407,11 @@ module Eidos
         'message_keys' => message&.keys,
         'images_count' => images&.length,
         'content_type' => content_parts.class.name,
-        'full_message' => message&.inspect[0..500]
+        'full_message' => message&.inspect&.[](0..500)
       }
-      
+
       debug_dump('openrouter_parse_error.json', JSON.pretty_generate(error_details))
-      
+
       raise APIError, "Failed to extract image from OpenRouter response. Message keys: #{message&.keys&.inspect}"
     rescue Faraday::Error => e
       raise APIError, "OpenRouter image generation failed: #{e.response[:status] if e.response} - #{e.response[:body] if e.response}"
@@ -427,13 +424,9 @@ module Eidos
     def get_model_for_task(task_type)
       # Check for specific model override for this task type in the config
       # The config logic should have already merged CLI overrides into this structure
-      if task_type == 'summarization' && @settings['summarization'] && @settings['summarization']['model']
-        return @settings['summarization']['model']
-      end
+      return @settings['summarization']['model'] if task_type == 'summarization' && @settings['summarization'] && @settings['summarization']['model']
 
-      if task_type == 'translation' && @settings['translation'] && @settings['translation']['model']
-        return @settings['translation']['model']
-      end
+      return @settings['translation']['model'] if task_type == 'translation' && @settings['translation'] && @settings['translation']['model']
 
       if @config['models'] && @config['models'][task_type]
         @config['models'][task_type]
@@ -482,7 +475,7 @@ module Eidos
     # @return [OpenAI::Client, nil]
     def setup_client_for_provider(provider_name)
       return nil unless defined?(OpenAI)
-      
+
       providers_config = @settings['providers'] || {}
       provider_config = providers_config[provider_name]
       raise ConfigurationError, "Provider configuration not found for '#{provider_name}'" unless provider_config
@@ -510,12 +503,12 @@ module Eidos
         log_errors: true,
         request_timeout: @config['timeout'] || 240
       }
-      
+
       if provider_config['org_id_env']
         org_id = ENV[provider_config['org_id_env']] || @config['openai_org_id']
         client_options[:organization_id] = org_id if org_id
       end
-      
+
       if provider_config['base_url_env']
         base_url = ENV[provider_config['base_url_env']] || @config['openai_base_url']
         client_options[:uri_base] = base_url if base_url
@@ -527,9 +520,7 @@ module Eidos
     # Setup OpenRouter client (uses OpenAI client with different base URL)
     def setup_openrouter_client(provider_config)
       api_key = ENV[provider_config['api_key_env']] || @config['openrouter_api_key']
-      unless api_key
-        return nil
-      end
+      return nil unless api_key
 
       client_options = {
         access_token: api_key,
@@ -554,11 +545,11 @@ module Eidos
       parameters = build_api_parameters(model, messages, options, task_type)
 
       debug_dump('request_parameters.json', JSON.pretty_generate(parameters))
-      
+
       response = with_retries do
         client.chat(parameters: parameters)
       end
-      
+
       content = response.dig('choices', 0, 'message', 'content')
       debug_dump('response_raw.json', content)
       { 'content' => content }
@@ -582,11 +573,11 @@ module Eidos
       parameters[:response_format] = options[:response_format] if options[:response_format]
 
       debug_dump('request_parameters.json', JSON.pretty_generate(parameters))
-      
+
       response = with_retries do
         client.chat(parameters: parameters)
       end
-      
+
       content = response.dig('choices', 0, 'message', 'content')
       debug_dump('response_raw.json', content)
       { 'content' => content }
@@ -628,10 +619,10 @@ module Eidos
     def get_task_options(task_type, base_options = {})
       merged = (@config['default_options'] || {}).dup
       merged.merge!(@config['task_options'][task_type]) if @config['task_options'] && @config['task_options'][task_type]
-      
+
       if task_type == 'summarization' && @settings['summarization']
         # Merge root-level summarization options (excluding model)
-        sum_opts = @settings['summarization'].reject { |k, _| k == 'model' }
+        sum_opts = @settings['summarization'].except('model')
         merged.merge!(sum_opts)
       end
 
@@ -861,8 +852,35 @@ module Eidos
       fixtures_path = File.expand_path('../../spec/support/mock_responses.yml', __dir__)
       return nil unless File.exist?(fixtures_path)
 
-      fixtures = YAML.safe_load(File.read(fixtures_path)) || {}
+      fixtures = YAML.safe_load_file(fixtures_path) || {}
       fixtures['seed_extractor_default']
+    end
+
+    # MOCK_AI parity for form-based pieces (014-storyworld-pivot). When a
+    # user runs `eidos produce haiku` with MOCK_AI=true, we match the form
+    # prompt signature and return the canned fixture so pieces end up with
+    # form-appropriate content + the ---CANON-DELTA--- tail US3 needs.
+    MOCK_FORM_SIGNATURES = {
+      'form_haiku' => /You are writing a haiku/i,
+      'form_vignette' => /You are writing a short vignette/i,
+      'form_portrait' => /image-generation prompt for a single character portrait/i,
+      'form_illustration' => /image-generation prompt for a single scene illustration/i,
+      'form_social_post' => /drafting a single social-media post/i,
+      'form_short_story' => /You are writing a short story/i,
+      'form_comic_script' => /You are writing a comic-panel script/i
+    }.freeze
+    private_constant :MOCK_FORM_SIGNATURES
+
+    def mock_form_payload(prompt)
+      text = prompt.to_s
+      key = MOCK_FORM_SIGNATURES.find { |_, pat| pat.match?(text) }&.first
+      return nil unless key
+
+      fixtures_path = File.expand_path('../../spec/support/mock_responses.yml', __dir__)
+      return nil unless File.exist?(fixtures_path)
+
+      fixtures = YAML.safe_load_file(fixtures_path) || {}
+      fixtures[key]
     end
 
     def build_generic_translation_rules(target_lang)

@@ -1,0 +1,8 @@
+---
+name: vignette
+category: text
+default_length: 400
+prompt_template_path: ./vignette.prompt.txt
+canon_context:
+  - all_characters
+  - recent_events
