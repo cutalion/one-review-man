@@ -23,6 +23,16 @@ module Eidos
                             desc: 'Quick setup with minimal prompts (uses intelligent defaults)'
       method_option 'no-seed', type: :boolean, default: false,
                                desc: 'Skip the Story Bible seed prompt (also implied by --quick)'
+      method_option :title, type: :string,
+                            desc: '(--quick) World title (required when non-interactive)'
+      method_option :author, type: :string,
+                             desc: '(--quick) Author name (required when non-interactive)'
+      method_option :premise, type: :string,
+                              desc: '(--quick) Multi-line premise; lands in subtitle/description verbatim'
+      method_option :languages, type: :string,
+                                desc: '(--quick) Comma-separated ISO codes (default: en)'
+      method_option 'default-language', type: :string,
+                                        desc: '(--quick) Default ISO code; must be in --languages'
       def new
         target = File.expand_path(options['world-dir'] || Dir.pwd)
 
@@ -158,6 +168,8 @@ module Eidos
       end
 
       def collect_world_information
+        return quick_setup_from_flags if non_interactive_quick?
+
         title       = ask('World title:', default: 'My New World')
         author      = ask('Author name:', default: 'Anonymous')
         description = ask('Short description:', default: 'A generated world.')
@@ -175,6 +187,68 @@ module Eidos
           languages: languages,
           default_lang: default_lang
         )
+      end
+
+      # True when --quick is in effect AND we have flag values OR stdin is
+      # not a TTY. In this mode no prompts are read — all values come from
+      # Thor options per `contracts/cli-flags.md`.
+      def non_interactive_quick?
+        return false unless options[:quick]
+
+        any_quick_flag_present? || !$stdin.tty?
+      end
+
+      QUICK_SETUP_FLAGS = %w[title author premise languages default-language].freeze
+      private_constant :QUICK_SETUP_FLAGS
+
+      def any_quick_flag_present?
+        QUICK_SETUP_FLAGS.any? { |f| options[f] && !options[f].to_s.empty? }
+      end
+
+      # Build the world_info hash from Thor options. Exits non-zero on
+      # missing required flags (--title, --author, --premise) or an
+      # invalid --default-language. Never reads stdin.
+      def quick_setup_from_flags
+        validate_required_quick_flags!
+
+        languages_csv = options['languages'] || 'en'
+        codes = languages_csv.split(',').map(&:strip).reject(&:empty?)
+        if codes.empty?
+          $stderr.puts 'Error: --languages must contain at least one ISO code.'
+          exit 1
+        end
+
+        default_lang = options['default-language'] || codes.first
+        unless codes.include?(default_lang)
+          $stderr.puts "Error: --default-language '#{default_lang}' is not a member of --languages " \
+                       "(#{codes.join(', ')})."
+          exit 1
+        end
+
+        {
+          title: options['title'],
+          author: options['author'],
+          description: options['premise'],
+          languages: codes.join(','),
+          default_lang: default_lang,
+          genre: options['genre'] || 'unspecified',
+          style: options['style'] || 'unspecified',
+          setting: options['setting'] || 'unspecified',
+          primary_theme: options['theme'] || 'unspecified',
+          secondary_themes: ''
+        }
+      end
+
+      def validate_required_quick_flags!
+        missing = []
+        missing << '--title'   if options['title'].to_s.empty?
+        missing << '--author'  if options['author'].to_s.empty?
+        missing << '--premise' if options['premise'].to_s.empty?
+        return if missing.empty?
+
+        $stderr.puts 'Error: --quick requires all of: --title, --author, --premise'
+        $stderr.puts "Missing: #{missing.join(', ')}"
+        exit 1
       end
 
       def collect_quick_setup_info(description)

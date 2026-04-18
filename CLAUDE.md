@@ -219,6 +219,34 @@ When you finish a spec-kit task involving any of the above, before marking it `[
 
 If `/user-qa` surfaces a regression, fix the root cause — do not weaken the QA check or special-case it away. The check exists precisely because we shipped a premise-aware-scaffolding feature whose unit tests passed and whose generated worlds did not reflect the premise.
 
+### Banned patterns: silent fallbacks
+
+**The rule**: No method may silently substitute a real-looking value, swallow a degraded input, or no-op on missing data. Every degradation must surface to a user-visible channel. Reviews reject code that violates this rule; tests that only assert on the happy path get flagged for missing the degradation assertion.
+
+**Why this rule exists**: Feature 014-storyworld-pivot shipped with six Tier-1 defects. All six passed their unit tests. All six involved a silent-fallback pattern:
+
+1. **`collect_quick_setup_info`** returned hardcoded `"fiction"` / `"narrative"` / `"contemporary setting"` / `"adventure"` on regex miss. The generated world looked like inference had succeeded — it had not.
+2. **`apply_character` / `apply_location`** had `return nil unless id`. LLM-emitted entries with `name` but no `id` silently no-op'd. `applied_at` was stamped, `parse_error` was null, `data/story_bible/characters/` stayed empty.
+3. **`CanonDelta.normalize_section`** emitted `warn "..." ; next nil` on non-mapping entries. Three of four demo deltas lost their entities. Stderr is not a user-visible channel.
+
+**The three acceptable alternatives**:
+
+1. **Raise.** If the caller should have caught this, let them catch it. Prefer a typed exception with a message that names the field and the invariant.
+2. **Return a `Result`-like record.** `{success: bool, error: string, drops: [...]}` — the caller inspects it; the degradation is explicit. Good for parsers and validators.
+3. **Open an `AuditFinding` or surface via `world status` / `canon review`.** User-visible channels users actually read. Stderr does not count; log files do not count unless the CLI prints a pointer to them.
+
+**Anti-patterns to flag in review**:
+
+- `return nil unless <arg>` / `return if …` at the top of a business-logic method
+- Hardcoded sentinel values (`"fiction"`, `"adventure"`, `"TODO"`, `"default"`) substituted when real inference fails
+- `warn` / `puts` / `$stderr.puts` as the only signal of a data-loss or degradation event
+- `rescue => e ; next` in a loop that processes structured input
+- Empty arrays, empty hashes, or empty strings returned from methods whose contract implies presence
+
+**Test corollary**: every parser / validator / apply-path spec must include at least one failing-input case that asserts the failure surfaces via `parse_error`, `AuditFinding`, or a raise. Unit suites that only exercise the happy path are incomplete.
+
+Adopted 2026-04-18 as part of feature 015-scaffold-hardening. Postmortem evidence: `specs/014-storyworld-pivot/postmortem.md` §3.
+
 ### Commit & PR Guidelines
 *   **Commits:** Use imperative present tense (e.g., "Fix CLI robustness"). Keep commits small and focused.
 *   **PRs:** Include a summary, motivation, and verification steps. Note any visual changes with screenshots. Ensure all tests and linters pass before submitting. For user-facing work (per Definition of Done above), attach the `/user-qa` PASS report or state why it wasn't required.
@@ -292,6 +320,8 @@ If `/user-qa` surfaces a regression, fix the root cause — do not weaken the QA
 - No storage schema changes — all work is in `eidos/spec/`, `eidos/lib/eidos/prompts/`, and engine Ruby files (013-spec-coverage-backfill)
 - Ruby 3.3.5, `# frozen_string_literal: true` on every file + Thor ~> 1.3 (CLI), ruby-openai ~> 7.3 (LLM), tty-prompt ~> 0.23, tty-spinner ~> 0.9, rainbow ~> 3.1, dotenv ~> 3.1, YAML (stdlib). No new runtime gems required. (014-storyworld-pivot)
 - YAML files under `worlds/<name>/data/` (story bible, audit log, custom forms) and `worlds/<name>/content/` (piece files). Pluggable via `Eidos::Storage` backends (`:yaml_file` default, `:memory` for tests). Reuses existing RevisionStore / SnapshotStore primitives for canon versioning. No schema migration for existing worlds. (014-storyworld-pivot)
+- Ruby 3.3.5, `# frozen_string_literal: true` on every file + Thor ~> 1.3 (CLI), ruby-openai ~> 7.3 (LLM), tty-prompt ~> 0.23 (interactive prompts only — non-interactive path bypasses), tty-spinner ~> 0.9, rainbow ~> 3.1, dotenv ~> 3.1, YAML (stdlib). **No new runtime gems.** (015-scaffold-hardening)
+- YAML files under `worlds/<name>/data/` (story bible, canon deltas, audit log, world config, strings, custom forms) and `worlds/<name>/content/` (piece files). Pluggable `Eidos::Storage` backends (`:yaml_file` default, `:memory` for tests). (015-scaffold-hardening)
 
 ## Recent Changes
 - 011-eidos-sdk-and-installable-cli: Unified `eidos` CLI (`exe/eidos`), Ruby SDK (`Eidos::World`, `Chapter`, `Character`, `Location`, `Bible`, `Canon`), `Eidos.configure` global config, installable gem (`gem install eidos`), new SDK-based `eidos chapter` and `eidos character` subcommands.

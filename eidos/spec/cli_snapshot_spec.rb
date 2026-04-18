@@ -11,9 +11,14 @@ RSpec.describe 'canon snapshot CLI' do
   let(:test_dir) { Dir.mktmpdir('snapshot_cli_test') }
 
   before do
-    # Initialize a minimal world project
-    stdin_data = "Test Book\nTest Author\nA test book\nen\nen\n"
-    Open3.capture3('ruby', world_path, 'new', '--world-dir', test_dir, '--quick', stdin_data: stdin_data)
+    # Initialize a minimal world project via the 015 non-interactive
+    # `--quick` flag surface (US3). The pre-015 stdin heredoc pattern is
+    # gone; all required values come from Thor options.
+    Open3.capture3(
+      'ruby', world_path, 'new', '--world-dir', test_dir, '--quick', '--no-seed',
+      '--title', 'Test Book', '--author', 'Test Author',
+      '--premise', 'A test book', '--languages', 'en'
+    )
   end
 
   after { FileUtils.rm_rf(test_dir) }

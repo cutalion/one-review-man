@@ -16,6 +16,11 @@ RSpec.describe Eidos::CLI::World do
   after { FileUtils.rm_rf(tmp_dir) }
 
   before do
+    # Pretend stdin is a TTY so the 015 US3 `non_interactive_quick?` gate
+    # returns false for `--quick` invocations with no quick-setup flags,
+    # letting the interactive (ask-stubbed) path run.
+    allow($stdin).to receive(:tty?).and_return(true)
+
     # Stub Thor's ask so we don't block on $stdin and so we can inspect the
     # exact prompts / defaults the user would see.
     allow_any_instance_of(described_class).to receive(:ask) do |_, prompt, *rest|

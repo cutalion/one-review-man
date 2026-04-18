@@ -135,6 +135,11 @@ class MockLLMService
   def generate_text(prompt:, context: {})
     assert_prompt!(prompt, :generate_text)
     capture_during_call do
+      override = ENV['MOCK_RESPONSE']
+      if override && !override.empty? && @responses[override]
+        next @responses[override]
+      end
+
       form_key = extract_form_hint(prompt)
       if form_key && @responses[form_key]
         @responses[form_key]

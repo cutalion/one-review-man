@@ -131,6 +131,66 @@ canon_delta_malformed: |
 
   The canon delta section was supposed to be here but the LLM forgot it.
 
+# 015-scaffold-hardening fuzz + integration fixtures. Selected via
+# MOCK_RESPONSE=<key> when a spec needs to assert on the parse_error /
+# audit-finding behavior driven by a specific malformed shape.
+
+# US1 / T005 — bare-string entry in new_characters. Parser must drop
+# with reason "expected mapping, got String".
+canon_delta_bare_string: |
+  A vignette where the LLM forgot to emit entries as mappings.
+
+  ---CANON-DELTA---
+  new_characters:
+    - "Arthur is a programmer"
+  new_locations: []
+  new_facts:
+    - "the office is grim"
+  new_events: []
+  new_relationships: []
+  entity_updates: []
+
+# US1 / T005 — entry missing the required `description` key. Parser
+# should record a drop with a specific reason.
+canon_delta_missing_required_key: |
+  A vignette with a character entry that has no description.
+
+  ---CANON-DELTA---
+  new_characters:
+    - name: Arthur
+  new_locations: []
+  new_facts: []
+  new_events: []
+  new_relationships: []
+  entity_updates: []
+
+# US1 / T005 — YAML tail truncated mid-mapping. Parser should surface a
+# document-level parse_error.summary.
+canon_delta_truncated_yaml: |
+  A vignette whose canon-delta YAML was cut off.
+
+  ---CANON-DELTA---
+  new_characters:
+    - name: Arthur
+      description: "A programmer
+  new_locations: []
+
+# US2 / T005 — well-formed canon delta declaring a named character.
+# The apply path must write data/story_bible/characters/arthur.yml
+# with the given description. id is derived from name via slugify.
+canon_delta_arthur_well_formed: |
+  Arthur stared at the rejection email.
+
+  ---CANON-DELTA---
+  new_characters:
+    - name: Arthur
+      description: A programmer
+  new_locations: []
+  new_facts: []
+  new_events: []
+  new_relationships: []
+  entity_updates: []
+
 panel_descriptions: |
   [
     {

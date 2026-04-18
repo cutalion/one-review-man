@@ -19,10 +19,11 @@ RSpec.describe 'First-run UX (feature 012-fix-ux-unify-bible)' do
 
   it 'fresh world + produce chapter output contains no forbidden substrings (SC-001)' do
     Dir.mktmpdir('first_run_it') do |tmp|
-      stdin = "Test Book\nTest Author\nA test book\nen\nen\n"
       out1, _err1, status1 = Open3.capture3(
         { 'MOCK_AI' => 'true' },
-        'ruby', cli_world, 'new', '--world-dir', tmp, '--quick', stdin_data: stdin
+        'ruby', cli_world, 'new', '--world-dir', tmp, '--quick', '--no-seed',
+        '--title', 'Test Book', '--author', 'Test Author',
+        '--premise', 'A test book', '--languages', 'en'
       )
       expect(status1).to be_success
 

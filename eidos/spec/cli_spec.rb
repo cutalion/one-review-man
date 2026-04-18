@@ -38,8 +38,11 @@ RSpec.describe 'world CLI' do
     end
 
     it 'creates settings.yml with default LLM configuration' do
-      stdin_data = "Test Book\nTest Author\nA test book\nen\nen\n"
-      stdout, stderr, status = Open3.capture3('ruby', cli_path, 'new', '--world-dir', test_dir, '--quick', stdin_data: stdin_data)
+      stdout, stderr, status = Open3.capture3(
+        'ruby', cli_path, 'new', '--world-dir', test_dir, '--quick', '--no-seed',
+        '--title', 'Test Book', '--author', 'Test Author',
+        '--premise', 'A test book', '--languages', 'en'
+      )
 
       expect(status).to be_success
       expect(stderr).to be_empty
@@ -66,8 +69,11 @@ RSpec.describe 'world CLI' do
     end
 
     it 'creates all required data files' do
-      stdin_data = "Test Book\nTest Author\nA test book\nen\nen\n"
-      _, _, status = Open3.capture3('ruby', cli_path, 'new', '--world-dir', test_dir, '--quick', stdin_data: stdin_data)
+      _, _, status = Open3.capture3(
+        'ruby', cli_path, 'new', '--world-dir', test_dir, '--quick', '--no-seed',
+        '--title', 'Test Book', '--author', 'Test Author',
+        '--premise', 'A test book', '--languages', 'en'
+      )
 
       expect(status).to be_success
 

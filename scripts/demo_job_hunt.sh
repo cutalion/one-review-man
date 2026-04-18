@@ -40,18 +40,13 @@ if [[ -d "$WORLD" ]]; then
 fi
 
 echo "==> Scaffolding world at $WORLD"
-# `eidos world new --quick` prompts for 4 answers in order:
-#   1. World title
-#   2. Author name
-#   3. Short description (used as premise)
-#   4. Languages (comma-separated)
-# Pipe them via here-doc, one per line.
-"$EIDOS" world new --quick -w "$WORLD" <<EOF
-Job Hunt
-Demo
-$PREMISE
-en
-EOF
+# Non-interactive `--quick` takes explicit flags so the multi-line
+# premise survives verbatim (015-scaffold-hardening US3).
+"$EIDOS" world new --quick -w "$WORLD" \
+  --title "Job Hunt" \
+  --author "Demo" \
+  --premise "$PREMISE" \
+  --languages en
 
 echo
 echo "==> World status:"
