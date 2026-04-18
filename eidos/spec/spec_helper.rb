@@ -1,11 +1,22 @@
 # frozen_string_literal: true
 
 require 'bundler/setup'
+
+# Coverage FIRST so SimpleCov can instrument lib/** before any eidos code
+# loads. (Implementation of coverage_setup.rb lands in US2 / T014.)
+require_relative 'support/coverage_setup'
+
 # Ensure the library path is resolvable when specs are executed inside
 # the eidos package.
 
 # Package lib (eidos/lib)
 $LOAD_PATH.unshift(File.expand_path('../lib', __dir__)) unless $LOAD_PATH.include?(File.expand_path('../lib', __dir__))
+
+# Runtime prompt-call assertion gate (US1). Installs a $stderr tee used by
+# MockLLMService to drain warnings per mock call — must load before the
+# mock file that depends on it.
+require_relative 'support/prompt_assertion_harness'
+require_relative 'support/mock_llm_service'
 
 # Provide RUBYOPT to inject mock LLM in subprocess CLI invocations
 ENV['RUBYOPT'] = [ENV.fetch('RUBYOPT', nil), "-r#{File.expand_path('support/inject_mock_llm', __dir__)}"].compact.join(' ')

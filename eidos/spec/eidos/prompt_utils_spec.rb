@@ -53,7 +53,7 @@ RSpec.describe Eidos::PromptUtils do
 
       expect do
         described_class.build_prompt(template, placeholders, warn_unused: true)
-      end.not_to output(/CHARACTER_NAME|CHARACTER_DESCRIPTION/).to_stdout
+      end.not_to output(/CHARACTER_NAME|CHARACTER_DESCRIPTION/).to_stderr
     end
   end
 end

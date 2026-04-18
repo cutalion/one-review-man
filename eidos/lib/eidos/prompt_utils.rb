@@ -72,7 +72,7 @@ module PromptUtils
       if unused_placeholders.any?
         warning_msg = "⚠️  Warning: Unused placeholders provided: #{unused_placeholders.join(', ')}"
         warning_msg += " (in #{context})" if context
-        puts warning_msg
+        warn warning_msg
       end
     end
 
