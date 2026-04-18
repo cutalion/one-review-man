@@ -33,6 +33,14 @@ module Eidos
                                 desc: '(--quick) Comma-separated ISO codes (default: en)'
       method_option 'default-language', type: :string,
                                         desc: '(--quick) Default ISO code; must be in --languages'
+      method_option :genre, type: :string,
+                            desc: '(--quick) Explicit genre; default is literal sentinel "unspecified"'
+      method_option :style, type: :string,
+                            desc: '(--quick) Explicit narrative style; default "unspecified"'
+      method_option :setting, type: :string,
+                              desc: '(--quick) Explicit setting; default "unspecified"'
+      method_option :theme, type: :string,
+                            desc: '(--quick) Explicit primary theme; default "unspecified"'
       def new
         target = File.expand_path(options['world-dir'] || Dir.pwd)
 
@@ -251,23 +259,19 @@ module Eidos
         exit 1
       end
 
-      def collect_quick_setup_info(description)
-        genre         = infer_genre_from_description(description)
-        style         = infer_style_from_description(description)
-        setting       = infer_setting_from_description(description)
-        primary_theme = infer_theme_from_description(description)
-
-        say "\nQuick setup enabled - using intelligent defaults:", :cyan
-        say "  Genre: #{genre}", :blue
-        say "  Style: #{style}", :blue
-        say "  Setting: #{setting}", :blue
-        say "  Theme: #{primary_theme}", :blue
+      # Quick-setup under an interactive TTY (when --quick is set but no
+      # metadata flags were given). Per feature 015 US4: no regex heuristics,
+      # no hardcoded "fiction"/"adventure"/etc. fallbacks. Either the user
+      # types a value or we write the literal sentinel "unspecified" which
+      # `world status` surfaces as an action item.
+      def collect_quick_setup_info(_description)
+        say "\nQuick setup — metadata fields (press Enter to leave as 'unspecified'):", :cyan
 
         {
-          genre: genre,
-          style: style,
-          setting: setting,
-          primary_theme: primary_theme,
+          genre: ask_or_unspecified('Genre (e.g. comedy, sci-fi, mystery):'),
+          style: ask_or_unspecified('Writing style (e.g. deadpan, whimsical, dramatic):'),
+          setting: ask_or_unspecified('Setting (e.g. open-plan office, magical realm):'),
+          primary_theme: ask_or_unspecified('Primary theme (e.g. disillusionment, adventure):'),
           secondary_themes: ''
         }
       end
@@ -275,24 +279,21 @@ module Eidos
       def collect_detailed_setup_info
         say "\nAdditional information needed for chapter generation:", :cyan
 
-        genre_examples = 'fantasy, sci-fi, mystery, thriller, comedy, romance, adventure, horror'
-        genre = ask("What genre is your world? (#{genre_examples}):", default: 'fantasy')
-
-        style_examples = 'humorous, serious, adventurous, suspenseful, whimsical, dramatic'
-        style = ask("What writing style? (#{style_examples}):", default: 'humorous')
-
-        setting = ask('What is the main setting/location of your story?', default: 'contemporary setting')
-
-        primary_theme    = ask('What is the primary theme? (e.g., friendship, mystery, adventure):', default: 'adventure')
-        secondary_themes = ask('Secondary themes (comma-separated, optional):', default: '')
-
         {
-          genre: genre,
-          style: style,
-          setting: setting,
-          primary_theme: primary_theme,
-          secondary_themes: secondary_themes
+          genre: ask_or_unspecified('Genre (e.g. comedy, sci-fi, mystery):'),
+          style: ask_or_unspecified('Writing style (e.g. deadpan, whimsical, dramatic):'),
+          setting: ask_or_unspecified('Setting (e.g. open-plan office, magical realm):'),
+          primary_theme: ask_or_unspecified('Primary theme (e.g. disillusionment, adventure):'),
+          secondary_themes: ask('Secondary themes (comma-separated, optional):', default: '')
         }
+      end
+
+      # Prompts for a free-text metadata value; an empty answer persists as
+      # the literal sentinel "unspecified". NEVER substitute a real-looking
+      # value. See specs/015-scaffold-hardening/spec.md FR-011.
+      def ask_or_unspecified(prompt)
+        response = ask(prompt, default: 'unspecified').to_s.strip
+        response.empty? ? 'unspecified' : response
       end
 
       # When only one language was provided there's nothing to choose between,

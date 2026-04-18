@@ -32,10 +32,12 @@ RSpec.describe 'world new: realistic interactive flow' do
   #   2. Author name           (default: "Anonymous")
   #   3. Short description     (default: "A generated world.")
   #   4. Languages             (default: "en")
-  #   5. Genre                 (default: "fantasy")
-  #   6. Writing style         (default: "humorous")
-  #   7. Setting               (default: "contemporary setting")
-  #   8. Primary theme         (default: "adventure")
+  #   5. Genre                 (default: "unspecified" — feature 015 US4;
+  #                             the pre-015 "fantasy" regex-inferred default
+  #                             was a banned silent-fallback pattern)
+  #   6. Writing style         (default: "unspecified")
+  #   7. Setting               (default: "unspecified")
+  #   8. Primary theme         (default: "unspecified")
   #   9. Secondary themes      (default: "")
   describe 'all defaults' do
     it 'scaffolds a world with the default answers when stdin is bare newlines' do
@@ -52,10 +54,10 @@ RSpec.describe 'world new: realistic interactive flow' do
         expect(en['story_title']).to   eq('My New World')
         expect(en['author']).to        eq('Anonymous')
         expect(en['subtitle']).to      eq('A generated world.')
-        expect(en['story_genre']).to   eq('fantasy')
-        expect(en['story_style']).to   eq('humorous')
-        expect(en['story_setting']).to eq('contemporary setting')
-        expect(en.dig('themes', 'primary')).to eq('adventure')
+        expect(en['story_genre']).to   eq('unspecified')
+        expect(en['story_style']).to   eq('unspecified')
+        expect(en['story_setting']).to eq('unspecified')
+        expect(en.dig('themes', 'primary')).to eq('unspecified')
         # Write-path contract: no legacy keys under the localized section.
         expect(en.keys).not_to include('title', 'genre', 'setting', 'humor_style',
                                       'book_title', 'book_genre', 'book_setting', 'book_style')
