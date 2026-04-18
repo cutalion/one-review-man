@@ -291,9 +291,7 @@ module Eidos
 
         files = []
         chapter_dir = File.join(abs_root, 'content', 'chapters')
-        if Dir.exist?(chapter_dir)
-          files += Dir.glob(File.join(chapter_dir, '*.md')).reject { |f| f.end_with?('.ru.md') }
-        end
+        files += Dir.glob(File.join(chapter_dir, '*.md')).reject { |f| f.end_with?('.ru.md') } if Dir.exist?(chapter_dir)
         pieces_root = File.join(abs_root, 'content', 'pieces')
         files += Dir.glob(File.join(pieces_root, '*', '*.md')) if Dir.exist?(pieces_root)
 
@@ -301,7 +299,7 @@ module Eidos
 
         say "\nRecent Pieces:", :cyan
         files.sort_by { |f| File.mtime(f) }.last(3).each do |file|
-          rel = file.sub(/\A#{Regexp.escape(abs_root)}\/?/, '')
+          rel = file.sub(%r{\A#{Regexp.escape(abs_root)}/?}, '')
           say "  #{rel}", :blue
         end
       end

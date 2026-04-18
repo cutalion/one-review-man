@@ -337,14 +337,16 @@ module Eidos
       section = drop['section']
       value = drop['value']
       reason = drop['reason']
-      rendered = value.is_a?(String) ? value.inspect : value.inspect
+      rendered = value.inspect
       "Dropped #{section} entry #{rendered} (reason: #{reason})"
     end
 
     def apply_character(bible, entry, journal)
       id = entry['id']
-      raise ArgumentError, 'canon-delta new_characters entry reached apply with no id ' \
-                           '(should have been dropped in normalize_section)' if id.nil? || id.to_s.empty?
+      if id.nil? || id.to_s.empty?
+        raise ArgumentError, 'canon-delta new_characters entry reached apply with no id ' \
+                             '(should have been dropped in normalize_section)'
+      end
 
       existing = bible.get_character(id)
       conflict = conflict_message(existing, entry, 'character', id)
@@ -357,8 +359,10 @@ module Eidos
 
     def apply_location(bible, entry, journal)
       id = entry['id']
-      raise ArgumentError, 'canon-delta new_locations entry reached apply with no id ' \
-                           '(should have been dropped in normalize_section)' if id.nil? || id.to_s.empty?
+      if id.nil? || id.to_s.empty?
+        raise ArgumentError, 'canon-delta new_locations entry reached apply with no id ' \
+                             '(should have been dropped in normalize_section)'
+      end
 
       existing = bible.get_location(id)
       conflict = conflict_message(existing, entry, 'location', id)
@@ -396,8 +400,10 @@ module Eidos
       kind = entry['entity_kind'].to_s
       id = entry['entity_id']
       attr = entry['attribute'].to_s
-      raise ArgumentError, 'canon-delta entity_updates entry reached apply with no entity_id ' \
-                           '(should have been dropped in normalize_section)' if id.nil? || id.to_s.empty?
+      if id.nil? || id.to_s.empty?
+        raise ArgumentError, 'canon-delta entity_updates entry reached apply with no entity_id ' \
+                             '(should have been dropped in normalize_section)'
+      end
       raise ArgumentError, 'canon-delta entity_updates entry reached apply with empty attribute' if attr.empty?
 
       existing = case kind

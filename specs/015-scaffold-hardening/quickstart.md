@@ -4,6 +4,24 @@ How to validate this feature locally, end-to-end, against a freshly generated wo
 
 ---
 
+## Success criterion → covering task
+
+Each SC in `spec.md` §Success Criteria maps to at least one task and one spec. Reviewer trace:
+
+| SC | Covering task(s) | Primary spec / evidence |
+|----|------------------|-------------------------|
+| SC-001 | T011, T013, T015 (US3) | `eidos/spec/integration/user_scale/world_new_multiline_premise_spec.rb` |
+| SC-002 | T017, T019, T023, T024 (US4) | `eidos/spec/integration/user_scale/world_new_metadata_sentinel_spec.rb` + `world_new_metadata_explicit_spec.rb` |
+| SC-003 | T039, T042 (US2) | `eidos/spec/integration/user_scale/canon_delta_persists_to_bible_spec.rb` |
+| SC-004 | T027, T029, T031, T037 (US1) | `eidos/spec/eidos/canon_delta_fuzz_spec.rb` + `canon_delta_spec.rb` |
+| SC-005 | T047, T048 (US5) | `eidos/spec/integration/user_scale/fresh_world_no_orphan_dirs_spec.rb` |
+| SC-006 | T053-T056 (US6) | `eidos/spec/eidos/cli/world_status_piece_first_spec.rb` + `spec/integration/user_scale/world_status_piece_first_spec.rb` |
+| SC-007 | T062 (Polish) | `/user-qa` live-LLM PASS report (manual gate) |
+| SC-008 | T001, T002, T060 (Setup + Polish) | `eidos/spec/integration/user_scale/` directory, single command |
+| SC-009 | T006 (Foundational) | `CLAUDE.md` §"Banned patterns: silent fallbacks" |
+
+---
+
 ## Prerequisites
 
 - Working copy on branch `015-scaffold-hardening`.
