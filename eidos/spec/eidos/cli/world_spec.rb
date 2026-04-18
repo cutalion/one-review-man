@@ -149,8 +149,8 @@ RSpec.describe Eidos::CLI::World do
       # Verify persisted entities are readable back through the bible.
       require 'eidos/story_bible'
       bible = Eidos::StoryBible.new(project_root: tmp_dir)
-      expect(bible.characters.keys).to include('jax_patel')
-      expect(bible.locations.keys).to include('home_office')
+      expect(bible.characters.keys).to include('jax-patel')
+      expect(bible.locations.keys).to include('home-office')
     end
 
     it 'skips the seed prompt and does NOT call SeedExtractor when --no-seed is passed' do

@@ -7,6 +7,7 @@ This document lists all placeholders used in the generic prompt templates that m
 ## Story Context Placeholders
 - `{STORY_TITLE}` - The title of the story being generated
 - `{STORY_GENRE}` - The genre/style of the story (e.g., "fantasy", "mystery", "comedy")
+- `{STORY_PREMISE}` - The one-paragraph premise/description for the whole story (the driving conflict the LLM must stay anchored to)
 - `{STORY_SETTING}` - The primary setting of the story
 - `{STORY_STYLE}` - Writing style guidelines
 - `{PRIMARY_LOCATION}` - Main location where story takes place

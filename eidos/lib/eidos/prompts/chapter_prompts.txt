@@ -1,13 +1,21 @@
 # Generic Chapter Generation Prompt
 
-Generate Chapter {CHAPTER_NUMBER}
+You are writing Chapter {CHAPTER_NUMBER} of a serialized story.
+
+## REQUIRED LENGTH — READ FIRST
+Write a complete chapter of **{TARGET_LENGTH}**. This is the target, not a suggestion.
+Do not stop short. Do not pad. If you find yourself wrapping up too early, add another scene, deepen a character beat, or develop the conflict further until the chapter reaches the target length.
+
+## Story Premise (the core of this project)
+{STORY_PREMISE}
+
+Every chapter must keep this premise visible as the driving conflict or tonal anchor. Do not drift into unrelated territory. Chapter 1 in particular must open *inside* this premise — not in a generic setup that circles around it.
 
 ## Story Context
 - Title: {STORY_TITLE}
 - Genre: {STORY_GENRE}
 - Setting: {STORY_SETTING}
 - Style: {STORY_STYLE}
-- Length: {TARGET_LENGTH}
 - Previous chapters: {PREVIOUS_CHAPTERS_SUMMARY}
 
 {CHARACTER_CONTEXT}
@@ -31,7 +39,7 @@ Generate Chapter {CHAPTER_NUMBER}
 
 {SPECIAL_INSTRUCTIONS}
 
-Format the output as:
+## Output Format
 1. Chapter Title
 2. Chapter content in markdown format with proper dialogue attribution
 3. Brief character notes for any new characters introduced
@@ -40,9 +48,9 @@ Format the output as:
 ## Plot Development
 Consider incorporating:
 - Character interactions that advance relationships
-- Conflicts that drive the story forward
+- Conflicts that drive the story forward (especially those arising from the premise above)
 - World-building details that enrich the setting
-- Themes appropriate to the book's genre and tone
+- Themes appropriate to the story's genre and tone
 - Scenes that showcase character growth or abilities
 
 ## Avoid Recently Used Elements
@@ -55,3 +63,6 @@ End the chapter with:
 - New challenge or conflict introduction
 - Emotional resonance moment
 - Setup for the next chapter's events
+
+## Final Length Check
+Before returning, verify: did you write at least {TARGET_LENGTH}? If not, keep writing.

@@ -269,15 +269,17 @@ module Eidos
 
       def persist_seed_result(bible, result)
         result.characters.each do |char|
-          id = char['id'].to_s
+          id = Eidos::ValidationUtils.slugify(char['id'].to_s)
           next if id.empty?
 
+          char['slug'] = id
           bible.save_character(id, char, change_reason: 'Seeded from premise')
         end
         result.locations.each do |loc|
-          id = loc['id'].to_s
+          id = Eidos::ValidationUtils.slugify(loc['id'].to_s)
           next if id.empty?
 
+          loc['slug'] = id
           bible.save_location(id, loc, change_reason: 'Seeded from premise')
         end
         result.facts.each_with_index do |fact, idx|

@@ -61,7 +61,7 @@ module Eidos
 
       # Determine characters for this chapter (parity with main)
       character_objects = select_characters_for_chapter(next_chapter)
-      character_slugs = character_objects.map { |c| c['slug'] || slugify(c['name'].to_s) }
+      character_slugs = character_objects.map { |c| c['slug'] || ValidationUtils.slugify(c['name'].to_s) }
 
       chapter_data = generate_chapter_structured(next_chapter, auto_generate: auto_generate, extra_guidance: extra_guidance)
 
@@ -223,54 +223,51 @@ module Eidos
     public
 
     def write_chapter_file(chapter_number, chapter_data, character_slugs = [])
+      content = chapter_data['content']
+      word_count = content.split(/\s+/).length
+      chapter_slug = "#{format('%03d', chapter_number)}-chapter"
+      permalink = "/chapters/#{chapter_slug}/"
+      new_character_slugs = (chapter_data['new_characters'] || [])
+                            .map { |c| c['name'] }
+                            .compact
+                            .map { |n| ValidationUtils.slugify(n) }
+                            .reject(&:empty?)
+
       if @output_adapter
-        content = chapter_data['content']
-        word_count = content.split(/\s+/).length
-        chapter_slug = "#{format('%03d', chapter_number)}-chapter"
-        permalink = "/chapters/#{chapter_slug}/"
         metadata = {
           title: chapter_data['title'] || "Chapter #{chapter_number}",
           chapter_number: chapter_number,
           characters: character_slugs,
           summary: chapter_data['summary'],
-          programming_themes: chapter_data['programming_themes'] || [],
-          comedy_elements: chapter_data['comedy_elements'] || [],
           word_count: word_count,
-          difficulty_level: chapter_data['difficulty_level'],
-          one_punch_man_references: chapter_data['one_punch_man_references'] || [],
           permalink: permalink,
           generated_date: Date.today.to_s,
           status: 'generated',
           lang: 'en',
-          new_characters: (chapter_data['new_characters'] || []).map { |c| c['name'] }.map { |n| n.downcase.gsub(/[^a-z0-9]+/, '_').gsub(/^_+|_+$/, '') },
+          new_characters: new_character_slugs,
           canon_version: resolve_canon_version
         }
+        metadata[:difficulty_level] = chapter_data['difficulty_level'] if chapter_data['difficulty_level']
         @output_adapter.write_chapter(chapter_number, content, metadata)
       else
         # Fallback: write directly to filesystem (book content, not site)
         chapters_dir = preferred_chapters_dir
         FileUtils.mkdir_p(chapters_dir)
         filename = File.join(chapters_dir, "#{format('%03d', chapter_number)}-chapter.md")
-        content = chapter_data['content']
-        word_count = content.split(/\s+/).length
-        chapter_slug = "#{format('%03d', chapter_number)}-chapter"
-        permalink = "/chapters/#{chapter_slug}/"
         front_matter_hash = {
           'layout' => 'chapter',
           'title' => chapter_data['title'] || "Chapter #{chapter_number}",
           'chapter_number' => chapter_number,
           'characters' => character_slugs,
           'summary' => chapter_data['summary'],
-          'programming_themes' => chapter_data['programming_themes'] || [],
-          'comedy_elements' => chapter_data['comedy_elements'] || [],
           'word_count' => word_count,
-          'difficulty_level' => chapter_data['difficulty_level'],
-          'one_punch_man_references' => chapter_data['one_punch_man_references'] || [],
           'permalink' => permalink,
           'generated_date' => Date.today.to_s,
           'status' => 'generated',
-          'lang' => 'en'
+          'lang' => 'en',
+          'new_characters' => new_character_slugs
         }
+        front_matter_hash['difficulty_level'] = chapter_data['difficulty_level'] if chapter_data['difficulty_level']
         front_matter = front_matter_hash.to_yaml
         full_content = "#{front_matter}---\n\n#{content}"
         File.write(filename, full_content)
@@ -456,11 +453,10 @@ module Eidos
     end
 
     def build_full_character_data(name, character_info, slug, full)
-      {
+      data = {
         'name' => name,
         'description' => full['description'] || character_info['description'] || '',
         'personality_traits' => full['personality_traits'] || [],
-        'programming_skills' => full['programming_skills'] || 'General programming',
         'catchphrase' => full['catchphrase'],
         'backstory' => full['backstory'],
         'quirks' => full['quirks'],
@@ -469,7 +465,9 @@ module Eidos
         'slug' => slug,
         'created_date' => Date.today.to_s,
         'language' => 'en'
-      }.compact
+      }
+      data['programming_skills'] = full['programming_skills'] if full['programming_skills']
+      data.compact
     end
 
     def build_fallback_character_data(name, character_info, slug)
@@ -618,12 +616,17 @@ module Eidos
         placeholders['ESTABLISHED_EVENTS'] = event_list.join("\n")
       end
 
-      # Build world rules context
+      # Build world rules context. Seeded facts store the text under
+      # `description`; facts captured from chapter generation store it
+      # under `rule`. Accept either so both paths surface in the prompt.
       if facts['world_rules'] && !facts['world_rules'].empty?
         rules_list = facts['world_rules'].map do |_key, rule|
-          "- #{rule['rule']} (#{rule['category']})"
+          text = rule['description'] || rule['rule']
+          category = rule['category']
+          category && !category.to_s.strip.empty? ? "- #{text} (#{category})" : "- #{text}"
         end
         placeholders['WORLD_RULES'] = rules_list.join("\n")
+        placeholders['ESTABLISHED_FACTS'] = rules_list.join("\n")
       end
 
       # Build relationships context
@@ -841,6 +844,7 @@ module Eidos
       placeholders.merge!({
                             'STORY_TITLE' => @config.story_title,
                             'STORY_GENRE' => @config.story_genre,
+                            'STORY_PREMISE' => @config.story_description,
                             'STORY_SETTING' => determine_story_setting(en_metadata),
                             'STORY_STYLE' => @config.story_style,
                             'PRIMARY_LOCATION' => extract_primary_location(en_metadata),
@@ -879,6 +883,9 @@ module Eidos
     end
 
     def determine_story_setting(en_metadata)
+      from_config = @config.story_setting
+      return from_config if from_config && !from_config.to_s.strip.empty?
+
       themes = en_metadata['themes']
       return 'Modern tech company/startup environment' if themes&.dig('primary') == 'workplace comedy'
       return 'Contemporary setting' if @config.story_genre.to_s.downcase.include?('comedy')
@@ -887,6 +894,9 @@ module Eidos
     end
 
     def extract_primary_location(en_metadata)
+      from_config = en_metadata['primary_location'] || en_metadata['setting']
+      return from_config if from_config && !from_config.to_s.strip.empty?
+
       themes = en_metadata['themes']
       return 'Corporate office' if themes&.dig('primary') == 'workplace comedy'
 
@@ -1073,11 +1083,11 @@ module Eidos
 
     def get_special_instructions(chapter_num)
       if chapter_num == 1
-        'This is the first chapter - introduce the main character and establish the workplace setting.'
+        'This is the first chapter - open inside the story premise above. Introduce the main character already engaged with the premise\'s core conflict; do not defer it to later chapters.'
       elsif chapter_num <= 3
-        'This is an early chapter - continue building the world and introducing characters.'
+        'This is an early chapter - continue building the world, deepen the premise, and introduce characters who advance or complicate it.'
       else
-        'Build on established relationships and escalate the comedy.'
+        'Build on established relationships and escalate the central conflict.'
       end
     end
   end

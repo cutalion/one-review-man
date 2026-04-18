@@ -93,10 +93,11 @@ module Eidos
       name.to_s
           .downcase
           .strip
-          .gsub(/[^a-z0-9\s-]/, '') # Remove non-alphanumeric except spaces and hyphens
-          .gsub(/\s+/, '-')         # Convert spaces to hyphens
-          .gsub(/-+/, '-')          # Collapse multiple hyphens
-          .gsub(/^-|-$/, '')        # Remove leading/trailing hyphens
+          .gsub(/_+/, '-')           # Convert underscores to hyphens (snake_case → kebab-case)
+          .gsub(/[^a-z0-9\s-]/, '')  # Remove non-alphanumeric except spaces and hyphens
+          .gsub(/\s+/, '-')          # Convert spaces to hyphens
+          .gsub(/-+/, '-')           # Collapse multiple hyphens
+          .gsub(/^-|-$/, '')         # Remove leading/trailing hyphens
     end
   end
 end
