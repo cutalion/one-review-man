@@ -178,10 +178,14 @@ generator = Eidos::ChapterGenerator.new(
 ```bash
 cd eidos
 bundle install
-MOCK_AI=true bundle exec rspec   # 544 examples, 0 failures
+MOCK_AI=true bundle exec rspec   # 630 examples, 0 failures
 ```
 
 `MOCK_AI=true` uses deterministic responses from `spec/support/mock_responses.yml`. `DEBUG_AI=1` (or `--debug` on any CLI) writes request/response artifacts to `tmp/ai_debug/`.
+
+**Coverage**: full-suite runs measure line coverage on `lib/` via SimpleCov and fail below a committed floor. Single-file runs bypass coverage cleanly. Override with `COVERAGE_THRESHOLD=<int> bundle exec rspec` (`0` disables). HTML report at `eidos/coverage/index.html`. See [`specs/013-spec-coverage-backfill/quickstart.md`](../specs/013-spec-coverage-backfill/quickstart.md) for details.
+
+**Prompt-assertion harness**: every mock LLM call fails its enclosing spec if the outgoing prompt carries an unfilled `{PLACEHOLDER}` or if prompt construction emitted an `"Unused placeholders"` warning. Prevents template-rename regressions like the `CHAPTER_NUMBER` / `target_chapters` incidents from reaching production.
 
 ## Environment
 

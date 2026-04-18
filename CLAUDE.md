@@ -74,11 +74,37 @@ bundle install
 ```bash
 # Run all tests from the eidos directory
 cd eidos
-MOCK_AI=true bundle exec rspec          # 544 examples, 0 failures
+MOCK_AI=true bundle exec rspec          # 630 examples, 0 failures
 
 # Run a specific test file
 MOCK_AI=true bundle exec rspec spec/eidos/sdk_integration_spec.rb
 ```
+
+**Coverage (SimpleCov, enforced on full-suite runs)**. A full `bundle exec rspec` measures line coverage on `eidos/lib/` and fails if it drops below the committed floor. Single-file runs (e.g. `rspec spec/eidos/foo_spec.rb`) bypass coverage — no summary, no threshold check. Overrides:
+
+```bash
+# Default full-suite — summary on stdout, HTML at eidos/coverage/index.html
+MOCK_AI=true bundle exec rspec
+
+# Lower the floor for one run (audit line printed to $stderr, exit 0)
+COVERAGE_THRESHOLD=40 bundle exec rspec
+
+# Disable the check entirely for one run
+COVERAGE_THRESHOLD=0 bundle exec rspec
+```
+
+The committed floor lives in `eidos/spec/support/coverage_setup.rb` as `EIDOS_COVERAGE_FLOOR`. Raise it by bumping that constant + running the suite to confirm it still passes. Never lower it to unblock a red run — investigate the drop first. Details in `specs/013-spec-coverage-backfill/quickstart.md`.
+
+**Prompt-assertion harness (runtime gate in `MockLLMService`)**. Every mock LLM call fails the enclosing spec if the outgoing prompt carries an unfilled `{PLACEHOLDER}` / `{{PLACEHOLDER}}` token OR if prompt construction emitted an `"Unused placeholders"` stderr warning. Failure shape:
+
+```
+Prompt assertion failed during <spec_description> → MockLLMService#<method>:
+  category: unfilled placeholder          # or: unused placeholder warning
+  placeholders: CHAPTER_NUMBR, BOOK_TITL   # the specific tokens
+  prompt (first 500 chars): "..."
+```
+
+When you see this: (1) `category` tells you whether the leak is an *unfilled* token in the outgoing prompt or an *unused* token the template declared but the fill site didn't supply; (2) `placeholders` names the offending tokens; (3) the prompt excerpt shows what actually shipped. Fix the template or the fill site, not the harness.
 
 #### Content Generation & Management
 ```bash
@@ -221,6 +247,8 @@ world.canon.current_branch
 - YAML files on disk for world config / state / story bible / revisions / snapshots; in-memory hashes available for tests
 - Ruby 3.3.5, `# frozen_string_literal: true` on every file + Thor ~> 1.3 (CLI), ruby-openai ~> 7.3 (LLM), tty-prompt ~> 0.23 (interactive prompts), tty-spinner ~> 0.9, YAML (stdlib) (012-fix-ux-unify-bible)
 - YAML files under `worlds/<name>/data/story_bible/` (pluggable via `Eidos::Storage` backends: `:yaml_file` default, `:memory` for tests) (012-fix-ux-unify-bible)
+- Ruby 3.3.5, `frozen_string_literal: true` on every file (013-spec-coverage-backfill)
+- No storage schema changes — all work is in `eidos/spec/`, `eidos/lib/eidos/prompts/`, and engine Ruby files (013-spec-coverage-backfill)
 
 ## Recent Changes
 - 011-eidos-sdk-and-installable-cli: Unified `eidos` CLI (`exe/eidos`), Ruby SDK (`Eidos::World`, `Chapter`, `Character`, `Location`, `Bible`, `Canon`), `Eidos.configure` global config, installable gem (`gem install eidos`), new SDK-based `eidos chapter` and `eidos character` subcommands.
