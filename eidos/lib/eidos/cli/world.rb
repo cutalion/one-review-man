@@ -375,8 +375,7 @@ module Eidos
       def create_directories(target)
         FileUtils.mkdir_p(target)
         FileUtils.mkdir_p(File.join(target, 'data'))
-        FileUtils.mkdir_p(File.join(target, 'content', 'chapters'))
-        FileUtils.mkdir_p(File.join(target, 'content', 'characters'))
+        FileUtils.mkdir_p(File.join(target, 'content'))
       end
 
       def create_metadata_files(target, world_info)

@@ -155,15 +155,15 @@ Single monorepo. All Ruby source and specs live under `eidos/`. CLAUDE.md and `s
 
 ### Tests for User Story 5
 
-- [ ] T047 [P] [US5] Unit spec in `eidos/spec/eidos/cli/world_new_scaffold_layout_spec.rb` (new file): calls `create_directories(target)` directly and asserts `Dir.children(File.join(target, 'content'))` is empty.
-- [ ] T048 [US5] Integration spec `eidos/spec/integration/user_scale/fresh_world_no_orphan_dirs_spec.rb`: shells `world new --quick`, walks `<world>/content/` with `Find.find`, asserts zero directory entries other than `content/` itself. Covers SC-005.
-- [ ] T049 [US5] Integration spec `eidos/spec/integration/user_scale/lazy_form_dir_mkdir_spec.rb`: shells `world new --quick` then `produce piece --form haiku --prompt x` (with `MOCK_AI=true`), asserts `<world>/content/pieces/haiku/` now exists with at least one `.md` file. Covers FR-015.
-- [ ] T050 [P] [US5] Regression spec in `eidos/spec/integration/user_scale/existing_world_untouched_spec.rb`: asserts the path `worlds/one-review-man/content/chapters` exists on disk before and after running the feature's CLI commands; no migration, no removal. Covers FR-016.
+- [X] T047 [P] [US5] Unit spec in `eidos/spec/eidos/cli/world_new_scaffold_layout_spec.rb` (new file): calls `create_directories(target)` directly and asserts `Dir.children(File.join(target, 'content'))` is empty.
+- [X] T048 [US5] Integration spec `eidos/spec/integration/user_scale/fresh_world_no_orphan_dirs_spec.rb`: shells `world new --quick`, walks `<world>/content/` with `Find.find`, asserts zero directory entries other than `content/` itself. Covers SC-005.
+- [X] T049 [US5] Integration spec `eidos/spec/integration/user_scale/lazy_form_dir_mkdir_spec.rb`: shells `world new --quick` then `produce piece --form haiku --prompt x` (with `MOCK_AI=true`), asserts `<world>/content/pieces/haiku/` now exists with at least one `.md` file. Covers FR-015.
+- [X] T050 [P] [US5] Regression spec in `eidos/spec/integration/user_scale/existing_world_untouched_spec.rb`: asserts the path `worlds/one-review-man/content/chapters` exists on disk before and after running the feature's CLI commands; no migration, no removal. Covers FR-016.
 
 ### Implementation for User Story 5
 
-- [ ] T051 [US5] Delete lines creating `content/chapters/` and `content/characters/` from `Eidos::CLI::World#create_directories` in `eidos/lib/eidos/cli/world.rb` (lines 303-304 today). Keep `data/` and the `content/` root directory creation.
-- [ ] T052 [US5] [P] Grep-audit `eidos/lib/` for other eager `mkdir_p` of form-specific content dirs. Likely none but confirm — produce/chapter-generator code paths should already `mkdir_p(File.dirname(output_path))` at write time. If a gap is found, add `mkdir_p` at the write site, not at the scaffold site.
+- [X] T051 [US5] Delete lines creating `content/chapters/` and `content/characters/` from `Eidos::CLI::World#create_directories` in `eidos/lib/eidos/cli/world.rb` (lines 303-304 today). Keep `data/` and the `content/` root directory creation.
+- [X] T052 [US5] [P] Grep-audit `eidos/lib/` for other eager `mkdir_p` of form-specific content dirs. Likely none but confirm — produce/chapter-generator code paths should already `mkdir_p(File.dirname(output_path))` at write time. If a gap is found, add `mkdir_p` at the write site, not at the scaffold site.
 
 **Checkpoint**: US5 complete. Newly created worlds have clean `content/` trees. `worlds/one-review-man` untouched.
 
