@@ -1,24 +1,32 @@
 <!--
   Sync Impact Report
   ===================
-  Version change: 1.0.0 → 2.0.0
-  Bump rationale: MAJOR — architectural redefinition from single book
-    pipeline to multi-producer platform. Principles II and IV
-    substantially redefined; two new principles added.
-  Modified principles:
-    - II. CLI as the Single Entry Point → II. Producer Contract
-    - IV. Content Integrity → IV. Canon Integrity with Versioned IP
-  Added sections:
-    - Principle VI: Pluggable AI Services with Evals
-    - Principle VII: Separation of Concerns (Engine / Producers / Publishing)
-    - Architecture Layers (new section replacing Content Workflow)
-  Removed sections:
-    - Content Workflow (superseded by Architecture Layers)
+  Version change: 2.0.0 → 2.0.1
+  Bump rationale: PATCH — naming refresh only, no principle changes.
+    Paths, flags, and namespaces renamed to match the post-restructure
+    codebase (book-generator → eidos, BookCore → Eidos, books/ →
+    worlds/, --book-dir → --world-dir). No obligations added, removed,
+    or redefined.
+  Modified principles: none
+  Modified sections (naming-only clarifications):
+    - Principle II: CLI path `book-generator/bin/book` → `eidos/exe/eidos`;
+      `--book-dir` → `--world-dir`
+    - Principle IV: `books/*/content/` → `worlds/*/content/`
+    - Principle VII: example "book chapter generator" → "chapter generator"
+    - Development Constraints: RuboCop config path refreshed
+    - Architecture Layers: namespaces (`BookCore::` → `Eidos::`) and
+      directories (`book_core/` → `eidos/lib/eidos/`, `books/*/data/`
+      → `worlds/*/data/`) refreshed
+  Added sections: none
+  Removed sections: none
   Templates requiring updates:
     - .specify/templates/plan-template.md ✅ no updates needed (generic gates)
     - .specify/templates/spec-template.md ✅ no updates needed (generic structure)
     - .specify/templates/tasks-template.md ✅ no updates needed (generic phases)
-  Follow-up TODOs: none
+  Follow-up TODOs: Principle IV may need a MINOR amendment in the
+    upcoming IP-generator pivot spec to codify the canon-feedback
+    obligation (every produced piece must record the canon deltas
+    it introduces).
 -->
 
 # One Review Man Constitution
@@ -46,8 +54,9 @@ implement a common producer interface that accepts:
 3. **Output location** — where to write the resulting artifacts.
 
 Producers MUST be invocable through the Thor-based CLI at
-`book-generator/bin/book`. The `--book-dir` flag MUST be supported
-so commands work from the repository root. No feature may require
+`eidos/exe/eidos` (or the equivalent domain-named binaries under
+`eidos/bin/`). The `--world-dir` / `-w` flag MUST be supported so
+commands work from the repository root. No feature may require
 manual file manipulation that could instead be a CLI subcommand.
 
 **Rationale**: A common contract enables multiple product types
@@ -81,7 +90,7 @@ support snapshotting or tagging canon state so that:
 - A derivative can be compared against a newer canon version to
   detect staleness.
 
-Generated content under `books/*/content/` MUST use consistent
+Generated content under `worlds/*/content/` MUST use consistent
 naming. Publishing targets (Jekyll site, Instagram, etc.) MUST be
 rebuildable from canon + generated content at any time. No
 hand-edited content may live only in a publishing target; the
@@ -129,8 +138,9 @@ The system MUST maintain three distinct architectural layers:
    products or publishing targets.
 2. **Producers (Derivative Generators)** — create artifacts from a
    canon version. Each producer is independent and follows the
-   Producer Contract (Principle II). Examples: book chapter
-   generator, comic panel producer, Instagram image producer.
+   Producer Contract (Principle II). Examples: chapter generator,
+   comic panel producer, illustration producer, Instagram image
+   producer.
 3. **Publishing (Distribution)** — takes ready artifacts and
    distributes them. Examples: Jekyll site, Instagram post, YouTube
    upload. Publishing MAY be a separate project that consumes
@@ -148,7 +158,7 @@ added without modifying the canon engine.
 - **Language**: Ruby 3.3.5, UTF-8 encoding, `frozen_string_literal: true`
   on every file.
 - **Style**: 2-space indentation, snake_case files, CamelCase classes.
-  RuboCop (`book-generator/.rubocop.yml`) MUST pass before merge.
+  RuboCop (`eidos/.rubocop.yml`) MUST pass before merge.
 - **Testing**: RSpec with `MOCK_AI=true` as the default mode.
   `DEBUG_AI=1` for verbose logging during development only.
 - **Dependencies**: Managed via Bundler. Gemfile changes require
@@ -156,14 +166,15 @@ added without modifying the canon engine.
 
 ## Architecture Layers
 
-1. **Engine** — `BookCore::StoryBible`, `RevisionStore`,
-   `BranchManager`, and related classes manage canon state under
-   `books/*/data/story_bible/`. The engine provides canon snapshots
-   and version references to producers.
-2. **Producers** — `ChapterGenerator`, `IllustrationGenerator`, and
-   future producers (comic panels, Instagram images) live under
-   `book_core/` and implement the common producer contract. Each
-   producer records the canon version it built from.
+1. **Engine** — `Eidos::StoryBible`, `Eidos::RevisionStore`,
+   `Eidos::BranchManager`, and related classes manage canon state
+   under `worlds/*/data/story_bible/`. The engine provides canon
+   snapshots and version references to producers.
+2. **Producers** — `Eidos::ChapterGenerator`,
+   `Eidos::IllustrationGenerator`, `Eidos::PanelDescriptionGenerator`,
+   and future producers (comic panels, Instagram images) live under
+   `eidos/lib/eidos/` and implement the common producer contract.
+   Each producer records the canon version it built from.
 3. **AI Services** — `LLMService`, `ImageService` (future), and
    other AI interfaces are injected into producers. Provider
    backends are swappable. Eval suites validate quality.
@@ -184,4 +195,4 @@ added without modifying the canon engine.
 - **Compliance** is verified during code review. Every PR MUST be
   checked against the seven core principles before approval.
 
-**Version**: 2.0.0 | **Ratified**: 2026-03-30 | **Last Amended**: 2026-03-31
+**Version**: 2.0.1 | **Ratified**: 2026-03-30 | **Last Amended**: 2026-04-18
