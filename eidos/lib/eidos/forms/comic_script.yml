@@ -1,0 +1,9 @@
+---
+name: comic-script
+category: script
+default_length: 4
+default_shape: "4 panels with dialogue and stage direction"
+prompt_template_path: ./comic_script.prompt.txt
+canon_context:
+  - all_characters
+  - recent_events

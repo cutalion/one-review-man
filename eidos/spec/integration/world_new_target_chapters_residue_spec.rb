@@ -51,20 +51,21 @@ RSpec.describe 'world new + world status: no target_chapters residue' do
     aggregate_failures do
       expect(status_stdout).not_to include('target_chapters')
       expect(status_stdout).not_to include('Not set')
-      expect(status_stdout).to include('Progress:')
+      # Feature 015 US6: progress section is now piece-first; the
+      # previous `Progress: 0 chapters written` line was removed.
+      expect(status_stdout).to include('[Pieces by form]')
     end
   end
 
-  # Drive `world new` interactively by feeding scripted stdin: four empty
-  # lines accept the defaults for title / author / description / languages
-  # (default 'en' is a single code, so no default-language prompt fires).
-  # `--quick` skips the detailed-setup prompts; `--no-seed` skips the
-  # LLM-backed seed prompt. `-w` avoids the "current directory" y/N prompt.
+  # Drive `world new` non-interactively via the 015 flag surface (US3).
+  # All required values are supplied as Thor options; no stdin reads.
   def run_world_new(root)
-    stdin_script = (["\n"] * 4).join
     stdout_str, _stderr_str, status = Open3.capture3(
       'ruby', world_cli, 'new', '-w', root, '--quick', '--no-seed',
-      stdin_data: stdin_script
+      '--title', 'My New World',
+      '--author', 'Anonymous',
+      '--premise', 'A generated world.',
+      '--languages', 'en'
     )
     @new_stdout = stdout_str
     status

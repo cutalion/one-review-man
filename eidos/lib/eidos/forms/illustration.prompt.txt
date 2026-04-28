@@ -1,0 +1,24 @@
+You are producing an image-generation prompt for a single scene illustration in
+this world.
+
+Canon context:
+{CANON_CONTEXT}
+
+User prompt:
+{USER_PROMPT}
+
+Shape: {LENGTH_TARGET}
+
+Emit only the text that should be sent to the image model. Describe setting,
+characters present (by canonical identity), action, mood, light, and house
+style. Finish with `---CANON-DELTA---` and a YAML block declaring any canon
+changes (usually empty for illustrations — but if the user prompt introduces
+a new location or event, declare it here so canon stays consistent).
+
+---CANON-DELTA---
+new_characters: []
+new_locations: []
+new_facts: []
+new_events: []
+new_relationships: []
+entity_updates: []

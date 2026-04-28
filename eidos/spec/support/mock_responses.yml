@@ -47,6 +47,150 @@ chapter_2: |
   # Heading
   Mock chapter 2 content.
 
+# Used by 014-storyworld-pivot US1 specs. The MockLLMService inspects the
+# outgoing prompt for a form-specific signature (see extract_form_hint) and
+# returns one of these `form_<name>` fixtures. The body ends with a canonical
+# `---CANON-DELTA---` tail so US3 parsing has something to chew on; US1
+# discards the tail.
+form_vignette: |
+  Jax stared at the grey rectangle of his monitor, coffee long cold. The inbox
+  sat at zero unread. He refreshed it anyway. Somewhere in the spare bedroom,
+  the radiator coughed once and went quiet.
+
+  ---CANON-DELTA---
+  new_characters: []
+  new_locations: []
+  new_facts: []
+  new_events: []
+  new_relationships: []
+  entity_updates: []
+
+form_haiku: |
+  cold inbox blinking —
+  the radiator coughs once,
+  nothing to refresh
+
+  ---CANON-DELTA---
+  new_characters: []
+  new_locations: []
+  new_facts: []
+  new_events: []
+  new_relationships: []
+  entity_updates: []
+
+form_portrait: |
+  Medium-close portrait of Jax Patel at his spare-bedroom desk, hunched in a
+  grey hoodie, overhead lamp casting a warm pool, cool monitor light on his
+  face, empty coffee cups framing the foreground, house style of muted mid-
+  fidelity illustration.
+
+  ---CANON-DELTA---
+  new_characters: []
+  new_locations: []
+  new_facts: []
+  new_events: []
+  new_relationships: []
+  entity_updates: []
+
+# T050 — US3 / feature 014-storyworld-pivot. Three canon-delta shapes the
+# US3 CLI / producer specs exercise.
+
+canon_delta_clean: |
+  A vignette that introduces a brand-new character cleanly.
+
+  ---CANON-DELTA---
+  new_characters:
+    - id: kev-bot
+      name: Kev-Bot
+      description: Self-described lifestyle not a bot.
+  new_locations: []
+  new_facts: []
+  new_events: []
+  new_relationships: []
+  entity_updates: []
+
+canon_delta_conflict: |
+  A vignette whose entity_update collides with existing canon.
+
+  ---CANON-DELTA---
+  new_characters: []
+  new_locations: []
+  new_facts: []
+  new_events: []
+  new_relationships: []
+  entity_updates:
+    - entity_kind: character
+      entity_id: kev-bot
+      attribute: description
+      old_value: Some stale old description
+      new_value: Radically different new description
+
+canon_delta_malformed: |
+  A piece whose tail never includes the sentinel line. Parse must flag
+  this as :malformed-delta while preserving the body on disk.
+
+  The canon delta section was supposed to be here but the LLM forgot it.
+
+# 015-scaffold-hardening fuzz + integration fixtures. Selected via
+# MOCK_RESPONSE=<key> when a spec needs to assert on the parse_error /
+# audit-finding behavior driven by a specific malformed shape.
+
+# US1 / T005 — bare-string entry in new_characters. Parser must drop
+# with reason "expected mapping, got String".
+canon_delta_bare_string: |
+  A vignette where the LLM forgot to emit entries as mappings.
+
+  ---CANON-DELTA---
+  new_characters:
+    - "Arthur is a programmer"
+  new_locations: []
+  new_facts:
+    - "the office is grim"
+  new_events: []
+  new_relationships: []
+  entity_updates: []
+
+# US1 / T005 — entry missing the required `description` key. Parser
+# should record a drop with a specific reason.
+canon_delta_missing_required_key: |
+  A vignette with a character entry that has no description.
+
+  ---CANON-DELTA---
+  new_characters:
+    - name: Arthur
+  new_locations: []
+  new_facts: []
+  new_events: []
+  new_relationships: []
+  entity_updates: []
+
+# US1 / T005 — YAML tail truncated mid-mapping. Parser should surface a
+# document-level parse_error.summary.
+canon_delta_truncated_yaml: |
+  A vignette whose canon-delta YAML was cut off.
+
+  ---CANON-DELTA---
+  new_characters:
+    - name: Arthur
+      description: "A programmer
+  new_locations: []
+
+# US2 / T005 — well-formed canon delta declaring a named character.
+# The apply path must write data/story_bible/characters/arthur.yml
+# with the given description. id is derived from name via slugify.
+canon_delta_arthur_well_formed: |
+  Arthur stared at the rejection email.
+
+  ---CANON-DELTA---
+  new_characters:
+    - name: Arthur
+      description: A programmer
+  new_locations: []
+  new_facts: []
+  new_events: []
+  new_relationships: []
+  entity_updates: []
+
 panel_descriptions: |
   [
     {

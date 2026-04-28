@@ -49,7 +49,7 @@ The world's content is stored in `worlds/one-review-man/`, and the Jekyll site i
 
 Eidos is organized as three layers over the same storyworld data:
 
-1. **Engine** — low-level classes (`ChapterGenerator`, `StoryBible`, `LLMService`, `RevisionStore`, `SnapshotStore`, `BranchManager`, `DiffEngine`, …). Use when full control is needed.
+1. **Engine** — low-level classes (`PieceProducer`, `ChapterGenerator`, `FormRegistry`, `StoryBible`, `LLMService`, `RevisionStore`, `SnapshotStore`, `BranchManager`, `DiffEngine`, …). Use when full control is needed.
 2. **SDK** — object-oriented façade (`Eidos::World`, `Chapter`, `Character`, `Location`, `Bible`, `Canon`). Convention over configuration; mutations persist immediately.
 3. **CLI** — `Eidos::CLI::Main` Thor router in `lib/eidos/cli/main.rb`, started by `exe/eidos`. Includes both legacy domain subcommands and new SDK-based ones.
 
@@ -113,6 +113,22 @@ When you see this: (1) `category` tells you whether the leak is an *unfilled* to
 eidos/exe/eidos world status -w worlds/one-review-man
 eidos/exe/eidos chapter list -w worlds/one-review-man
 eidos/exe/eidos character show kenji_yamamoto -w worlds/one-review-man
+
+# Pieces are the generic unit — chapter is one form among many.
+# Built-in forms: chapter, vignette, short-story, haiku, comic-script,
+#                 portrait, social-post, illustration.
+# Worlds can register custom forms in data/forms/<name>.yml.
+eidos/exe/eidos piece list -w worlds/one-review-man
+eidos/exe/eidos piece list --form vignette -w worlds/one-review-man
+eidos/exe/eidos piece show VIGNETTE001 -w worlds/one-review-man
+
+# Generate a piece of any form. --length is a per-invocation override;
+# without it the form's declared default shape/length is used.
+# Chapters fall back to world_config.chapter_length_target (pre-014 behavior).
+eidos/exe/eidos produce piece --form haiku --prompt "about a silent code review"
+eidos/exe/eidos produce piece --form vignette --length 400 \
+  --prompt "Arthur reviews his own forgotten commit."
+eidos/exe/eidos produce piece --form chapter --dry-run --prompt "Act 3 opener"
 
 # Cheap smoke-test for a provider/model (auth, reachability, latency).
 # Does NOT mutate world files; uses one tiny round-trip (~30 in / ~5 out tokens).
@@ -180,9 +196,60 @@ world.canon.current_branch
 *   `MOCK_AI=true`: Use deterministic mock AI responses from `spec/support/mock_responses.yml` instead of making live API calls. Preferred for tests and local iteration.
 *   `DEBUG_AI=1` or `--debug` flag: Enable verbose LLM debug logging. Artifacts are saved to `tmp/ai_debug/`.
 
+### Definition of Done
+
+**Green unit tests are not the end state for user-facing work.** `bundle exec rspec` verifies that individual classes behave correctly under controlled inputs. It does *not* verify that the program — driven as a user drives it — produces the world the user asked for. Scaffolding regressions, canon-delta silent drops, prompt placeholders that leak, and world-config heuristics that fall back to defaults all pass rspec and still break the product.
+
+Before declaring any of the following complete, you MUST run the `/user-qa` command (or invoke the `user-qa` subagent directly) against a **freshly generated world** and confirm a PASS verdict:
+
+*   Changes to CLI UX (Thor subcommands, help text, flags).
+*   Changes to world scaffolding (`eidos world new`, `collect_quick_setup_info`, templates, `strings.yml`).
+*   Changes to content production (`produce piece`, `produce chapter`, form registry, prompt templates).
+*   Changes to canon-delta extraction, parsing, or application (delta YAML shape, audit log, bible merge).
+*   Changes to any file under `eidos/lib/eidos/prompts/`.
+
+The QA agent reports three tiers of findings (structural health, intent consistency, UX smoke). Tier-1 failures are blocking — the feature is not done while any Tier-1 check fails, regardless of rspec status. Tier-2 failures should be explicitly accepted or fixed; do not paper over them in a commit message. See `.claude/agents/user-qa.md` for the full check list.
+
+When you finish a spec-kit task involving any of the above, before marking it `[X]`:
+
+1. Build or identify a minimal user-scale scenario (usually a quickstart acceptance scenario).
+2. Generate a fresh world from it (not the one you developed against).
+3. Run `/user-qa` with the intent + the new world path, **live LLM** unless the change is purely structural.
+4. Only after PASS: mark the task complete, commit, open PR.
+
+If `/user-qa` surfaces a regression, fix the root cause — do not weaken the QA check or special-case it away. The check exists precisely because we shipped a premise-aware-scaffolding feature whose unit tests passed and whose generated worlds did not reflect the premise.
+
+### Banned patterns: silent fallbacks
+
+**The rule**: No method may silently substitute a real-looking value, swallow a degraded input, or no-op on missing data. Every degradation must surface to a user-visible channel. Reviews reject code that violates this rule; tests that only assert on the happy path get flagged for missing the degradation assertion.
+
+**Why this rule exists**: Feature 014-storyworld-pivot shipped with six Tier-1 defects. All six passed their unit tests. All six involved a silent-fallback pattern:
+
+1. **`collect_quick_setup_info`** returned hardcoded `"fiction"` / `"narrative"` / `"contemporary setting"` / `"adventure"` on regex miss. The generated world looked like inference had succeeded — it had not.
+2. **`apply_character` / `apply_location`** had `return nil unless id`. LLM-emitted entries with `name` but no `id` silently no-op'd. `applied_at` was stamped, `parse_error` was null, `data/story_bible/characters/` stayed empty.
+3. **`CanonDelta.normalize_section`** emitted `warn "..." ; next nil` on non-mapping entries. Three of four demo deltas lost their entities. Stderr is not a user-visible channel.
+
+**The three acceptable alternatives**:
+
+1. **Raise.** If the caller should have caught this, let them catch it. Prefer a typed exception with a message that names the field and the invariant.
+2. **Return a `Result`-like record.** `{success: bool, error: string, drops: [...]}` — the caller inspects it; the degradation is explicit. Good for parsers and validators.
+3. **Open an `AuditFinding` or surface via `world status` / `canon review`.** User-visible channels users actually read. Stderr does not count; log files do not count unless the CLI prints a pointer to them.
+
+**Anti-patterns to flag in review**:
+
+- `return nil unless <arg>` / `return if …` at the top of a business-logic method
+- Hardcoded sentinel values (`"fiction"`, `"adventure"`, `"TODO"`, `"default"`) substituted when real inference fails
+- `warn` / `puts` / `$stderr.puts` as the only signal of a data-loss or degradation event
+- `rescue => e ; next` in a loop that processes structured input
+- Empty arrays, empty hashes, or empty strings returned from methods whose contract implies presence
+
+**Test corollary**: every parser / validator / apply-path spec must include at least one failing-input case that asserts the failure surfaces via `parse_error`, `AuditFinding`, or a raise. Unit suites that only exercise the happy path are incomplete.
+
+Adopted 2026-04-18 as part of feature 015-scaffold-hardening. Postmortem evidence: `specs/014-storyworld-pivot/postmortem.md` §3.
+
 ### Commit & PR Guidelines
 *   **Commits:** Use imperative present tense (e.g., "Fix CLI robustness"). Keep commits small and focused.
-*   **PRs:** Include a summary, motivation, and verification steps. Note any visual changes with screenshots. Ensure all tests and linters pass before submitting.
+*   **PRs:** Include a summary, motivation, and verification steps. Note any visual changes with screenshots. Ensure all tests and linters pass before submitting. For user-facing work (per Definition of Done above), attach the `/user-qa` PASS report or state why it wasn't required.
 
 ### Security
 *   **Secrets:** Do not commit API keys or other secrets. Provide LLM keys via environment variables (`OPENAI_API_KEY`, etc.).
@@ -191,13 +258,15 @@ world.canon.current_branch
 ## Project Architecture
 
 ### Engine (`lib/eidos/`)
-*   **`Eidos::ChapterGenerator`** — main content generation engine. Uses dependency injection for LLM, output adapter, and prompt provider.
+*   **`Eidos::PieceProducer`** — generic piece generation engine for any registered form (haiku, vignette, portrait, …). Uses dependency injection for LLM, form registry, world config, bible, and canon.
+*   **`Eidos::FormRegistry`** — discovers built-in forms under `eidos/lib/eidos/forms/` and per-world custom forms under `<world>/data/forms/`. Every form declares `name`, `category` (`text`/`image`/`script`), `default_length`/`default_shape`, and the canon context it needs.
+*   **`Eidos::ChapterGenerator`** — chapter-form generator, predates the generic piece model. Keeps its structured flow (title/summary/new_characters JSON contract) for SC-002 byte-identical chapter frontmatter. Chapter is one form among many, not the organizing unit.
 *   **`Eidos::LLMService`** — abstracted LLM interface. OpenAI implementation included.
 *   **`Eidos::StoryBible`** — canonical world lore (characters, locations, facts, relationships, plot threads). Backed by pluggable storage.
 *   **`Eidos::RevisionStore`, `SnapshotStore`, `BranchManager`, `DiffEngine`** — canon versioning primitives.
 *   **`Eidos::WorldConfig`** — per-world configuration loading.
 *   **`Eidos::JekyllAdapter`** — Jekyll output adapter.
-*   **`Eidos::Producer`** — content production contract (chapters, comics, illustrations).
+*   **`Eidos::Producer`** — content production contract (pieces of any form).
 *   **`Eidos::PromptProvider`** — prompt templates.
 
 ### SDK (also in `lib/eidos/`)
@@ -249,6 +318,10 @@ world.canon.current_branch
 - YAML files under `worlds/<name>/data/story_bible/` (pluggable via `Eidos::Storage` backends: `:yaml_file` default, `:memory` for tests) (012-fix-ux-unify-bible)
 - Ruby 3.3.5, `frozen_string_literal: true` on every file (013-spec-coverage-backfill)
 - No storage schema changes — all work is in `eidos/spec/`, `eidos/lib/eidos/prompts/`, and engine Ruby files (013-spec-coverage-backfill)
+- Ruby 3.3.5, `# frozen_string_literal: true` on every file + Thor ~> 1.3 (CLI), ruby-openai ~> 7.3 (LLM), tty-prompt ~> 0.23, tty-spinner ~> 0.9, rainbow ~> 3.1, dotenv ~> 3.1, YAML (stdlib). No new runtime gems required. (014-storyworld-pivot)
+- YAML files under `worlds/<name>/data/` (story bible, audit log, custom forms) and `worlds/<name>/content/` (piece files). Pluggable via `Eidos::Storage` backends (`:yaml_file` default, `:memory` for tests). Reuses existing RevisionStore / SnapshotStore primitives for canon versioning. No schema migration for existing worlds. (014-storyworld-pivot)
+- Ruby 3.3.5, `# frozen_string_literal: true` on every file + Thor ~> 1.3 (CLI), ruby-openai ~> 7.3 (LLM), tty-prompt ~> 0.23 (interactive prompts only — non-interactive path bypasses), tty-spinner ~> 0.9, rainbow ~> 3.1, dotenv ~> 3.1, YAML (stdlib). **No new runtime gems.** (015-scaffold-hardening)
+- YAML files under `worlds/<name>/data/` (story bible, canon deltas, audit log, world config, strings, custom forms) and `worlds/<name>/content/` (piece files). Pluggable `Eidos::Storage` backends (`:yaml_file` default, `:memory` for tests). (015-scaffold-hardening)
 
 ## Recent Changes
 - 011-eidos-sdk-and-installable-cli: Unified `eidos` CLI (`exe/eidos`), Ruby SDK (`Eidos::World`, `Chapter`, `Character`, `Location`, `Bible`, `Canon`), `Eidos.configure` global config, installable gem (`gem install eidos`), new SDK-based `eidos chapter` and `eidos character` subcommands.

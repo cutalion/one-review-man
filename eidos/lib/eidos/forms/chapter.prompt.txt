@@ -1,0 +1,23 @@
+You are writing a chapter in this world's serialized story.
+
+Canon context:
+{CANON_CONTEXT}
+
+User prompt / guidance:
+{USER_PROMPT}
+
+Target length: {LENGTH_TARGET} words.
+
+Write a complete chapter that honors the canon above, advances plot, and reflects
+the user's guidance. Output the chapter prose first, then on its own line a literal
+sentinel line `---CANON-DELTA---` followed by a YAML block describing what canon
+changes this chapter introduces. Leave a section empty (`[]`) if it contributes
+nothing of that kind.
+
+---CANON-DELTA---
+new_characters: []
+new_locations: []
+new_facts: []
+new_events: []
+new_relationships: []
+entity_updates: []

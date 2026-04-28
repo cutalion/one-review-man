@@ -1,0 +1,9 @@
+---
+name: social-post
+category: text
+default_length: 60
+default_shape: "Single social post, under 280 characters, in-character voice"
+prompt_template_path: ./social_post.prompt.txt
+canon_context:
+  - all_characters
+  - recent_events

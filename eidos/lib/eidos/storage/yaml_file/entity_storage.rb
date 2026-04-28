@@ -8,6 +8,11 @@ require_relative '../entity_storage'
 module Eidos
   module Storage
     module YamlFile
+      # Raised when an entity YAML file on disk cannot be parsed.
+      # Replaces the former stderr-warn-and-return-empty path
+      # (feature 015 US1 / FR-023 — no silent fallback on data-loss).
+      class StorageError < StandardError; end
+
       # File-based entity storage using YAML files on disk.
       # Extracted from the original StoryBible private methods.
       class EntityStorage
@@ -194,8 +199,7 @@ module Eidos
 
           YAML.safe_load(File.read(path), permitted_classes: [Date, Time]) || {}
         rescue Psych::SyntaxError => e
-          warn "Warning: Failed to parse #{path}: #{e.message}"
-          {}
+          raise StorageError, "Failed to parse #{path}: #{e.message}"
         end
 
         def write_yaml_file(path, data)

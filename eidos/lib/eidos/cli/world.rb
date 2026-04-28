@@ -5,6 +5,7 @@ require 'fileutils'
 require 'yaml'
 require 'eidos/cli/helpers'
 require 'eidos/cli/version'
+require 'eidos/cli/unknown_command_help'
 require 'eidos/world_config'
 require 'eidos/reset'
 
@@ -12,6 +13,7 @@ module Eidos
   module CLI
     # CLI commands for world management: init, status, reset, migrate, version
     class World < Thor
+      extend Eidos::CLI::UnknownCommandHelp
       include Helpers
 
       # --- new (init) -----------------------------------------------------------
@@ -23,6 +25,24 @@ module Eidos
                             desc: 'Quick setup with minimal prompts (uses intelligent defaults)'
       method_option 'no-seed', type: :boolean, default: false,
                                desc: 'Skip the Story Bible seed prompt (also implied by --quick)'
+      method_option :title, type: :string,
+                            desc: '(--quick) World title (required when non-interactive)'
+      method_option :author, type: :string,
+                             desc: '(--quick) Author name (required when non-interactive)'
+      method_option :premise, type: :string,
+                              desc: '(--quick) Multi-line premise; lands in subtitle/description verbatim'
+      method_option :languages, type: :string,
+                                desc: '(--quick) Comma-separated ISO codes (default: en)'
+      method_option 'default-language', type: :string,
+                                        desc: '(--quick) Default ISO code; must be in --languages'
+      method_option :genre, type: :string,
+                            desc: '(--quick) Explicit genre; default is literal sentinel "unspecified"'
+      method_option :style, type: :string,
+                            desc: '(--quick) Explicit narrative style; default "unspecified"'
+      method_option :setting, type: :string,
+                              desc: '(--quick) Explicit setting; default "unspecified"'
+      method_option :theme, type: :string,
+                            desc: '(--quick) Explicit primary theme; default "unspecified"'
       def new
         target = File.expand_path(options['world-dir'] || Dir.pwd)
 
@@ -158,6 +178,8 @@ module Eidos
       end
 
       def collect_world_information
+        return quick_setup_from_flags if non_interactive_quick?
+
         title       = ask('World title:', default: 'My New World')
         author      = ask('Author name:', default: 'Anonymous')
         description = ask('Short description:', default: 'A generated world.')
@@ -177,23 +199,81 @@ module Eidos
         )
       end
 
-      def collect_quick_setup_info(description)
-        genre         = infer_genre_from_description(description)
-        style         = infer_style_from_description(description)
-        setting       = infer_setting_from_description(description)
-        primary_theme = infer_theme_from_description(description)
+      # True when --quick is in effect AND we have flag values OR stdin is
+      # not a TTY. In this mode no prompts are read — all values come from
+      # Thor options per `contracts/cli-flags.md`.
+      def non_interactive_quick?
+        return false unless options[:quick]
 
-        say "\nQuick setup enabled - using intelligent defaults:", :cyan
-        say "  Genre: #{genre}", :blue
-        say "  Style: #{style}", :blue
-        say "  Setting: #{setting}", :blue
-        say "  Theme: #{primary_theme}", :blue
+        any_quick_flag_present? || !$stdin.tty?
+      end
+
+      QUICK_SETUP_FLAGS = %w[title author premise languages default-language].freeze
+      private_constant :QUICK_SETUP_FLAGS
+
+      def any_quick_flag_present?
+        QUICK_SETUP_FLAGS.any? { |f| options[f] && !options[f].to_s.empty? }
+      end
+
+      # Build the world_info hash from Thor options. Exits non-zero on
+      # missing required flags (--title, --author, --premise) or an
+      # invalid --default-language. Never reads stdin.
+      def quick_setup_from_flags
+        validate_required_quick_flags!
+
+        languages_csv = options['languages'] || 'en'
+        codes = languages_csv.split(',').map(&:strip).reject(&:empty?)
+        if codes.empty?
+          $stderr.puts 'Error: --languages must contain at least one ISO code.'
+          exit 1
+        end
+
+        default_lang = options['default-language'] || codes.first
+        unless codes.include?(default_lang)
+          $stderr.puts "Error: --default-language '#{default_lang}' is not a member of --languages " \
+                       "(#{codes.join(', ')})."
+          exit 1
+        end
 
         {
-          genre: genre,
-          style: style,
-          setting: setting,
-          primary_theme: primary_theme,
+          title: options['title'],
+          author: options['author'],
+          description: options['premise'],
+          languages: codes.join(','),
+          default_lang: default_lang,
+          genre: options['genre'] || 'unspecified',
+          style: options['style'] || 'unspecified',
+          setting: options['setting'] || 'unspecified',
+          primary_theme: options['theme'] || 'unspecified',
+          secondary_themes: ''
+        }
+      end
+
+      def validate_required_quick_flags!
+        missing = []
+        missing << '--title'   if options['title'].to_s.empty?
+        missing << '--author'  if options['author'].to_s.empty?
+        missing << '--premise' if options['premise'].to_s.empty?
+        return if missing.empty?
+
+        $stderr.puts 'Error: --quick requires all of: --title, --author, --premise'
+        $stderr.puts "Missing: #{missing.join(', ')}"
+        exit 1
+      end
+
+      # Quick-setup under an interactive TTY (when --quick is set but no
+      # metadata flags were given). Per feature 015 US4: no regex heuristics,
+      # no hardcoded "fiction"/"adventure"/etc. fallbacks. Either the user
+      # types a value or we write the literal sentinel "unspecified" which
+      # `world status` surfaces as an action item.
+      def collect_quick_setup_info(_description)
+        say "\nQuick setup — metadata fields (press Enter to leave as 'unspecified'):", :cyan
+
+        {
+          genre: ask_or_unspecified('Genre (e.g. comedy, sci-fi, mystery):'),
+          style: ask_or_unspecified('Writing style (e.g. deadpan, whimsical, dramatic):'),
+          setting: ask_or_unspecified('Setting (e.g. open-plan office, magical realm):'),
+          primary_theme: ask_or_unspecified('Primary theme (e.g. disillusionment, adventure):'),
           secondary_themes: ''
         }
       end
@@ -201,24 +281,21 @@ module Eidos
       def collect_detailed_setup_info
         say "\nAdditional information needed for chapter generation:", :cyan
 
-        genre_examples = 'fantasy, sci-fi, mystery, thriller, comedy, romance, adventure, horror'
-        genre = ask("What genre is your world? (#{genre_examples}):", default: 'fantasy')
-
-        style_examples = 'humorous, serious, adventurous, suspenseful, whimsical, dramatic'
-        style = ask("What writing style? (#{style_examples}):", default: 'humorous')
-
-        setting = ask('What is the main setting/location of your story?', default: 'contemporary setting')
-
-        primary_theme    = ask('What is the primary theme? (e.g., friendship, mystery, adventure):', default: 'adventure')
-        secondary_themes = ask('Secondary themes (comma-separated, optional):', default: '')
-
         {
-          genre: genre,
-          style: style,
-          setting: setting,
-          primary_theme: primary_theme,
-          secondary_themes: secondary_themes
+          genre: ask_or_unspecified('Genre (e.g. comedy, sci-fi, mystery):'),
+          style: ask_or_unspecified('Writing style (e.g. deadpan, whimsical, dramatic):'),
+          setting: ask_or_unspecified('Setting (e.g. open-plan office, magical realm):'),
+          primary_theme: ask_or_unspecified('Primary theme (e.g. disillusionment, adventure):'),
+          secondary_themes: ask('Secondary themes (comma-separated, optional):', default: '')
         }
+      end
+
+      # Prompts for a free-text metadata value; an empty answer persists as
+      # the literal sentinel "unspecified". NEVER substitute a real-looking
+      # value. See specs/015-scaffold-hardening/spec.md FR-011.
+      def ask_or_unspecified(prompt)
+        response = ask(prompt, default: 'unspecified').to_s.strip
+        response.empty? ? 'unspecified' : response
       end
 
       # When only one language was provided there's nothing to choose between,
@@ -300,8 +377,7 @@ module Eidos
       def create_directories(target)
         FileUtils.mkdir_p(target)
         FileUtils.mkdir_p(File.join(target, 'data'))
-        FileUtils.mkdir_p(File.join(target, 'content', 'chapters'))
-        FileUtils.mkdir_p(File.join(target, 'content', 'characters'))
+        FileUtils.mkdir_p(File.join(target, 'content'))
       end
 
       def create_metadata_files(target, world_info)

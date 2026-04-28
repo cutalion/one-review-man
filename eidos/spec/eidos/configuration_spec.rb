@@ -64,11 +64,23 @@ RSpec.describe Eidos::Configuration do
     it 'prioritizes CLI overrides over project settings' do
       settings = { 'llm' => { 'model' => 'project-model' } }
       File.write(settings_path, settings.to_yaml)
-      
+
       cli_options = { 'llm.model' => 'cli-model' }
-      
+
       config = described_class.load(project_root, cli_options)
       expect(config['llm']['model']).to eq('cli-model')
+    end
+
+    # T038 (feature 015 US1): a malformed project settings.yml used to
+    # `warn "Failed to load project settings"` and silently fall through
+    # to defaults — a textbook silent fallback that hid a broken LLM
+    # config from the user. Now it raises ConfigurationError with the
+    # file path, so the CLI surfaces the problem.
+    it 'raises ConfigurationError when project settings.yml is malformed' do
+      File.write(settings_path, "llm:\n  model: gpt-4\n  : bad yaml\n")
+
+      expect { described_class.load(project_root) }
+        .to raise_error(Eidos::Configuration::ConfigurationError, /settings\.yml/)
     end
   end
 end

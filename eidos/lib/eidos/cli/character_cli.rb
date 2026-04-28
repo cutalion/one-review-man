@@ -2,12 +2,18 @@
 
 require 'thor'
 require 'eidos/cli/sdk_helpers'
+require 'eidos/cli/unknown_command_help'
 
 module Eidos
   module CLI
     # SDK-based CLI for character operations.
     class CharacterCli < Thor
+      extend Eidos::CLI::UnknownCommandHelp
       include SdkHelpers
+
+      # See PieceCli for context: Thor 1.5+ `tree` command misrenders under
+      # --help for `*Cli`-suffixed classes. Drop the inherited command.
+      remove_command :tree
 
       class_option 'world-dir', aliases: ['-w'], type: :string,
                                 desc: 'Path to the world directory'

@@ -4,6 +4,7 @@ require 'yaml'
 require 'date'
 require 'fileutils'
 require_relative 'snapshot_errors'
+require_relative 'storage/yaml_file/entity_storage'
 
 module Eidos
   # Unified API for reading and writing Story Bible data.
@@ -369,8 +370,8 @@ module Eidos
 
       YAML.safe_load(File.read(path), permitted_classes: [Date, Time]) || {}
     rescue Psych::SyntaxError => e
-      warn "Warning: Failed to parse #{path}: #{e.message}"
-      {}
+      raise Eidos::Storage::YamlFile::StorageError,
+            "Failed to parse #{path}: #{e.message}"
     end
   end
 end

@@ -1,12 +1,19 @@
 # frozen_string_literal: true
 
 require 'thor'
+require 'json'
+require 'yaml'
 require 'eidos/cli/helpers'
+require 'eidos/cli/unknown_command_help'
+require 'eidos/audit_log'
+require 'eidos/audit_finding'
+require 'eidos/canon_delta'
 
 module Eidos
   module CLI
     # CLI commands for canon history, diffing, and rollback
     class Canon < Thor
+      extend Eidos::CLI::UnknownCommandHelp
       include Helpers
 
       class_option 'world-dir', aliases: ['-w'], type: :string, desc: 'Path to the world directory'
@@ -41,7 +48,7 @@ module Eidos
             say "Reason: #{rev.change_reason}" if rev.change_reason
             if rev.parent_seq
               parent = store.get(entity_type: entity_type, entity_id: entity_id,
-                                sequence: rev.parent_seq, branch: options[:branch])
+                                 sequence: rev.parent_seq, branch: options[:branch])
               if parent
                 require 'eidos/diff_engine'
                 changes = Eidos::DiffEngine.new.diff(parent.snapshot, rev.snapshot)
@@ -65,7 +72,7 @@ module Eidos
                        sequence: rev2.to_i, branch: options[:branch])
 
         unless r1 && r2
-          say "Revision not found.", :red
+          say 'Revision not found.', :red
           exit 1
         end
 
@@ -106,11 +113,9 @@ module Eidos
           exit 1
         end
 
-        unless options[:auto]
-          unless yes?("Rollback #{entity_type}/#{entity_id} to revision ##{revision}? (y/n)")
-            say 'Cancelled.', :yellow
-            exit 3
-          end
+        if !options[:auto] && !yes?("Rollback #{entity_type}/#{entity_id} to revision ##{revision}? (y/n)")
+          say 'Cancelled.', :yellow
+          exit 3
         end
 
         bible = Eidos::StoryBible.new(project_root: abs_root, revision_store: store)
@@ -121,7 +126,7 @@ module Eidos
                                change_reason: options[:reason] || "Rollback to revision ##{revision}")
         when 'location'
           bible.save_location(entity_id, target.snapshot,
-                               change_reason: options[:reason] || "Rollback to revision ##{revision}")
+                              change_reason: options[:reason] || "Rollback to revision ##{revision}")
         else
           say "Rollback not yet supported for #{entity_type}.", :red
           exit 1
@@ -162,19 +167,19 @@ module Eidos
         # Automatic non-blocking impact analysis
         analyzer = build_impact_analyzer(abs_root)
         latest_rev = store.latest(entity_type: entity_type, entity_id: entity_id)
-        if latest_rev
-          report = analyzer.analyze(
-            entity_type: entity_type,
-            entity_id: entity_id,
-            revision: latest_rev,
-            branch: options[:branch] || 'main'
-          )
-          if report.affected_items.any?
-            say "Impact: #{report.affected_items.length} content file(s) reference this entity", :yellow
-            say "Run 'canon impact --latest' for details"
-          else
-            say "No content references found for this entity."
-          end
+        return unless latest_rev
+
+        report = analyzer.analyze(
+          entity_type: entity_type,
+          entity_id: entity_id,
+          revision: latest_rev,
+          branch: options[:branch] || 'main'
+        )
+        if report.affected_items.any?
+          say "Impact: #{report.affected_items.length} content file(s) reference this entity", :yellow
+          say "Run 'canon impact --latest' for details"
+        else
+          say 'No content references found for this entity.'
         end
       end
 
@@ -190,25 +195,142 @@ module Eidos
         if options['report-id']
           report = analyzer.load_report(options['report-id'])
           unless report
-            say "Report not found.", :red
+            say 'Report not found.', :red
             exit 1
           end
           display_impact_report(report, options)
         elsif options[:latest]
           reports = analyzer.list_reports(branch: options[:branch])
           if reports.empty?
-            say "No impact reports found.", :yellow
+            say 'No impact reports found.', :yellow
             exit 1
           end
           display_impact_report(reports.first, options)
         else
           reports = analyzer.list_reports(branch: options[:branch])
           if reports.empty?
-            say "No impact reports found.", :yellow
+            say 'No impact reports found.', :yellow
             return
           end
           reports.each { |r| display_impact_report_summary(r) }
         end
+      end
+
+      desc 'review', 'List audit findings against applied canon'
+      method_option :status, type: :string, default: 'open', enum: %w[open closed all],
+                             desc: 'Filter by finding status'
+      method_option :kind, type: :string, enum: %w[conflict malformed-delta orphaned-reference parse-drop],
+                           desc: 'Filter by finding kind'
+      method_option :piece, type: :string, desc: 'Filter by originating piece id'
+      method_option :format, type: :string, default: 'text', enum: %w[text json],
+                             desc: 'Output format'
+      def review
+        abs_root = resolve_project_root!(options['world-dir'])
+        audit_log = Eidos::AuditLog.new(world_path: abs_root)
+
+        findings = audit_log.all
+        findings = filter_findings(findings, options)
+
+        if options[:format] == 'json'
+          say JSON.pretty_generate(findings.map(&:to_hash))
+          return
+        end
+
+        if findings.empty?
+          say '0 findings.', :green
+          return
+        end
+
+        findings.each { |f| render_finding(f) }
+      end
+
+      desc 'revert', 'Revert the canon delta associated with a finding'
+      method_option :finding, type: :string, required: true, desc: 'Finding id to revert'
+      method_option 'also-regenerate', type: :boolean, default: false,
+                                       desc: 'Kick off a replacement produce call'
+      method_option 'dry-run', type: :boolean, default: false,
+                               desc: 'Preview the revert without touching disk'
+      def revert
+        abs_root = resolve_project_root!(options['world-dir'])
+        audit_log = Eidos::AuditLog.new(world_path: abs_root)
+
+        finding = audit_log.find(options[:finding])
+        unless finding
+          warn "Finding #{options[:finding]} not found."
+          exit 1
+        end
+        if finding.closed?
+          warn "Finding #{finding.id} is already closed (#{finding.resolution})."
+          exit 1
+        end
+
+        if options['dry-run']
+          say "Dry-run: would revert finding #{finding.id} (#{finding.kind}, piece #{finding.piece_id}).", :cyan
+          return
+        end
+
+        delta = load_delta(abs_root, finding.canon_delta_id)
+        unless delta
+          warn "Canon delta #{finding.canon_delta_id} not found for finding #{finding.id}."
+          exit 1
+        end
+
+        require 'eidos/story_bible'
+        bible = Eidos::StoryBible.new(project_root: abs_root)
+        delta.revert!(bible: bible, audit_log: audit_log, finding: finding, world_path: abs_root)
+
+        flip_piece_status(abs_root, finding.piece_id, 'reverted')
+
+        say "Reverted canon delta for piece #{finding.piece_id}. Finding #{finding.id} closed.", :green
+      end
+
+      desc 'accept', 'Accept a finding without changing canon'
+      method_option :finding, type: :string, required: true, desc: 'Finding id to accept'
+      method_option :note, type: :string, desc: 'Optional note recorded with the resolution'
+      def accept
+        abs_root = resolve_project_root!(options['world-dir'])
+        audit_log = Eidos::AuditLog.new(world_path: abs_root)
+
+        finding = audit_log.find(options[:finding])
+        unless finding
+          warn "Finding #{options[:finding]} not found."
+          exit 1
+        end
+        if finding.closed?
+          warn "Finding #{finding.id} is already closed (#{finding.resolution})."
+          exit 1
+        end
+
+        audit_log.close(finding.id, resolution: 'accept')
+        say "Accepted finding #{finding.id}.", :green
+      end
+
+      desc 'patch', 'Patch canon via $EDITOR to resolve a finding'
+      method_option :finding, type: :string, required: true, desc: 'Finding id to patch'
+      def patch
+        abs_root = resolve_project_root!(options['world-dir'])
+        audit_log = Eidos::AuditLog.new(world_path: abs_root)
+
+        finding = audit_log.find(options[:finding])
+        unless finding
+          warn "Finding #{options[:finding]} not found."
+          exit 1
+        end
+        if finding.closed?
+          warn "Finding #{finding.id} is already closed (#{finding.resolution})."
+          exit 1
+        end
+
+        editor = ENV['EDITOR'] || 'vi'
+        target = patch_target(abs_root, finding)
+        ok = system(editor, target)
+        unless ok
+          warn "Editor (#{editor}) exited non-zero; finding left open."
+          exit 2
+        end
+
+        audit_log.close(finding.id, resolution: 'patch-canon')
+        say "Patched canon; finding #{finding.id} closed.", :green
       end
 
       desc 'impact_review REPORT_ID ITEM_INDEX STATUS', 'Update review status of an affected item'
@@ -229,7 +351,7 @@ module Eidos
         )
 
         unless report
-          say "Report or item not found.", :red
+          say 'Report or item not found.', :red
           exit 1
         end
 
@@ -237,6 +359,79 @@ module Eidos
       end
 
       private
+
+      def filter_findings(findings, opts)
+        case opts[:status]
+        when 'open' then findings = findings.select(&:open?)
+        when 'closed' then findings = findings.select(&:closed?)
+        end
+        findings = findings.select { |f| f.kind == opts[:kind] } if opts[:kind]
+        findings = findings.select { |f| f.piece_id == opts[:piece].to_s } if opts[:piece]
+        findings
+      end
+
+      def render_finding(finding)
+        status_label = finding.open? ? 'OPEN' : 'CLOSED'
+        color = finding.open? ? :yellow : :white
+        say "Finding #{finding.id}  [#{finding.kind}]  #{status_label}", color
+        say "  Piece: #{finding.piece_id}"
+        say "  Canon: #{finding.canon_version_before} → #{finding.canon_version_after}"
+        say "  Severity: #{finding.severity_hint}"
+        say "  Opened: #{format_time(finding.created_at)}"
+        say ''
+        finding.explanation.to_s.each_line { |line| say "  #{line.rstrip}" }
+        say ''
+        if finding.open?
+          say '  Remediate:'
+          say "    eidos canon revert --finding #{finding.id}"
+          say "    eidos canon accept --finding #{finding.id}"
+          say "    eidos canon patch  --finding #{finding.id}"
+        else
+          say "  Resolved: #{format_time(finding.resolved_at)} via #{finding.resolution}"
+        end
+        say '---'
+      end
+
+      def format_time(t)
+        return '' if t.nil?
+
+        t.utc.strftime('%Y-%m-%d %H:%M:%S UTC')
+      end
+
+      def load_delta(abs_root, delta_id)
+        return nil if delta_id.nil? || delta_id.to_s.empty?
+
+        Eidos::CanonDelta.load(abs_root, delta_id)
+      end
+
+      def flip_piece_status(abs_root, piece_id, new_status)
+        candidates = Dir.glob(File.join(abs_root, 'content', '**', '*.md'))
+        candidates.each do |path|
+          raw = File.read(path)
+          next unless raw.start_with?('---')
+
+          parts = raw.split(/^---\s*$/m, 3)
+          next unless parts.length >= 3
+
+          fm = YAML.safe_load(parts[1], permitted_classes: [Date, Time, Symbol]) || {}
+          next unless fm['id'].to_s == piece_id.to_s || matches_chapter_id?(fm, piece_id)
+
+          fm['canon_status'] = new_status
+          File.write(path, "#{fm.to_yaml}---\n#{parts[2]}")
+          return true
+        end
+        false
+      end
+
+      def matches_chapter_id?(fm, piece_id)
+        fm['chapter_number'].to_s == piece_id.to_s.sub(/^0+/, '')
+      end
+
+      def patch_target(abs_root, _finding)
+        # MVP: default to the world directory so the editor at least opens
+        # something meaningful. Specific entity targeting is a follow-up.
+        abs_root
+      end
 
       def build_revision_store(abs_root)
         revisions_path = File.join(abs_root, 'data', 'story_bible', 'revisions')
@@ -342,7 +537,7 @@ module Eidos
           return
         end
 
-        say "* main (active)", current == 'main' ? :green : :white
+        say '* main (active)', current == 'main' ? :green : :white
         branches.each do |b|
           prefix = current == b.name ? '* ' : '  '
           color = current == b.name ? :green : :white
@@ -412,25 +607,23 @@ module Eidos
           return
         end
 
-        unless options[:auto]
-          unless yes?("Merge \"#{source}\" into \"#{target}\"? (y/n)")
-            say 'Cancelled.', :yellow
-            exit 4
-          end
+        if !options[:auto] && !yes?("Merge \"#{source}\" into \"#{target}\"? (y/n)")
+          say 'Cancelled.', :yellow
+          exit 4
         end
 
         result = manager.merge(source: source, target: target)
 
         say "Auto-merged: #{result[:auto_merged].length} changes", :green
-        if result[:conflicts].any?
-          say "Conflicts: #{result[:conflicts].length}", :red
-          result[:conflicts].each_with_index do |c, i|
-            say "\nConflict #{i + 1}: #{c.entity_type}/#{c.entity_id}.#{c.field_path}"
-            say "  OURS (#{target}):   #{c.ours_value.inspect}"
-            say "  THEIRS (#{source}): #{c.theirs_value.inspect}"
-          end
-          exit 3
+        return unless result[:conflicts].any?
+
+        say "Conflicts: #{result[:conflicts].length}", :red
+        result[:conflicts].each_with_index do |c, i|
+          say "\nConflict #{i + 1}: #{c.entity_type}/#{c.entity_id}.#{c.field_path}"
+          say "  OURS (#{target}):   #{c.ours_value.inspect}"
+          say "  THEIRS (#{source}): #{c.theirs_value.inspect}"
         end
+        exit 3
       end
 
       desc 'archive NAME', 'Archive a branch'
@@ -439,11 +632,9 @@ module Eidos
         abs_root = resolve_project_root!(options['world-dir'])
         manager = build_branch_manager(abs_root)
 
-        unless options[:auto]
-          unless yes?("Archive branch \"#{name}\"? (y/n)")
-            say 'Cancelled.', :yellow
-            exit 3
-          end
+        if !options[:auto] && !yes?("Archive branch \"#{name}\"? (y/n)")
+          say 'Cancelled.', :yellow
+          exit 3
         end
 
         manager.archive(name)
@@ -459,11 +650,9 @@ module Eidos
         abs_root = resolve_project_root!(options['world-dir'])
         manager = build_branch_manager(abs_root)
 
-        unless options[:auto]
-          unless yes?("Permanently delete branch \"#{name}\"? This cannot be undone. (y/n)")
-            say 'Cancelled.', :yellow
-            exit 3
-          end
+        if !options[:auto] && !yes?("Permanently delete branch \"#{name}\"? This cannot be undone. (y/n)")
+          say 'Cancelled.', :yellow
+          exit 3
         end
 
         manager.delete(name)
@@ -515,7 +704,7 @@ module Eidos
 
         active_cs = manager.active
         unless active_cs
-          say "No active changeset. Create one first with: canon changeset create", :red
+          say 'No active changeset. Create one first with: canon changeset create', :red
           exit 1
         end
 
@@ -541,7 +730,7 @@ module Eidos
 
         active_cs = manager.active
         unless active_cs
-          say "No active changeset.", :red
+          say 'No active changeset.', :red
           exit 1
         end
 
@@ -563,7 +752,7 @@ module Eidos
           end
           exit 3
         else
-          say "No conflicts detected.", :green
+          say 'No conflicts detected.', :green
         end
       end
 
@@ -576,15 +765,13 @@ module Eidos
 
         active_cs = manager.active
         unless active_cs
-          say "No active changeset.", :red
+          say 'No active changeset.', :red
           exit 1
         end
 
-        unless options[:auto]
-          unless yes?("Commit changeset #{active_cs.id} with #{active_cs.operations.length} operations? (y/n)")
-            say 'Cancelled.', :yellow
-            exit 3
-          end
+        if !options[:auto] && !yes?("Commit changeset #{active_cs.id} with #{active_cs.operations.length} operations? (y/n)")
+          say 'Cancelled.', :yellow
+          exit 3
         end
 
         revisions = manager.commit(changeset_id: active_cs.id, reason: options[:reason])
@@ -602,15 +789,13 @@ module Eidos
 
         active_cs = manager.active
         unless active_cs
-          say "No active changeset.", :red
+          say 'No active changeset.', :red
           exit 1
         end
 
-        unless options[:auto]
-          unless yes?("Discard changeset #{active_cs.id}? (y/n)")
-            say 'Cancelled.', :yellow
-            exit 3
-          end
+        if !options[:auto] && !yes?("Discard changeset #{active_cs.id}? (y/n)")
+          say 'Cancelled.', :yellow
+          exit 3
         end
 
         manager.discard(changeset_id: active_cs.id)
@@ -668,10 +853,10 @@ module Eidos
         say "  Relationships: #{counts['relationships']}"
         say "  Plot threads: #{counts['plot_threads']}"
       rescue Eidos::DuplicateSnapshotError => e
-        $stderr.puts "Error: #{e.message}"
+        warn "Error: #{e.message}"
         exit 1
       rescue Eidos::InvalidSnapshotNameError => e
-        $stderr.puts "Error: #{e.message}"
+        warn "Error: #{e.message}"
         exit 1
       end
 
@@ -712,7 +897,7 @@ module Eidos
         manifest = store.get(name)
 
         unless manifest
-          $stderr.puts "Error: Snapshot \"#{name}\" not found"
+          warn "Error: Snapshot \"#{name}\" not found"
           exit 1
         end
 

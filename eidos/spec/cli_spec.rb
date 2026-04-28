@@ -38,8 +38,11 @@ RSpec.describe 'world CLI' do
     end
 
     it 'creates settings.yml with default LLM configuration' do
-      stdin_data = "Test Book\nTest Author\nA test book\nen\nen\n"
-      stdout, stderr, status = Open3.capture3('ruby', cli_path, 'new', '--world-dir', test_dir, '--quick', stdin_data: stdin_data)
+      stdout, stderr, status = Open3.capture3(
+        'ruby', cli_path, 'new', '--world-dir', test_dir, '--quick', '--no-seed',
+        '--title', 'Test Book', '--author', 'Test Author',
+        '--premise', 'A test book', '--languages', 'en'
+      )
 
       expect(status).to be_success
       expect(stderr).to be_empty
@@ -66,8 +69,11 @@ RSpec.describe 'world CLI' do
     end
 
     it 'creates all required data files' do
-      stdin_data = "Test Book\nTest Author\nA test book\nen\nen\n"
-      _, _, status = Open3.capture3('ruby', cli_path, 'new', '--world-dir', test_dir, '--quick', stdin_data: stdin_data)
+      _, _, status = Open3.capture3(
+        'ruby', cli_path, 'new', '--world-dir', test_dir, '--quick', '--no-seed',
+        '--title', 'Test Book', '--author', 'Test Author',
+        '--premise', 'A test book', '--languages', 'en'
+      )
 
       expect(status).to be_success
 
@@ -88,8 +94,12 @@ RSpec.describe 'world CLI' do
       expect(Dir.exist?(File.join(test_dir, 'data', 'story_bible'))).to be true
       expect(File.exist?(File.join(test_dir, 'data', 'world.yml'))).to be(false),
         'Expected data/world.yml NOT to exist (US2: unified bible)'
-      expect(Dir.exist?(File.join(test_dir, 'content', 'chapters'))).to be true
-      expect(Dir.exist?(File.join(test_dir, 'content', 'characters'))).to be true
+      # Feature 015 US5: scaffolding no longer creates form-specific
+      # dirs up front. They are created lazily at first produce.
+      expect(Dir.exist?(File.join(test_dir, 'content', 'chapters'))).to be(false),
+        'Expected content/chapters NOT to exist (015 US5: lazy form dirs)'
+      expect(Dir.exist?(File.join(test_dir, 'content', 'characters'))).to be(false),
+        'Expected content/characters NOT to exist (015 US5: lazy form dirs)'
     end
   end
 end

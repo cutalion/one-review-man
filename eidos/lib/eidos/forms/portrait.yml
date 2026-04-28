@@ -1,0 +1,7 @@
+---
+name: portrait
+category: image
+default_shape: "image prompt describing one character portrait in a consistent house style"
+prompt_template_path: ./portrait.prompt.txt
+canon_context:
+  - all_characters
