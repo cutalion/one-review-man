@@ -312,19 +312,28 @@ module Eidos
 
     private
 
-    # Generate image using OpenAI DALL-E
+    # Generate image using OpenAI DALL-E or gpt-image-*
     def generate_image_with_openai(prompt, size:, quality:, style:, model:)
       client = get_client('openai')
       raise ConfigurationError, 'No OpenAI client configured' if client.nil?
 
-      parameters = {
-        model: model,
-        prompt: prompt,
-        size: size,
-        quality: quality,
-        style: style,
-        response_format: 'b64_json' # We want the data, not a temporary URL
-      }
+      # gpt-image-* family uses a different parameter set than dall-e-*:
+      # no `style`, no `response_format` (always b64 by contract), and
+      # `quality` accepts low/medium/high/auto instead of standard/hd.
+      gpt_image = model.to_s.start_with?('gpt-image')
+      gpt_image_qualities = %w[low medium high auto].freeze
+
+      parameters = { model: model, prompt: prompt, size: size }
+
+      if gpt_image
+        q = gpt_image_qualities.include?(quality.to_s) ? quality.to_s : 'auto'
+        parameters[:quality] = q
+      elsif quality && !quality.to_s.empty?
+        parameters[:quality] = quality
+      end
+
+      parameters[:style] = style unless gpt_image || style.nil? || style.to_s.empty?
+      parameters[:response_format] = 'b64_json' unless gpt_image
 
       debug_dump('image_generation_params.json', JSON.pretty_generate(parameters))
 

@@ -46,9 +46,12 @@ providers:
     base_url: https://openrouter.ai/api/v1
 
 illustration:
-  provider: openrouter  # 'openai' or 'openrouter'
+  provider: openai  # 'openai' or 'openrouter'
+  model: gpt-image-2
+  # Previous values — restore to switch back:
+  # provider: openrouter
+  # model: google/gemini-3-pro-image-preview
   # model: google/gemini-flash-image  # Fast, cheaper model for testing
-  model: google/gemini-3-pro-image-preview
   style: comic book
   orientation: 'landscape' # Options: 'landscape' (1792x1024), 'portrait' (1024x1792), 'square'/'1:1' (1024x1024)
 
