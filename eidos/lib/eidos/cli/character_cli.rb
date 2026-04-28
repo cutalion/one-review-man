@@ -2,11 +2,13 @@
 
 require 'thor'
 require 'eidos/cli/sdk_helpers'
+require 'eidos/cli/unknown_command_help'
 
 module Eidos
   module CLI
     # SDK-based CLI for character operations.
     class CharacterCli < Thor
+      extend Eidos::CLI::UnknownCommandHelp
       include SdkHelpers
 
       # See PieceCli for context: Thor 1.5+ `tree` command misrenders under

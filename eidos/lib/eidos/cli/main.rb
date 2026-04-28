@@ -2,12 +2,15 @@
 
 require 'thor'
 require 'eidos/version'
+require 'eidos/cli/unknown_command_help'
 
 module Eidos
   module CLI
     # Top-level CLI router for the unified `eidos` command.
     # Delegates to subcommand classes.
     class Main < Thor
+      extend Eidos::CLI::UnknownCommandHelp
+
       def self.exit_on_failure?
         true
       end

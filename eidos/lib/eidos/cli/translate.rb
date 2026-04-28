@@ -2,6 +2,7 @@
 
 require 'thor'
 require 'eidos/cli/helpers'
+require 'eidos/cli/unknown_command_help'
 require 'eidos/translator'
 require 'eidos/configuration'
 
@@ -9,6 +10,7 @@ module Eidos
   module CLI
     # CLI commands for translating world content
     class Translate < Thor
+      extend Eidos::CLI::UnknownCommandHelp
       include Eidos::CLI::Helpers
 
       class_option 'world-dir', aliases: ['-w'], type: :string,

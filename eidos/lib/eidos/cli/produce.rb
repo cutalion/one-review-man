@@ -2,6 +2,7 @@
 
 require 'thor'
 require 'eidos/cli/helpers'
+require 'eidos/cli/unknown_command_help'
 require 'eidos/form_registry'
 require 'eidos/audit_log'
 
@@ -12,6 +13,7 @@ module Eidos
     # or a world-defined custom form. `produce chapter` remains as a shortcut for
     # the chapter form; `produce piece --form <name>` is the generic entry point.
     class Produce < Thor
+      extend Eidos::CLI::UnknownCommandHelp
       include Helpers
 
       # Thor subcommands that must NEVER be shadowed by short-form dispatch

@@ -2,6 +2,7 @@
 
 require 'thor'
 require 'eidos/cli/sdk_helpers'
+require 'eidos/cli/unknown_command_help'
 
 module Eidos
   module CLI
@@ -9,6 +10,7 @@ module Eidos
     # ChapterCli. `piece list` surfaces every piece in the world (chapter
     # or not); `piece show` surfaces a single piece by id.
     class PieceCli < Thor
+      extend Eidos::CLI::UnknownCommandHelp
       include SdkHelpers
 
       # Thor 1.5+ ships a built-in `tree` command, but its inherited basename

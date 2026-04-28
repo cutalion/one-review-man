@@ -5,6 +5,7 @@ require 'fileutils'
 require 'yaml'
 require 'eidos/cli/helpers'
 require 'eidos/cli/version'
+require 'eidos/cli/unknown_command_help'
 require 'eidos/world_config'
 require 'eidos/reset'
 
@@ -12,6 +13,7 @@ module Eidos
   module CLI
     # CLI commands for world management: init, status, reset, migrate, version
     class World < Thor
+      extend Eidos::CLI::UnknownCommandHelp
       include Helpers
 
       # --- new (init) -----------------------------------------------------------
