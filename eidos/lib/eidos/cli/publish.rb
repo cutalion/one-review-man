@@ -4,6 +4,7 @@ require 'thor'
 require 'eidos/cli/helpers'
 require 'eidos/cli/unknown_command_help'
 require 'eidos/env_utils'
+require 'eidos/prompt_utils'
 require 'eidos/story_bible_exporter'
 
 module Eidos
@@ -196,7 +197,9 @@ module Eidos
       end
 
       def load_jekyll_metadata(world_root)
-        metadata_path = File.join(world_root, 'data', 'world_metadata.yml')
+        config_path = File.join(world_root, 'data', 'world_config.yml')
+        legacy_path = File.join(world_root, 'data', 'world_metadata.yml')
+        metadata_path = File.exist?(config_path) ? config_path : legacy_path
         return nil unless File.exist?(metadata_path)
 
         YAML.safe_load_file(metadata_path)
