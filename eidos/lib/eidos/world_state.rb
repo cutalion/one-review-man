@@ -7,42 +7,38 @@ module Eidos
   # Reads and atomically advances `canon.revision` in `data/world_state.yml`.
   #
   # Feature 018a (US2). Contract:
-  # `specs/018-unify-piece-producer/contracts/world-state-migration.md` and
   # `specs/018-unify-piece-producer/contracts/canon-revision-atomicity.md`.
   #
-  # FR-006a: the in-place migration branch in #current_revision is
-  # *temporary scaffolding* scheduled for retirement in/after feature 018c.
-  # Once `worlds/one-review-man` is migrated explicitly, the migration code
-  # path has no caller and gets deleted; the contract tightens to
-  # "raise CorruptWorldError when canon.revision is missing".
+  # 018c retired the FR-006a temporary in-place migration branch: every
+  # active world now has `canon.revision` written by the scaffold (post-018a)
+  # or by the 018c one-shot migration (`specs/018c-orm-migration/migrate.rb`).
+  # Missing `canon.revision` is now a corrupt-world signal — we raise rather
+  # than retroactively synthesizing the value.
   class WorldState
     class CorruptWorldError < StandardError; end
 
     def initialize(world_path:)
       @world_path = File.expand_path(world_path)
       @state_path = File.join(@world_path, 'data', 'world_state.yml')
-      @deltas_dir = File.join(@world_path, 'data', 'canon_deltas')
     end
 
-    # Returns the current `canon.revision` integer.
-    #
-    # If the field is present and well-formed, returns it.
-    # If the field is absent, runs the FR-006 in-place migration:
-    #   - Counts files in data/canon_deltas/ to derive the value retroactively.
-    #   - Writes the field back atomically.
-    #   - Logs one "Migrating ..." line to stderr.
-    #   - Returns the counted value.
-    # Raises CorruptWorldError if world_state.yml is missing, canon_deltas/
-    # is absent on a missing-field world, or the field is non-integer/negative.
+    # Returns the current `canon.revision` integer. Raises
+    # CorruptWorldError if `world_state.yml` is missing, `canon.revision`
+    # is missing, or the value is non-integer / negative.
     def current_revision
       raise CorruptWorldError, "world_state.yml not found at #{@state_path}" unless File.exist?(@state_path)
 
       data = YAML.safe_load_file(@state_path) || {}
       raw = data.dig('canon', 'revision')
 
-      return validated_revision(raw) unless raw.nil?
+      if raw.nil?
+        raise CorruptWorldError,
+              "canon.revision missing from #{@state_path}. " \
+              'Worlds scaffolded before feature 018a need an explicit migration ' \
+              "(see specs/018c-orm-migration/migrate.rb)."
+      end
 
-      migrate_in_place!(data)
+      validated_revision(raw)
     end
 
     # Atomically increments canon.revision by 1. Returns the new integer.
@@ -75,20 +71,6 @@ module Eidos
       end
 
       raw
-    end
-
-    def migrate_in_place!(data)
-      unless Dir.exist?(@deltas_dir)
-        raise CorruptWorldError,
-              "Cannot migrate #{@state_path}: data/canon_deltas/ directory is absent. Investigate before proceeding."
-      end
-
-      count = Dir.glob(File.join(@deltas_dir, '*.yml')).count
-      data['canon'] ||= {}
-      data['canon']['revision'] = count
-      atomic_write(data)
-      $stderr.puts "Migrating #{@state_path}: adding canon.revision = #{count}"
-      count
     end
 
     def atomic_write(data)

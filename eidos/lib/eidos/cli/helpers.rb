@@ -89,8 +89,9 @@ module Eidos
       end
 
       # 018a (FR-009): show the global canon revision in `world status`.
-      # Reads via Eidos::WorldState which transparently handles the
-      # in-place migration for legacy worlds (FR-006).
+      # 018c retired FR-006a — a missing canon.revision is now a corrupt
+      # world. We surface the error inline so `world status` keeps
+      # rendering for read-only inspection of an otherwise-broken world.
       def show_canon_revision(abs_root)
         require 'eidos/world_state'
         revision = Eidos::WorldState.new(world_path: abs_root).current_revision

@@ -33,70 +33,34 @@ RSpec.describe Eidos::WorldState do
       expect(output).to be_empty
     end
 
-    it 'does not log a migration line when the field is already present' do
+    it 'does not write to stderr when the field is already present' do
       write_state({ 'canon' => { 'revision' => 0 } })
 
       output = capture_stderr { described_class.new(world_path: tmp_dir).current_revision }
 
-      expect(output).not_to include('Migrating')
-    end
-  end
-
-  describe '#current_revision (in-place migration)' do
-    it 'migrates and returns count(canon_deltas/*.yml) when canon.revision is missing' do
-      write_state({ 'world' => { 'name' => 'whatever' } }) # no canon mapping
-      FileUtils.mkdir_p(deltas_dir)
-      5.times { |i| File.write(File.join(deltas_dir, "delta-#{i}.yml"), "---\nid: x#{i}\n") }
-
-      output = capture_stderr do
-        expect(described_class.new(world_path: tmp_dir).current_revision).to eq(5)
-      end
-
-      reloaded = YAML.safe_load_file(state_path)
-      expect(reloaded.dig('canon', 'revision')).to eq(5)
-      expect(output).to include("Migrating #{state_path}")
-      expect(output).to include('canon.revision = 5')
-    end
-
-    it 'returns 0 (and migrates) when data/canon_deltas/ exists but is empty' do
-      write_state({ 'world' => { 'name' => 'x' } })
-      FileUtils.mkdir_p(deltas_dir)
-
-      capture_stderr do
-        expect(described_class.new(world_path: tmp_dir).current_revision).to eq(0)
-      end
-
-      reloaded = YAML.safe_load_file(state_path)
-      expect(reloaded.dig('canon', 'revision')).to eq(0)
-    end
-
-    it 'raises CorruptWorldError when data/canon_deltas/ does not exist' do
-      write_state({ 'world' => { 'name' => 'x' } })
-      # do NOT create deltas_dir
-      original = File.read(state_path)
-
-      expect { described_class.new(world_path: tmp_dir).current_revision }
-        .to raise_error(Eidos::WorldState::CorruptWorldError, /canon_deltas/)
-
-      # Atomic — migration aborted, file unchanged.
-      expect(File.read(state_path)).to eq(original)
-    end
-
-    it 'is idempotent — second call reads the persisted field with no log line' do
-      write_state({ 'world' => { 'name' => 'x' } })
-      FileUtils.mkdir_p(deltas_dir)
-      File.write(File.join(deltas_dir, 'delta-1.yml'), "---\nid: x\n")
-
-      ws = described_class.new(world_path: tmp_dir)
-      capture_stderr { ws.current_revision } # first call migrates
-
-      ws2 = described_class.new(world_path: tmp_dir)
-      output2 = capture_stderr { expect(ws2.current_revision).to eq(1) }
-      expect(output2).not_to include('Migrating')
+      expect(output).to be_empty
     end
   end
 
   describe '#current_revision (corrupt-world signals)' do
+    # 018c retired FR-006a's in-place migration. Missing canon.revision
+    # is now a corrupt-world signal — there's no auto-recovery path; an
+    # affected world must be migrated explicitly via
+    # `specs/018c-orm-migration/migrate.rb` or equivalent.
+    it 'raises CorruptWorldError when canon.revision is missing' do
+      write_state({ 'world' => { 'name' => 'whatever' } }) # no canon mapping
+
+      expect { described_class.new(world_path: tmp_dir).current_revision }
+        .to raise_error(Eidos::WorldState::CorruptWorldError, /canon\.revision missing/)
+    end
+
+    it 'raises CorruptWorldError when canon mapping is present but canon.revision is missing' do
+      write_state({ 'canon' => { 'something_else' => true } })
+
+      expect { described_class.new(world_path: tmp_dir).current_revision }
+        .to raise_error(Eidos::WorldState::CorruptWorldError, /canon\.revision missing/)
+    end
+
     it 'raises CorruptWorldError when world_state.yml is missing' do
       # data/ exists but world_state.yml does not.
       expect { described_class.new(world_path: tmp_dir).current_revision }

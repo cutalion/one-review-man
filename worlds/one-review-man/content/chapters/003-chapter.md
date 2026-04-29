@@ -1,4 +1,7 @@
 ---
+id: '01123932FEA27191F59F0A4EAA'
+form: chapter
+category: text
 layout: chapter
 title: 'Chapter 3: The Legacy Codebase from Hell'
 chapter_number: 3
@@ -33,6 +36,9 @@ permalink: "/chapters/003-chapter/"
 generated_date: '2025-06-09'
 status: generated
 lang: en
+canon_version: 3
+canon_status: applied
+canon_delta_ref: '01746709B23E6C6E9F27BD276E'
 ---
 
 # Chapter 3: The Legacy Codebase from Hell

@@ -1,4 +1,7 @@
 ---
+id: 01A3E65089A9A282F21015369A
+form: chapter
+category: text
 layout: chapter
 title: 'Chapter 6: The Standup Meeting from Another Dimension'
 chapter_number: 6
@@ -37,6 +40,9 @@ permalink: "/chapters/006-chapter/"
 generated_date: '2025-07-15'
 status: generated
 lang: en
+canon_version: 6
+canon_status: applied
+canon_delta_ref: 01737E559077A63A5DD17A5B08
 ---
 
 # Chapter 6: The Standup Meeting from Another Dimension

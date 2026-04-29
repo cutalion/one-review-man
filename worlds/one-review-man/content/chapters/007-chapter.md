@@ -1,4 +1,7 @@
 ---
+id: 01A90D62F56E6674B034106607
+form: chapter
+category: text
 layout: chapter
 title: 'Chapter 7: The Legendary Merge Conflict Arena'
 chapter_number: 7
@@ -21,6 +24,9 @@ status: generated
 lang: en
 new_characters:
 - lorenzo_takeda
+canon_version: 7
+canon_status: applied
+canon_delta_ref: 011DF216B59E737ED197D0C604
 ---
 
 ## Chapter 7: The Legendary Merge Conflict Arena

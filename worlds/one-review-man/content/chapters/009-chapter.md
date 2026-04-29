@@ -1,4 +1,7 @@
 ---
+id: '0111760494B79A56F9BB36D63C'
+form: chapter
+category: text
 layout: chapter
 title: 'Chapter 9: The Legacy of the Labyrinth'
 chapter_number: 9
@@ -17,6 +20,9 @@ characters:
 generated_by: agent-writer
 generated_at: '2025-12-18T00:09:58+04:00'
 lang: en
+canon_version: 9
+canon_status: applied
+canon_delta_ref: '018D9C83C17534175DC224C692'
 ---
 
 # Chapter 9: The Legacy of the Labyrinth

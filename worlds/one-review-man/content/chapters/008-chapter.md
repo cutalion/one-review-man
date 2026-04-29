@@ -1,4 +1,7 @@
 ---
+id: '01090DEAF3CA4D71E278DF4AFA'
+form: chapter
+category: text
 layout: chapter
 title: 'Chapter 8: The CI Pipeline of Catastrophic Calamity'
 chapter_number: 8
@@ -20,6 +23,9 @@ generated_date: '2025-11-24'
 status: generated
 lang: en
 new_characters: []
+canon_version: 8
+canon_status: applied
+canon_delta_ref: 01AA8A806BB0C1EA875F756BD9
 ---
 
 ## Chapter 8: The CI Pipeline of Catastrophic Calamity
