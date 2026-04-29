@@ -10,6 +10,11 @@ This repository is a **monorepo** for the project:
 
 Eidos is reusable — you can install it as a gem (`gem install eidos`) and use it for any storyworld, not just this one.
 
+## Start here
+
+- **[Pitch](docs/pitch.md)** — what Eidos is, who it's for, and what it isn't. Read first.
+- **[Usage Guide](docs/usage-guide.md)** — every workflow end-to-end, organized by what you want to do.
+
 ## Project structure
 
 ```
