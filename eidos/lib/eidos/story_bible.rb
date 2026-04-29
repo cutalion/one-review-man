@@ -310,6 +310,19 @@ module Eidos
       record_revision('plot_thread', thread_id, merged, 'create', change_reason: change_reason)
     end
 
+    # Upsert a plot thread by id, trusting the caller's full data hash
+    # (including `status`). Used by the authoring CLI's `bible update
+    # plot_thread`. Distinct from `add_plot_thread` — that helper always
+    # appends and stamps `status: 'active'`.
+    def save_plot_thread(data, change_reason: nil)
+      check_frozen!
+      operation = entity_storage.save_plot_thread(data)
+      invalidate_cache(:plot_threads)
+
+      thread_id = data['id'] || "thread-#{plot_threads.length}"
+      record_revision('plot_thread', thread_id, data, operation, change_reason: change_reason)
+    end
+
     # === World Rules ===
 
     # Convenience method to get world rules
