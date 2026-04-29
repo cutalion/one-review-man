@@ -322,6 +322,8 @@ Adopted 2026-04-18 as part of feature 015-scaffold-hardening. Postmortem evidenc
 - YAML files under `worlds/<name>/data/` (story bible, audit log, custom forms) and `worlds/<name>/content/` (piece files). Pluggable via `Eidos::Storage` backends (`:yaml_file` default, `:memory` for tests). Reuses existing RevisionStore / SnapshotStore primitives for canon versioning. No schema migration for existing worlds. (014-storyworld-pivot)
 - Ruby 3.3.5, `# frozen_string_literal: true` on every file + Thor ~> 1.3 (CLI), ruby-openai ~> 7.3 (LLM), tty-prompt ~> 0.23 (interactive prompts only — non-interactive path bypasses), tty-spinner ~> 0.9, rainbow ~> 3.1, dotenv ~> 3.1, YAML (stdlib). **No new runtime gems.** (015-scaffold-hardening)
 - YAML files under `worlds/<name>/data/` (story bible, canon deltas, audit log, world config, strings, custom forms) and `worlds/<name>/content/` (piece files). Pluggable `Eidos::Storage` backends (`:yaml_file` default, `:memory` for tests). (015-scaffold-hardening)
+- Ruby 3.3.5, `# frozen_string_literal: true` on every file + Thor (CLI), existing `Eidos::StoryBibleExporter` (engine class), Jekyll (downstream consumer of published output, not a runtime dependency of this gem) (017-publish-cleanup)
+- YAML files on disk under `worlds/<name>/data/` (read-only) and `<dest>/_data/` (write target after the fix) (017-publish-cleanup)
 
 ## Recent Changes
 - 011-eidos-sdk-and-installable-cli: Unified `eidos` CLI (`exe/eidos`), Ruby SDK (`Eidos::World`, `Chapter`, `Character`, `Location`, `Bible`, `Canon`), `Eidos.configure` global config, installable gem (`gem install eidos`), new SDK-based `eidos chapter` and `eidos character` subcommands.

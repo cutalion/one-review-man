@@ -41,13 +41,6 @@ module Eidos
           say 'Creating new Jekyll site from templates', :green
         end
 
-        # Export Story Bible to Jekyll-compatible format before copying
-        if Dir.exist?(File.join(world_root, 'data', 'story_bible'))
-          say 'Exporting Story Bible to Jekyll format...', :blue
-          exporter = Eidos::StoryBibleExporter.new(project_root: world_root)
-          exporter.export_for_jekyll!
-        end
-
         # Copy template (skip content dirs which we handle separately)
         Dir.children(template_root).each do |entry|
           next if %w[_chapters _characters _data].include?(entry)
@@ -112,6 +105,15 @@ module Eidos
           rescue StandardError => e
             say "Failed to copy #{mapping[:dst_name]}: #{e.message}", :yellow
           end
+        end
+
+        # Export Story Bible to Jekyll-compatible format AT THE DESTINATION
+        # (overlays the data-copy step above with freshly generated files).
+        # Critically: this writes to <dest>/_data/, never to the source world.
+        if Dir.exist?(File.join(world_root, 'data', 'story_bible'))
+          say 'Exporting Story Bible to Jekyll format...', :blue
+          exporter = Eidos::StoryBibleExporter.new(project_root: world_root)
+          exporter.export_to(File.join(dest_dir, '_data'))
         end
 
         say "Jekyll site prepared at: #{dest_dir}", :green
