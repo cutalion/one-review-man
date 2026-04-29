@@ -33,9 +33,11 @@ Everything Eidos does happens inside a **world**. A world is a directory on your
 - **Pieces** — individual artifacts (a chapter, a vignette, a haiku, a comic script, an illustration, a social-media post). Pieces are the *output* of the world; the canon is the *world*.
 - **Configuration** — a small set of YAML files that describe what the world is, who its target audience is, what AI models to use, and so on.
 
-When you produce a piece, Eidos reads the canon, generates the piece, and writes back three things: the piece file itself, a **canon delta** (a record of any new entities, facts, or changes the piece introduced), and an updated bible — Eidos applies the delta to your bible immediately. The canon system also opens a **finding** in the audit log so you can review what was applied (and any parse warnings, conflicts, or hallucinated entries) at your own pace. You then either *accept* the finding (closing the audit record) or *revert* it (rolling the delta back).
+When you produce a piece, Eidos reads the canon, generates the piece, and writes back three things: the piece file itself, a **canon delta** (a record of any new entities, facts, or changes the piece introduced), and an updated bible — Eidos applies the delta to your bible immediately and the canon revision advances. Most produces are *clean* and need no further action from you.
 
-This loop — *generate piece → review what was applied → accept or revert → next piece* — is the core rhythm of working with Eidos.
+If something goes wrong during application — a parse drop, a malformed delta, a missing reference — the canon system opens a **finding** in the audit log for your attention. You review findings via `eidos canon review`, then either *accept* one (close the audit record without further change) or *revert* it (roll the delta back). On a typical day with clean produces, the audit log is empty.
+
+This loop — *generate piece → check for findings → only act if something flagged → next piece* — is the core rhythm of working with Eidos.
 
 ### Glossary
 
@@ -49,7 +51,7 @@ These are the terms used throughout the guide. Define each once, here, and use t
 - **Form** — the *kind* of piece. Built-in forms include `chapter`, `vignette`, `short-story`, `haiku`, `comic-script`, `portrait`, `social-post`, and `illustration`. You can register your own (see [§8](#8-power-user-techniques)).
 - **Bible** — the structured representation of the canon, broken into characters, locations, facts, relationships, and plot threads. Browsable via `eidos bible …`.
 - **Canon delta** — the record of changes a single piece introduced into the canon (new characters discovered, facts established, etc.). Stored under `data/canon_deltas/`.
-- **Finding** — a user-visible audit-log entry that needs your decision. The canon system surfaces findings via `eidos canon review`. Findings can represent applied canon deltas (the most common kind), parse-drop errors, malformed deltas, orphaned references, or branch-merge conflicts. Every finding has a kind, an id, and an originating piece. Note: applied-delta findings reflect changes Eidos has already made to the bible (at produce time). Accepting closes the audit record; reverting rolls the change back.
+- **Finding** — an audit-log entry that surfaces something exceptional during canon application. Findings are *not* opened on every produce — clean produces leave the audit log untouched. Findings are opened only when something needs your attention: `parse-drop` (the LLM emitted an entry in a malformed shape), `orphaned-reference` (a delta referenced an entity that doesn't exist), `malformed-delta` (a whole delta that didn't apply cleanly), or `conflict` (e.g. branch-merge conflicts). Every finding has a kind, an id, and an originating piece. `canon accept --finding=<id>` closes a finding (acknowledged); `canon revert --finding=<id>` undoes the delta the finding represents.
 - **Snapshot** — a full point-in-time copy of the canon. Created on demand; useful as a savepoint before risky changes.
 - **Branch** — an alternative line of canon evolution. Lets you explore "what if?" without disturbing the main world.
 - **Glossary (of translations)** — an in-memory mapping of source-language character names to their established target-language renderings, rebuilt at every translation run by scanning the translated character files (`content/characters/<id>.<lang>.md`). Keeps multi-language content consistent without a separate file you have to maintain.
@@ -77,11 +79,13 @@ A world is just a directory. Eidos scaffolds it for you, populates it with the r
 
 ### Set your API key first
 
-Eidos calls out to AI providers (OpenAI by default) when generating pieces. Set your key in the environment before running any generation:
+Eidos calls out to an AI provider when generating pieces. The default scaffold uses **OpenRouter** with `google/gemini-3-flash-preview`. Set your key in the environment before running any generation:
 
 ```bash
-export OPENAI_API_KEY=sk-...
+export OPENROUTER_API_KEY=sk-or-v1-...
 ```
+
+If you'd rather use a different provider (OpenAI, Anthropic, a local model), edit `data/settings.yml` after scaffolding to point at the right one and set the corresponding key (`OPENAI_API_KEY`, etc. — see the `providers:` section of `data/settings.yml` for the env-var name each provider expects).
 
 If you skip this step, scaffolding will still work — but the moment you try to produce a piece, Eidos will tell you the key is missing. (It will not silently substitute mock output. See [§9](#9-working-offline-or-cheaply) if you want to iterate without spending tokens.)
 
@@ -108,7 +112,7 @@ When the prompt finishes, Eidos creates a directory at `worlds/<slug-of-title>/`
 - `data/world_state.yml` — runtime state (current canon revision, etc.).
 - `data/story_bible/` — empty bible storage. `characters/` and `locations/` are directories that hold one YAML file per entity once your bible is populated; `facts.yml`, `relationships.yml`, and `plot_threads.yml` are flat files that start empty.
 - `data/strings.yml` — boilerplate prompt strings derived from your premise.
-- `data/settings.yml` — AI provider and model settings (defaulted to a small OpenAI model; edit if you want something else).
+- `data/settings.yml` — AI provider and model settings. Defaults to OpenRouter using `google/gemini-3-flash-preview`. Edit if you want a different provider or model.
 - `content/` — an empty parent directory. Subfolders (`chapters/`, `pieces/<form>/`) are created on demand the first time you produce a piece of the relevant form; an empty fresh world has no subfolders here.
 
 ### The non-interactive scaffold
@@ -135,7 +139,7 @@ By default, in `worlds/<slug>/` relative to your current directory. To put it so
 eidos world status -w worlds/<your-world>
 ```
 
-Output shows the title, author, languages, current canon revision (`0` for a fresh world), and any field that's still `unspecified` (so you can fill it in later). If `world status` runs cleanly and shows your premise text, the world is ready.
+Output shows the title, author, a count of pieces by form (none yet for a fresh world), and any configuration fields still set to `unspecified` (so you can fill them in later). If `world status` runs cleanly, the world is ready.
 
 ### What state are you in?
 
@@ -190,7 +194,7 @@ eidos produce piece --form vignette \
   -w worlds/<your-world>
 ```
 
-Eidos reads your world's canon, builds the prompt from your premise + any existing bible entries, calls the AI, and writes the result. A successful run prints the piece's ID, the file path, and a one-line summary.
+Eidos reads your world's canon, builds the prompt from your premise + any existing bible entries, calls the AI, and writes the result. A successful run prints `Generated <form> piece: <id>`. Use that id with `eidos piece show <id>` (covered in [§4](#4-inspect-what-just-happened)) to see the file path and other metadata.
 
 For chapters specifically — which have a richer frontmatter structure — you can use the chapter-specific shortcut:
 
@@ -206,7 +210,7 @@ After a successful produce, your world has gained:
 
 - A new piece file at `content/pieces/<form>/<id>.md` (or `content/chapters/NNN-chapter.md` for chapters). It has YAML frontmatter — `id`, `form`, `generated_date`, `canon_delta_ref`, plus form-specific fields like `title` and `summary` for chapters — followed by the body.
 - A new canon delta at `data/canon_deltas/<id>.yml`. This file records every entity, fact, or change the piece introduced — and Eidos has already applied those changes to your bible. The canon revision number advances at the same time.
-- A new entry in the audit log: a **finding** representing the delta that was applied (plus any parse warnings or conflicts the application surfaced). The finding stays *open* until you review it (covered in [§4](#4-inspect-what-just-happened) and [§5](#5-evolving-your-world)).
+- *If* something went wrong during application (a parse drop, a malformed entry, an orphaned reference), an open **finding** in the audit log waiting for your review. Most produces are clean and write no finding — the audit log stays empty. See [§4](#4-inspect-what-just-happened) and [§5](#5-evolving-your-world) for what to do when a finding does appear.
 
 The piece's `canon_delta_ref` field links to the delta file — you can always trace a piece back to the changes it made.
 
@@ -222,13 +226,13 @@ eidos produce piece --form vignette --length 400 \
 
 ### Dry run
 
-If you want to see the prompt Eidos *would* send without actually calling the AI:
+If you want to preview what `produce` would generate without writing it to disk:
 
 ```bash
 eidos produce piece --form chapter --dry-run --prompt "Act 3 opener" -w worlds/<your-world>
 ```
 
-The prompt is printed to stdout. Useful when iterating on your premise and wanting to see how it shapes the prompt.
+Eidos generates the piece body and prints it to stdout, but no piece file or canon delta is written, and the bible isn't updated. Useful for previewing output before committing it. (To inspect the *prompt* Eidos sends to the AI — not the response — use `--debug` instead; see [§9](#9-working-offline-or-cheaply).)
 
 ### What if the API key isn't set?
 
@@ -237,7 +241,7 @@ Eidos halts and tells you. It does not fall back to mock output silently. If you
 
 ## 4. Inspect what just happened
 
-Producing a piece changed three things on disk: a piece file, a canon delta, and your bible (Eidos applied the delta immediately). It also opened a finding in the audit log. This section walks through reading each, then closing the finding once you've reviewed it.
+Producing a piece changed three things on disk: a piece file, a canon delta, and your bible (Eidos applied the delta immediately). If anything went wrong during application, the audit log holds an open finding — but most of the time it's empty. This section walks through reading each.
 
 ### See all pieces
 
@@ -257,11 +261,11 @@ eidos piece list --form vignette -w worlds/<your-world>
 eidos piece show VIGNETTE001 -w worlds/<your-world>
 ```
 
-Replace `VIGNETTE001` with whatever id `produce` printed. Output shows the frontmatter (the `canon_delta_ref` field tells you which delta file to read next) followed by the body.
+Replace `VIGNETTE001` with whatever id `produce` printed. Output is a metadata summary — id, form, category, canon status, canon version, generated date, length, and the file path. To see the actual frontmatter (including `canon_delta_ref`) and body, open the file at the printed path with your editor.
 
-### Review the canon changes
+### Check for findings
 
-The piece you just produced almost certainly introduced something new — a character, a location, or a fact that wasn't in your bible before. Eidos applied those entries to your bible at produce time, and recorded a **finding** in the audit log so you can see what happened (and catch any issues).
+The piece you just produced almost certainly introduced something new — a character, a location, or a fact that wasn't in your bible before. Eidos applied those entries to your bible at produce time. If everything applied cleanly, there's nothing more to do. If something went wrong (the LLM emitted a malformed entry, a delta couldn't be parsed, a reference is orphaned), the canon system opens a **finding** for your attention.
 
 To see all open findings:
 
@@ -269,23 +273,23 @@ To see all open findings:
 eidos canon review -w worlds/<your-world>
 ```
 
-Output lists every open finding: deltas applied by recent produces, plus `parse-drop` entries (items the LLM emitted in a malformed shape that Eidos dropped from the delta), `orphaned-reference` entries (references to entities that don't exist), `malformed-delta` entries (whole deltas that didn't apply cleanly), and `conflict` entries (e.g. branch-merge conflicts). Each finding has an id, a kind, the piece it originated from, and a summary.
+Most of the time, output is `0 findings.` — clean produces don't surface anything, and that's the success case. When findings *do* appear, they fall into one of these kinds: `parse-drop` (the LLM emitted an entry in a malformed shape that Eidos dropped from the delta), `orphaned-reference` (a delta referenced an entity that doesn't exist), `malformed-delta` (a whole delta that didn't apply cleanly), or `conflict` (e.g. a branch-merge conflict). Each finding has an id, a kind, the originating piece, and a summary.
 
-If a finding looks correct (the entries the piece introduced are sensible, no parse issues), close it:
+If a finding is informational and needs no action (the dropped entry was OK to lose), close it:
 
 ```bash
 eidos canon accept --finding=<finding-id> -w worlds/<your-world>
 ```
 
-Accepting a finding closes the audit-log entry — the bible was already updated at produce time, so accept is your way of saying "I've reviewed this and acknowledge it." Use `--note="..."` to attach a reason.
+Use `--note="..."` to attach a reason. Accept doesn't change anything — it just marks the finding as reviewed.
 
-If a finding is wrong (the AI hallucinated a character, a fact contradicts your intent, a delta shouldn't have applied), revert it:
+If a finding represents a delta that should be rolled back (the AI hallucinated a character, a fact contradicts your intent), revert it:
 
 ```bash
 eidos canon revert --finding=<finding-id> -w worlds/<your-world>
 ```
 
-Revert *does* change the bible — it rolls back the delta that the produce step applied. See [§5](#5-evolving-your-world) for the full canon-management flow.
+Revert *does* change the bible — it rolls back the delta the piece tried to apply. See [§5](#5-evolving-your-world) for the full canon-management flow, including how to undo a clean apply (no finding) via per-entity rollback.
 
 ### Browse the bible
 
@@ -313,15 +317,17 @@ Search is full-text; matches are returned with a snippet of context per hit.
 
 ### What state are you in now?
 
-After producing a piece and reviewing the resulting finding (whether you accepted or reverted):
+After a clean produce (no finding):
 
 - The piece file is in place — under `content/pieces/<form>/<id>.md` for non-chapter forms, or `content/chapters/NNN-chapter.md` for chapters.
 - The canon-delta file is recorded under `data/canon_deltas/<id>.yml` with its `applied_at` timestamp.
-- The bible (under `data/story_bible/`) reflects the current canon — including the delta's entries if you accepted, or rolled back to the prior state if you reverted.
-- The audit-log finding is closed.
-- The canon revision number reflects every applied delta (it advanced at produce time when the delta applied cleanly).
+- The bible (under `data/story_bible/`) reflects the current canon, including the delta's entries.
+- The canon revision number advanced.
+- The audit log is unchanged.
 
-`eidos world status -w worlds/<your-world>` will show the current revision number and a summary of bible content.
+If a finding *was* opened and you've accepted or reverted it, add: the audit-log entry is closed, and (if you reverted) the bible has rolled back the delta's entries.
+
+`eidos world status -w worlds/<your-world>` will show the current title, author, and a summary of pieces by form. (To see canon revision history directly, use `eidos canon history` — see [§5](#5-evolving-your-world).)
 
 
 ## 5. Evolving your world
@@ -332,31 +338,33 @@ This section assumes you have a world with at least one piece and a populated ca
 
 ### Reviewing canon changes
 
-Every produced piece applies a canon delta to your bible immediately and opens a **finding** in the audit log. Reviewing findings is how you stay aware of what's going into your world's canon — and how you catch and revert mistakes.
+Most produces apply cleanly: the bible gets new entries, the canon revision advances, no further action needed. But sometimes something goes wrong — the LLM emits malformed output, a delta references something that doesn't exist, a branch-merge surfaces a conflict. Those exceptional conditions become **findings** in the audit log, and you review them via:
 
 ```bash
 eidos canon review -w worlds/<your-world>
 ```
 
-Output lists open findings: deltas that have been applied by recent produces, plus malformed deltas, orphaned references, and conflicts. Each finding has an id, a kind (`conflict`, `malformed-delta`, `orphaned-reference`, `parse-drop`, or an applied delta awaiting review), the originating piece, and a summary. Filter to a specific kind with `--kind=<kind>` or to a piece with `--piece=<piece-id>`.
+Output lists open findings: `parse-drop`, `orphaned-reference`, `malformed-delta`, and `conflict` entries. Each has an id, a kind, the originating piece, and a summary. Filter to a specific kind with `--kind=<kind>` or to a piece with `--piece=<piece-id>`. If output is `0 findings.`, you have nothing to review — that's the most common state.
 
-To close a finding you're satisfied with:
+To close a finding you've reviewed and accepted as-is:
 
 ```bash
 eidos canon accept --finding=<finding-id> -w worlds/<your-world>
 ```
 
-Attach a note explaining your decision with `--note="..."`. Accept closes the audit record; it does not change the bible — the bible was already updated at produce time when the delta applied.
+Attach a note explaining your decision with `--note="..."`. Accept closes the audit record without changing the bible (the bible was already updated at produce time, possibly with the malformed entry omitted).
 
-### Reverting an applied delta
+### Reverting a delta tied to a finding
 
-If a finding represents a delta you don't want in the canon (e.g. the AI hallucinated a character, a fact contradicts your intent):
+If a finding represents a delta you don't want in the canon (e.g. the AI hallucinated a character, a fact is wrong):
 
 ```bash
 eidos canon revert --finding=<finding-id> -w worlds/<your-world>
 ```
 
 This rolls the delta back — the bible is updated to remove the entries it added. Pass `--also-regenerate` to kick off a replacement produce call after the revert. Pass `--dry-run` to preview the revert without touching disk.
+
+**What about clean produces?** If a piece applied cleanly, there's no finding to revert. To undo a clean apply, use the per-entity rollback described next, or delete the piece file and re-produce after editing your premise.
 
 ### Rolling back an entity to an earlier revision
 
@@ -450,8 +458,9 @@ Snapshots and branches serve different purposes: a **branch** is for *exploring*
 
 After accepting / reverting / rolling back / branching / merging:
 
-- `eidos world status` reports the new canon revision and current branch.
 - `eidos bible list` reflects the new state of the canon.
+- `eidos canon history <entity-type> <entity-id>` shows the per-entity revision trail, including any rollbacks or reverts you applied.
+- `eidos canon branch list` shows your current branch context (the active branch is marked).
 - The pieces under `content/` are unchanged — they're historical artifacts of what the world looked like when they were produced. Their `canon_delta_ref` fields still point to the deltas that produced them, even if those deltas have been reverted.
 
 This is intentional: pieces are immutable records. The canon is what evolves.
@@ -555,7 +564,7 @@ Jekyll's serve mode auto-rebuilds when files in `site/` change, so you'll see up
 
 By default, the Jekyll output includes:
 
-- An index page listing your world's chapters (or whatever your top-level form is).
+- An index page listing your world's content — chapters, vignettes, comics, or whichever forms your world has produced.
 - A page per chapter with the body content.
 - Character index + per-character pages drawn from the bible.
 - A language switcher if your world has translations.
@@ -591,10 +600,15 @@ default_length: 280
 canon_context:
   - all_characters
   - recent_events
-prompt_template: |
-  Write a single tweet (max 280 characters) in the voice of the world.
-  Subject: {USER_PROMPT}
-  Relevant canon: {CANON_CONTEXT}
+prompt_template_path: ./tweet.prompt.txt
+```
+
+Alongside it, create the prompt template at `worlds/<world>/data/forms/tweet.prompt.txt`:
+
+```
+Write a single tweet (max 280 characters) in the voice of the world.
+Subject: {USER_PROMPT}
+Relevant canon: {CANON_CONTEXT}
 ```
 
 Required fields:
@@ -603,7 +617,7 @@ Required fields:
 - `category` — `text`, `image`, or `script`. Determines which adapter Eidos uses.
 - `default_length` (or `default_shape` for image forms) — the form's natural size.
 - `canon_context` — which parts of the bible to inject into the prompt by default. A list, drawn from this exact enum: `all_characters`, `all_locations`, `recent_events`, `current_chapter`, `none`. Use `none` for forms that don't need any canon context. Other values (e.g. plain `characters` or `facts`) are not recognized and the form will be silently skipped at registration with a warning on stderr.
-- `prompt_template` — a multi-line string. Placeholders (e.g. `{USER_PROMPT}`, `{CANON_CONTEXT}`, `{WORLD_PREMISE}`) are filled at generation time. Templates that reference an unfilled placeholder cause a generation failure rather than a silent leak.
+- `prompt_template_path` — relative path (from the form's YAML file) to a text file containing the prompt template. Placeholders (e.g. `{USER_PROMPT}`, `{CANON_CONTEXT}`, `{WORLD_PREMISE}`) are filled at generation time. Templates that reference an unfilled placeholder cause a generation failure rather than a silent leak.
 
 Once the file exists, the form is registered next time you run any `eidos produce` command in that world. Confirm:
 
