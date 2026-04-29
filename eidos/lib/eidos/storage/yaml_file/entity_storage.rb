@@ -158,6 +158,23 @@ module Eidos
           write_yaml_file(plot_threads_path, all_threads)
         end
 
+        # Upsert a plot thread by id, preserving the caller's `status`.
+        # Returns 'create' if appended, 'update' if replaced in place.
+        def save_plot_thread(data)
+          id = data['id']
+          all_threads = load_yaml_file(plot_threads_path)
+          all_threads['plot_threads'] ||= []
+          idx = id ? all_threads['plot_threads'].index { |t| t['id'] == id } : nil
+          op = idx ? 'update' : 'create'
+          if idx
+            all_threads['plot_threads'][idx] = data
+          else
+            all_threads['plot_threads'] << data
+          end
+          write_yaml_file(plot_threads_path, all_threads)
+          op
+        end
+
         # === Path helpers (public for backward compatibility) ===
 
         def characters_dir

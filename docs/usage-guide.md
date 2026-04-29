@@ -11,6 +11,7 @@ This guide assumes you have Eidos installed — either as a gem (`gem install ei
 1. [Get oriented](#1-get-oriented) — the mental model, glossary, and the things Eidos deliberately doesn't do.
 2. [Create your first world](#2-create-your-first-world) — scaffolding a world from scratch, interactively or non-interactively.
 3. [Produce your first piece](#3-produce-your-first-piece) — picking a form, generating a piece, understanding what just happened to your world.
+3.5. [Authoring your canon directly](#35-authoring-your-canon-directly) — `bible add` / `bible update` for characters, locations, facts, relationships, plot threads. Use this when you want to seed or edit your world without producing a piece.
 4. [Inspect what just happened](#4-inspect-what-just-happened) — reading piece metadata, canon-delta history, and the bible.
 5. [Evolving your world](#5-evolving-your-world) — reviewing canon changes, branching to try a what-if, merging, rolling back.
 6. [Translating your world](#6-translating-your-world) — producing other-language versions of your content with consistent terminology.
@@ -33,7 +34,10 @@ Everything Eidos does happens inside a **world**. A world is a directory on your
 - **Pieces** — individual artifacts (a chapter, a vignette, a haiku, a comic script, an illustration, a social-media post). Pieces are the *output* of the world; the canon is the *world*.
 - **Configuration** — a small set of YAML files that describe what the world is, who its target audience is, what AI models to use, and so on.
 
-When you produce a piece, Eidos reads the canon, generates the piece, and writes back three things: the piece file itself, a **canon delta** (a record of any new entities, facts, or changes the piece introduced), and an updated bible — Eidos applies the delta to your bible immediately and the canon revision advances. Most produces are *clean* and need no further action from you.
+The canon evolves in two ways:
+
+1. **By producing a piece.** Eidos reads the canon, generates the piece, and writes back three things: the piece file itself, a **canon delta** (a record of any new entities, facts, or changes the piece introduced), and an updated bible — Eidos applies the delta to your bible immediately and the canon revision advances. Most produces are *clean* and need no further action from you.
+2. **By authoring directly** — `eidos bible add character …`, `eidos bible add location …`, `eidos bible add fact …`, etc. (see [§3.5](#35-authoring-your-canon-directly)). Use this to seed your world with characters, locations, and rules before producing anything; or to edit canon by hand whenever the piece-driven loop isn't the right fit. Direct edits also advance the canon revision and write to the same audit trail; they're first-class.
 
 If something goes wrong during application — a parse drop, a malformed delta, a missing reference — the canon system opens a **finding** in the audit log for your attention. You review findings via `eidos canon review`, then either *accept* one (close the audit record without further change) or *revert* it (roll the delta back). On a typical day with clean produces, the audit log is empty.
 
@@ -146,7 +150,7 @@ Output shows the title, author, a count of pieces by form (none yet for a fresh 
 After running `world new`, your world has:
 
 - Configuration set, premise captured.
-- An empty bible (no characters, locations, or facts yet — they'll appear as you produce pieces; each piece's canon delta applies to the bible at produce time).
+- An empty bible (no characters, locations, or facts yet). Two ways to populate it: produce pieces and let each piece's canon delta apply at produce time, or author entries directly with `eidos bible add …` ([§3.5](#35-authoring-your-canon-directly)).
 - An empty `content/` tree (no pieces yet).
 - Canon revision `0`.
 
@@ -239,6 +243,87 @@ Eidos generates the piece body and prints it to stdout, but no piece file or can
 Eidos halts and tells you. It does not fall back to mock output silently. If you intentionally want mock output, see [§9](#9-working-offline-or-cheaply).
 
 
+## 3.5. Authoring your canon directly
+
+Producing pieces is one way the canon grows. The other is authoring entries by hand — useful when you want to seed a world with cast and setting *before* writing anything, or when an idea about your world is too clean to wait for an AI to discover.
+
+The canonical authoring verbs live under `eidos bible`:
+
+```bash
+eidos bible add TYPE ID [FIELD=VALUE...] --reason "..."
+eidos bible update TYPE ID [FIELD=VALUE...] --reason "..."
+```
+
+For `bible add`, `TYPE` is one of `character`, `location`, `fact`, `relationship`, or `plot_thread`. For `bible update`, `TYPE` is one of `character`, `location`, `fact`, or `plot_thread` — `relationship` is intentionally absent (relationships have no stable id; modify them by editing `data/story_bible/relationships.yml` directly). `ID` is your slug. Each `FIELD=VALUE` becomes a key on the entity's YAML record. Both commands write a canon revision under the hood — `eidos canon history character <id>` shows every change.
+
+### A worked example: the elder realms
+
+```bash
+eidos/exe/eidos world new --quick \
+  -w worlds/elder-realms \
+  --title "Elder Realms" \
+  --author "You" \
+  --premise "Dwarven engineers, woodland elves, and human merchants forced into uneasy alliance against a shared underground threat." \
+  --genre fantasy --setting "secondary world" --languages en
+
+# Three main characters, one of each race
+eidos bible add character thorin_ironforge \
+  name="Thorin Ironforge" race=dwarf role="High-Engineer of the Citadel" \
+  -w worlds/elder-realms --reason "founding cast"
+eidos bible add character lyara_silverbough \
+  name="Lyara Silverbough" race=elf role="Warden of the Whispering Grove" \
+  -w worlds/elder-realms --reason "founding cast"
+eidos bible add character mira_tarrant \
+  name="Mira Tarrant" race=human role="Caravan-master of House Tarrant" \
+  -w worlds/elder-realms --reason "founding cast"
+
+# A location, a world rule, a relationship, a plot thread
+eidos bible add location citadel_of_khaz_aldur \
+  name="Citadel of Khaz-Aldur" type=city \
+  -w worlds/elder-realms
+eidos bible add fact world_rules/silver_focus \
+  rule="Spellcasters require trace amounts of dwarven-mined silver to focus arcane energy." \
+  category=magic \
+  -w worlds/elder-realms
+eidos bible add relationship thorin_ironforge lyara_silverbough \
+  type=rival status=established \
+  -w worlds/elder-realms
+eidos bible add plot_thread underground_threat \
+  description="A subterranean menace approaches; threatens both citadel and grove." status=active \
+  -w worlds/elder-realms
+
+# Inspect
+eidos bible list characters    -w worlds/elder-realms
+eidos bible list facts         -w worlds/elder-realms
+eidos bible list relationships -w worlds/elder-realms
+eidos bible list plot_threads  -w worlds/elder-realms
+eidos world status             -w worlds/elder-realms   # Canon revision: 8
+```
+
+`content/` stays empty the whole time — direct authoring populates the canon without producing anything. When you go on to produce a piece (which is, after all, what worlds are *for*), the producer's `{CANON_CONTEXT}` slice pulls from everything you authored above.
+
+### Editing fields later
+
+Use `update` to merge new fields into an existing entity:
+
+```bash
+eidos bible update character thorin_ironforge \
+  description="Three centuries old. Cantankerous. Carries an enchanted theodolite." \
+  -w worlds/elder-realms --reason "fleshing out"
+```
+
+`add` errors if the entity already exists; `update` errors if it doesn't. Each call is its own canon revision.
+
+### Notes and limits
+
+- **Field values are strings.** `shoe_size=11` is stored as the string `"11"`. For integers, lists, multi-line text, or nested hashes, edit the YAML file directly under `data/story_bible/` after you create the entity. (Future work may add `field:=<yaml>` for raw-YAML values; for now strings only.)
+- **Nothing is mandatory.** You can call `eidos bible add character no_fields` with zero fields and get a minimal record. `name` and `description` are the only fields the producer actually consumes when assembling prompt context, so a sensible practical minimum is `name=… description=…`.
+- **The schema is open.** Add any `key=value` pair you want — it'll be persisted verbatim. The producer ignores keys it doesn't recognize.
+- **Facts use a slash-keyed id.** `bible add fact <category>/<id>` — for example `bible add fact events/deep_collapse_873 …`. The category is anything you want (`events`, `world_rules`, `lore`, `weapons`, …); Eidos doesn't enforce a fixed list.
+- **Relationships are append-only via the CLI.** `bible add relationship c1 c2 type=…` works; `bible update relationship` is intentionally absent (relationships have no stable id, so the matching rules would be brittle). Edit `data/story_bible/relationships.yml` directly to modify an existing relationship.
+- **Removal isn't yet supported via CLI.** To remove an entity, delete its YAML file under `data/story_bible/` and run `eidos canon review` to surface any pieces that referenced it. (`canon revert --finding=<id>` is the integrated path; manual delete is the escape hatch.)
+
+
 ## 4. Inspect what just happened
 
 Producing a piece changed three things on disk: a piece file, a canon delta, and your bible (Eidos applied the delta immediately). If anything went wrong during application, the audit log holds an open finding — but most of the time it's empty. This section walks through reading each.
@@ -293,7 +378,7 @@ Revert *does* change the bible — it rolls back the delta the piece tried to ap
 
 ### Browse the bible
 
-Your bible has content from every produced piece (canon deltas applied at produce time). Browse it by entity type:
+Your bible has content from every produced piece (canon deltas applied at produce time) plus anything you authored directly via [§3.5](#35-authoring-your-canon-directly). Browse it by entity type:
 
 ```bash
 eidos bible list characters -w worlds/<your-world>
@@ -307,13 +392,13 @@ To see one entity in detail, pass a `<type>/<id>` path:
 eidos bible show characters/<character-id> -w worlds/<your-world>
 ```
 
-Search across the whole bible:
+Search the bible's facts (events, world rules, lore, etc.):
 
 ```bash
 eidos bible search "review" -w worlds/<your-world>
 ```
 
-Search is full-text; matches are returned with a snippet of context per hit.
+Search is case-insensitive over the body of every fact; characters and locations are not searched (browse them with `bible list characters` / `bible list locations` instead).
 
 ### What state are you in now?
 

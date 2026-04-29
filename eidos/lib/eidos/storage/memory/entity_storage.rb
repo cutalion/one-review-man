@@ -129,6 +129,21 @@ module Eidos
           @plot_threads << data.merge('status' => 'active')
         end
 
+        # Upsert a plot thread by id, preserving the caller's `status`.
+        # Returns the operation performed: 'create' if appended, 'update'
+        # if an existing thread with the same id was replaced.
+        def save_plot_thread(data)
+          id = data['id']
+          idx = id ? @plot_threads.index { |t| t['id'] == id } : nil
+          if idx
+            @plot_threads[idx] = data
+            'update'
+          else
+            @plot_threads << data
+            'create'
+          end
+        end
+
         # Path helpers (return placeholder values for compatibility)
         def characters_dir = '(memory)/characters'
         def locations_dir = '(memory)/locations'

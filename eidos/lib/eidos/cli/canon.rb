@@ -137,51 +137,11 @@ module Eidos
         say "New revision: ##{latest.sequence} (rollback)"
       end
 
-      desc 'update ENTITY_TYPE ENTITY_ID [FIELD=VALUE...]', 'Update a canon entry'
-      method_option :reason, type: :string, desc: 'Reason for the change'
-      def update(entity_type, entity_id, *field_values)
-        abs_root = resolve_project_root!(options['world-dir'])
-        store = build_revision_store(abs_root)
-        bible = Eidos::StoryBible.new(project_root: abs_root, revision_store: store)
-
-        changes = {}
-        field_values.each do |fv|
-          key, value = fv.split('=', 2)
-          changes[key] = value if key && value
-        end
-
-        case entity_type
-        when 'character'
-          existing = bible.get_character(entity_id) || {}
-          bible.save_character(entity_id, existing.merge(changes), change_reason: options[:reason])
-        when 'location'
-          existing = bible.get_location(entity_id) || {}
-          bible.save_location(entity_id, existing.merge(changes), change_reason: options[:reason])
-        else
-          say "Update not yet supported for #{entity_type}.", :red
-          exit 1
-        end
-
-        say "Updated #{entity_type}/#{entity_id}", :green
-
-        # Automatic non-blocking impact analysis
-        analyzer = build_impact_analyzer(abs_root)
-        latest_rev = store.latest(entity_type: entity_type, entity_id: entity_id)
-        return unless latest_rev
-
-        report = analyzer.analyze(
-          entity_type: entity_type,
-          entity_id: entity_id,
-          revision: latest_rev,
-          branch: options[:branch] || 'main'
-        )
-        if report.affected_items.any?
-          say "Impact: #{report.affected_items.length} content file(s) reference this entity", :yellow
-          say "Run 'canon impact --latest' for details"
-        else
-          say 'No content references found for this entity.'
-        end
-      end
+      # 019: `canon update ENTITY_TYPE ENTITY_ID …` retired in favor of
+      # `bible add ENTITY_TYPE …` (creates) and `bible update ENTITY_TYPE …`
+      # (modifies). The new commands cover all five entity types
+      # (character, location, fact, relationship, plot_thread); the retired
+      # command only handled character + location.
 
       desc 'impact', 'View impact reports'
       method_option :latest, type: :boolean, default: false, desc: 'Show most recent report'
