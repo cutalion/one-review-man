@@ -219,6 +219,18 @@ When you finish a spec-kit task involving any of the above, before marking it `[
 
 If `/user-qa` surfaces a regression, fix the root cause — do not weaken the QA check or special-case it away. The check exists precisely because we shipped a premise-aware-scaffolding feature whose unit tests passed and whose generated worlds did not reflect the premise.
 
+#### Doc-QA and Impl-QA — keeping the pitch, the guide, and the code in sync
+
+`docs/pitch.md` is the project's vision source-of-truth and `docs/usage-guide.md` is the operational source-of-truth. Two additional QA agents keep them honest, alongside the user-qa requirement above:
+
+**Run `/doc-qa` and confirm a PASS verdict before declaring complete any change that modifies `docs/pitch.md` or `docs/usage-guide.md`.** Doc-qa compares the two documents and flags vision-alignment failures (a guide section that contradicts what the pitch says the project is or is not), guide internal-consistency failures (terminology drift, contradictions between sections), or pitch self-consistency failures. Tier-1 (vision) and Tier-2 (internal consistency) failures are blocking. Doc-qa runs without an API key.
+
+**Run `/impl-qa` and confirm a PASS verdict before declaring complete any change that modifies user-facing CLI surface, world scaffolding output, content-production workflow, or `docs/usage-guide.md`.** Default mode (Tier 1 + 3 + 4 only) is fast, runs without an API key, and catches surface drift (commands/flags/paths the guide names but the codebase doesn't expose). For changes that touch scaffolding output or content production, also run `/impl-qa --behavioral` to verify the guide's post-state claims against a freshly scaffolded world (`MOCK_AI=true` is the default; pass `--live` only when you specifically need to verify LLM-dependent behavior).
+
+Both agents emit structured reports with `attribution:` lines on every drift finding — `guide stale` means update the guide, `codebase changed` means update the codebase or the guide depending on whether the codebase change was intentional. Tier 3 of impl-qa surfaces undocumented user-facing surface; treat each item as a candidate for *either* documentation *or* removal — the agent does not assume a direction.
+
+The three QA agents serve distinct purposes and are not interchangeable: **user-qa** verifies a generated world matches user intent; **doc-qa** verifies the usage guide matches the project pitch; **impl-qa** verifies the implementation matches the usage guide. Run all three for any change that affects user-facing behavior plus its documentation.
+
 ### Banned patterns: silent fallbacks
 
 **The rule**: No method may silently substitute a real-looking value, swallow a degraded input, or no-op on missing data. Every degradation must surface to a user-visible channel. Reviews reject code that violates this rule; tests that only assert on the happy path get flagged for missing the degradation assertion.
@@ -322,6 +334,8 @@ Adopted 2026-04-18 as part of feature 015-scaffold-hardening. Postmortem evidenc
 - YAML files under `worlds/<name>/data/` (story bible, audit log, custom forms) and `worlds/<name>/content/` (piece files). Pluggable via `Eidos::Storage` backends (`:yaml_file` default, `:memory` for tests). Reuses existing RevisionStore / SnapshotStore primitives for canon versioning. No schema migration for existing worlds. (014-storyworld-pivot)
 - Ruby 3.3.5, `# frozen_string_literal: true` on every file + Thor ~> 1.3 (CLI), ruby-openai ~> 7.3 (LLM), tty-prompt ~> 0.23 (interactive prompts only — non-interactive path bypasses), tty-spinner ~> 0.9, rainbow ~> 3.1, dotenv ~> 3.1, YAML (stdlib). **No new runtime gems.** (015-scaffold-hardening)
 - YAML files under `worlds/<name>/data/` (story bible, canon deltas, audit log, world config, strings, custom forms) and `worlds/<name>/content/` (piece files). Pluggable `Eidos::Storage` backends (`:yaml_file` default, `:memory` for tests). (015-scaffold-hardening)
+- Markdown (CommonMark) for docs and agent prompts; YAML frontmatter for agent metadata. No Ruby code authored in this feature. Existing Ruby (Thor CLI, FormRegistry) is *read* by impl-qa but not modified here. + None new. The agents are Claude Code subagents — runtime is Claude Code itself; no gems, no scripts. Existing project tooling (`eidos` CLI, RSpec, RuboCop) is unchanged. (016-usage-guide)
+- Plain files only. `docs/pitch.md`, `docs/usage-guide.md`, `.claude/agents/doc-qa.md`, `.claude/agents/impl-qa.md`, `.claude/commands/doc-qa.md`, `.claude/commands/impl-qa.md`, plus an edit to `CLAUDE.md` and `README.md`. (016-usage-guide)
 - Ruby 3.3.5, `# frozen_string_literal: true` on every file + Thor (CLI), existing `Eidos::StoryBibleExporter` (engine class), Jekyll (downstream consumer of published output, not a runtime dependency of this gem) (017-publish-cleanup)
 - YAML files on disk under `worlds/<name>/data/` (read-only) and `<dest>/_data/` (write target after the fix) (017-publish-cleanup)
 
