@@ -77,6 +77,7 @@ module Eidos
         say '=' * 50, :cyan
 
         show_basic_info(config)
+        show_canon_revision(abs_root)
         pieces_by_form = enumerate_pieces_by_form(abs_root)
         show_pieces_by_form(pieces_by_form)
         missing_fields = show_configuration_status(config)
@@ -85,6 +86,17 @@ module Eidos
         show_recent_pieces(abs_root, pieces_by_form)
 
         say "\n#{'=' * 50}", :cyan
+      end
+
+      # 018a (FR-009): show the global canon revision in `world status`.
+      # Reads via Eidos::WorldState which transparently handles the
+      # in-place migration for legacy worlds (FR-006).
+      def show_canon_revision(abs_root)
+        require 'eidos/world_state'
+        revision = Eidos::WorldState.new(world_path: abs_root).current_revision
+        say "Canon revision: #{revision}"
+      rescue Eidos::WorldState::CorruptWorldError => e
+        say "Canon revision: (unavailable — #{e.message})", :yellow
       end
 
       def load_world_metadata(abs_root)

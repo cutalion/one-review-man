@@ -22,23 +22,32 @@ module Eidos
 
     attr_reader :id, :form, :category, :generated_date, :canon_version,
                 :canon_status, :length_measured, :canon_delta_ref,
-                :content_path, :asset_path, :frontmatter
+                :content_path, :asset_path, :frontmatter,
+                :title, :summary, :chapter_number
 
     def initialize(id:, form:, category:, generated_date:, canon_version:, # rubocop:disable Metrics/ParameterLists
                    length_measured:, canon_status: :applied,
                    canon_delta_ref: nil, content_path: nil, asset_path: nil,
-                   frontmatter: nil)
+                   frontmatter: nil, title: nil, summary: nil, chapter_number: nil)
       @id = id.to_s
       @form = form.to_s
       @category = coerce_symbol(category, CATEGORIES, :text)
       @generated_date = coerce_date(generated_date)
-      @canon_version = canon_version.to_s
+      # Preserve canon_version type. Post-018a: integer global revision
+      # OR a snapshot-label string OR (legacy on-disk reads) the literal
+      # string 'unversioned'. Drop only nil to a placeholder so the caller
+      # never sees a missing field.
+      @canon_version = canon_version.nil? ? 'unversioned' : canon_version
       @canon_status = coerce_symbol(canon_status, STATUSES, :applied)
       @length_measured = length_measured
       @canon_delta_ref = canon_delta_ref
       @content_path = content_path
       @asset_path = asset_path
       @frontmatter = frontmatter
+      # 018a chapter-form-specific frontmatter (FR-002).
+      @title = title
+      @summary = summary
+      @chapter_number = chapter_number
     end
 
     # Read a piece from disk. Works for both the legacy chapter-form layout
@@ -91,7 +100,11 @@ module Eidos
         'length_measured' => @length_measured,
         'canon_delta_ref' => @canon_delta_ref,
         'content_path' => @content_path,
-        'asset_path' => @asset_path
+        'asset_path' => @asset_path,
+        # 018a chapter-form-specific keys (FR-002). nil-stripped via .compact.
+        'title' => @title,
+        'summary' => @summary,
+        'chapter_number' => @chapter_number
       }.compact
     end
 

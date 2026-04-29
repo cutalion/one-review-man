@@ -6,6 +6,7 @@ require 'fileutils'
 require 'securerandom'
 require_relative 'validation_utils'
 require_relative 'audit_finding'
+require_relative 'world_state'
 
 module Eidos
   # The structured bible-changes record that accompanies every produced piece.
@@ -203,9 +204,10 @@ module Eidos
     # raise reverts everything. Conflicts are recorded as findings but do
     # NOT raise (optimistic; FR-020).
     def apply!(bible:, audit_log:, canon_version_before:, canon_version_after:,
-               piece_id:, world_path: nil)
+               piece_id:, world_path: nil, world_state: nil)
       @piece_id = piece_id.to_s
       world_path ||= audit_log.respond_to?(:world_path) ? audit_log.world_path : nil
+      world_state ||= (Eidos::WorldState.new(world_path: world_path) if world_path)
 
       if document_level_parse_error?
         open_malformed_finding(audit_log, canon_version_before, canon_version_after)
@@ -237,6 +239,10 @@ module Eidos
           conflict = apply_update(bible, entry, applied_actions)
           conflict_findings << conflict if conflict
         end
+
+        # 018a (FR-007): advance the global canon revision counter inside
+        # the same rescue scope so a failure here unwinds the bible mutation.
+        @canon_version_after_resolved = world_state.advance_revision! if world_state
       rescue StandardError => e
         rollback!(bible, applied_actions)
         raise e

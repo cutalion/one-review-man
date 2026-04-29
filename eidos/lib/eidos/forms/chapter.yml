@@ -7,6 +7,12 @@ name: chapter
 category: text
 default_shape: "1500 words"
 prompt_template_path: ./chapter.prompt.txt
+# 018a (FR-001/FR-002): chapter form returns a structured JSON envelope
+# {title, summary, content, new_characters} from the LLM. PieceProducer
+# routes structured forms through a different LLM call path and writes
+# the structured fields directly into piece frontmatter (chapter-specific
+# title/summary + universal id/form/canon_version/canon_delta_ref).
+structured_output: true
 canon_context:
   - all_characters
   - recent_events

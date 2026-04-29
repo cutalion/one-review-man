@@ -338,6 +338,8 @@ Adopted 2026-04-18 as part of feature 015-scaffold-hardening. Postmortem evidenc
 - Plain files only. `docs/pitch.md`, `docs/usage-guide.md`, `.claude/agents/doc-qa.md`, `.claude/agents/impl-qa.md`, `.claude/commands/doc-qa.md`, `.claude/commands/impl-qa.md`, plus an edit to `CLAUDE.md` and `README.md`. (016-usage-guide)
 - Ruby 3.3.5, `# frozen_string_literal: true` on every file + Thor (CLI), existing `Eidos::StoryBibleExporter` (engine class), Jekyll (downstream consumer of published output, not a runtime dependency of this gem) (017-publish-cleanup)
 - YAML files on disk under `worlds/<name>/data/` (read-only) and `<dest>/_data/` (write target after the fix) (017-publish-cleanup)
+- Ruby 3.3.5, `# frozen_string_literal: true` on every file + existing — Thor (CLI), ruby-openai (LLM), tty-prompt, tty-spinner, rainbow, dotenv, YAML stdlib. No new gems (018-unify-piece-producer)
+- YAML files on disk under `worlds/<name>/data/`. New: a `canon` mapping with `revision: N` integer in `world_state.yml`. Modified: every piece's frontmatter (chapter included) carries a hash `id` + `canon_version` (integer or snapshot label) (018-unify-piece-producer)
 
 ## Recent Changes
 - 011-eidos-sdk-and-installable-cli: Unified `eidos` CLI (`exe/eidos`), Ruby SDK (`Eidos::World`, `Chapter`, `Character`, `Location`, `Bible`, `Canon`), `Eidos.configure` global config, installable gem (`gem install eidos`), new SDK-based `eidos chapter` and `eidos character` subcommands.

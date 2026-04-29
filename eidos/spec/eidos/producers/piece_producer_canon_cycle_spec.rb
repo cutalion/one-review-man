@@ -63,7 +63,10 @@ RSpec.describe Eidos::Producers::PieceProducer, 'canon cycle (US3)' do
     dbl
   end
 
-  before { bible.engine_bible.setup }
+  before do
+    bible.engine_bible.setup
+    scaffold_world_state(tmp_dir)
+  end
   after  { FileUtils.rm_rf(tmp_dir) }
 
   def build_producer

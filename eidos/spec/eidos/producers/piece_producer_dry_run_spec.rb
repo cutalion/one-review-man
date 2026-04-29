@@ -50,7 +50,10 @@ RSpec.describe Eidos::Producers::PieceProducer, 'dry-run (US3)' do
     )
   end
 
-  before { bible.setup }
+  before do
+    bible.setup
+    scaffold_world_state(tmp_dir)
+  end
   after  { FileUtils.rm_rf(tmp_dir) }
 
   it 'writes zero piece files, zero delta files, zero audit entries' do

@@ -18,7 +18,10 @@ RSpec.describe Eidos::CanonDelta, '#revert!' do
   let(:bible) { Eidos::StoryBible.new(project_root: tmp_dir) }
   let(:audit_log) { Eidos::AuditLog.new(world_path: tmp_dir) }
 
-  before { bible.setup }
+  before do
+    bible.setup
+    scaffold_world_state(tmp_dir)
+  end
   after  { FileUtils.rm_rf(tmp_dir) }
 
   def build_delta(char_hash: nil, update_hash: nil)

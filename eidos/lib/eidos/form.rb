@@ -20,8 +20,9 @@ module Eidos
     attr_reader :name, :category, :default_length, :default_shape,
                 :prompt_template_path, :canon_context, :origin
 
-    def initialize(name:, category:, prompt_template_path:, origin:,
-                   default_length: nil, default_shape: nil, canon_context: nil)
+    def initialize(name:, category:, prompt_template_path:, origin:, # rubocop:disable Metrics/ParameterLists
+                   default_length: nil, default_shape: nil, canon_context: nil,
+                   structured_output: false)
       @name = name.to_s
       @category = category.to_s.to_sym
       @default_length = default_length
@@ -30,8 +31,17 @@ module Eidos
       @canon_context = Array(canon_context).map(&:to_sym)
       @canon_context = [:all_characters] if @canon_context.empty?
       @origin = origin.to_sym
+      @structured_output = structured_output ? true : false
 
       validate!
+    end
+
+    # 018a (FR-001/FR-002): does this form expect a structured JSON envelope
+    # `{title, summary, content, new_characters}` from the LLM (true for
+    # chapter), or a plain text body with a `---CANON-DELTA---` tail (false
+    # for everything else)?
+    def structured_output?
+      @structured_output
     end
 
     # Load a Form from a YAML file on disk. `origin` MUST be supplied by the
@@ -58,7 +68,8 @@ module Eidos
         default_shape: raw['default_shape'],
         prompt_template_path: template_path,
         canon_context: ctx,
-        origin: origin
+        origin: origin,
+        structured_output: raw['structured_output'] == true
       )
     rescue StandardError => e
       warn "⚠️  Failed to load form from #{yaml_path}: #{e.message}"

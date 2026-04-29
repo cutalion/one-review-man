@@ -47,6 +47,7 @@ RSpec.describe Eidos::Producers::PieceProducer do
     )
   end
 
+  before { scaffold_world_state(tmp_dir) }
   after { FileUtils.rm_rf(tmp_dir) }
 
   describe '#produce with form=vignette' do
@@ -72,8 +73,10 @@ RSpec.describe Eidos::Producers::PieceProducer do
       expect(fm['form']).to eq('vignette')
       expect(fm['category']).to eq('text')
       expect(fm['canon_status']).to eq('applied')
-      expect(fm['canon_version']).to be_a(String)
-      expect(fm['canon_version']).not_to be_empty
+      # Post-018a: canon_version is an Integer (the global revision counter)
+      # or a String (a snapshot label, when --snapshot is pinned).
+      expect(fm['canon_version']).to be_a(Integer).or be_a(String)
+      expect(fm['canon_version']).not_to be_nil
     end
 
     it 'strips the ---CANON-DELTA--- tail from the written body' do

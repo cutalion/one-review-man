@@ -86,9 +86,11 @@ RSpec.describe 'produce chapter regression: CHAPTER_NUMBER placeholder' do
       File.join(root, 'data', 'world_state.yml'),
       {
         'world' => { 'current_chapter' => 0 },
-        'status' => { 'last_generated' => '', 'generation_count' => 0 }
+        'status' => { 'last_generated' => '', 'generation_count' => 0 },
+        'canon' => { 'revision' => 0 }
       }.to_yaml
     )
+    FileUtils.mkdir_p(File.join(root, 'data', 'canon_deltas'))
 
     # A newly-created character so the chapter prompt's {CHARACTER_CONTEXT}
     # section receives a non-empty roster (matches US3 independent-test premise).
