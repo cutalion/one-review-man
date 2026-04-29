@@ -1,4 +1,7 @@
 ---
+id: 011DDEAB2D055445C9319AA08D
+form: chapter
+category: text
 layout: chapter
 title: 'Chapter 1: The Programmer Who Became Too Good'
 chapter_number: 1
@@ -30,6 +33,9 @@ permalink: "/chapters/001-chapter/"
 generated_date: '2025-06-09'
 status: generated
 lang: en
+canon_version: 1
+canon_status: applied
+canon_delta_ref: 01A6F811C9C67FEFFBE42269B1
 ---
 
 # Chapter 1: The Programmer Who Became Too Good

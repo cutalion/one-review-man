@@ -1,4 +1,7 @@
 ---
+id: 012C9DAEF451F8EBF33B0000FC
+form: chapter
+category: text
 layout: chapter
 title: 'Chapter 4: The Framework Evangelist Strikes Back'
 chapter_number: 4
@@ -31,6 +34,9 @@ permalink: "/chapters/004-chapter/"
 generated_date: '2025-06-09'
 status: generated
 lang: en
+canon_version: 4
+canon_status: applied
+canon_delta_ref: 01244FF1148EE88EABFD136676
 ---
 
 # Chapter 4: The Framework Evangelist Strikes Back

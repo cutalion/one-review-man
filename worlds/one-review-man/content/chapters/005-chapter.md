@@ -1,4 +1,7 @@
 ---
+id: '018831282D58DEABBCF4A665AC'
+form: chapter
+category: text
 layout: chapter
 title: 'Chapter 5: The Interview Gauntlet of Doom'
 chapter_number: 5
@@ -33,6 +36,9 @@ permalink: "/chapters/005-chapter/"
 generated_date: '2025-07-08'
 status: generated
 lang: en
+canon_version: 5
+canon_status: applied
+canon_delta_ref: 01F218129A8B862EB139482A67
 ---
 
 # Chapter 5: The Interview Gauntlet of Doom

@@ -1,4 +1,7 @@
 ---
+id: '01834F2AD38C5AF4F79034E3A7'
+form: chapter
+category: text
 layout: chapter
 title: 'Chapter 11: The Sprint Planning of Infinite Scope'
 chapter_number: 11
@@ -25,7 +28,9 @@ lang: en
 new_characters:
 - yumi_sato
 - vp_of_growth
-canon_version: unversioned
+canon_version: 11
+canon_status: applied
+canon_delta_ref: '0187744AAA741471E71F8AC17C'
 ---
 
 # Chapter 11: The Sprint Planning of Infinite Scope

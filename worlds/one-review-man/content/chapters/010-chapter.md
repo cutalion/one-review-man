@@ -1,4 +1,7 @@
 ---
+id: 01A350732B0909BC662AC8C644
+form: chapter
+category: text
 layout: chapter
 title: 'Chapter 10: The Code Review Coliseum'
 chapter_number: 10
@@ -16,6 +19,9 @@ characters:
 generated_by: agent-writer
 generated_at: '2025-12-18T00:35:10+04:00'
 lang: en
+canon_version: 10
+canon_status: applied
+canon_delta_ref: '01089F545FDE8ED4584F952718'
 ---
 
 The flickering fluorescent lights of the HeroTech Solutions office hummed with a tension usually reserved for production-stopping outages. But today, the crisis wasn't a server crash. It was something far more insidious: a new management-mandated tool called **CodeGladiator v2**.

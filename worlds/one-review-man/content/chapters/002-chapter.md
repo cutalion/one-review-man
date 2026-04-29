@@ -1,4 +1,7 @@
 ---
+id: 01CA52B03FEA076D815D6F1A99
+form: chapter
+category: text
 layout: chapter
 title: 'Chapter 2: The Bug That Got Squashed Instantly'
 chapter_number: 2
@@ -31,6 +34,9 @@ permalink: "/chapters/002-chapter/"
 generated_date: '2025-06-09'
 status: generated
 lang: en
+canon_version: 2
+canon_status: applied
+canon_delta_ref: 01CCC21BFDBF5964EFD5F1EC18
 ---
 
 # Chapter 2: The Bug That Got Squashed Instantly
