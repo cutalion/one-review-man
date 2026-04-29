@@ -26,6 +26,17 @@ RSpec.describe 'PieceProducer length resolution (014-storyworld-pivot)' do
         prompts << prompt
         "mock body\n---CANON-DELTA---\nnew_characters: []\n"
       end
+      # Post-018a: chapter form is structured_output and routes through
+      # generate_chapter_structured. Capture its prompt the same way.
+      allow(s).to receive(:generate_chapter_structured) do |prompt, *_|
+        prompts << prompt
+        {
+          'title' => 'Mock Title',
+          'summary' => 'Mock summary.',
+          'content' => 'Mock chapter body.',
+          'new_characters' => []
+        }
+      end
     end
   end
 
@@ -44,6 +55,7 @@ RSpec.describe 'PieceProducer length resolution (014-storyworld-pivot)' do
     )
   end
 
+  before { scaffold_world_state(tmp_dir) }
   after { FileUtils.rm_rf(tmp_dir) }
 
   describe 'CLI length override wins' do

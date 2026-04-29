@@ -377,6 +377,7 @@ module Eidos
       def create_directories(target)
         FileUtils.mkdir_p(target)
         FileUtils.mkdir_p(File.join(target, 'data'))
+        FileUtils.mkdir_p(File.join(target, 'data', 'canon_deltas'))
         FileUtils.mkdir_p(File.join(target, 'content'))
       end
 
@@ -407,6 +408,12 @@ module Eidos
         {
           'world' => {
             'current_chapter' => 0
+          },
+          # 018a (FR-008): every freshly scaffolded world starts with the
+          # canon revision counter at 0. Successful canon-delta applies
+          # advance it via Eidos::WorldState#advance_revision!.
+          'canon' => {
+            'revision' => 0
           },
           'generation' => {
             'chapter_length_target' => '1500-3000 words',
@@ -538,7 +545,7 @@ module Eidos
       end
 
       def split_metadata(data)
-        state_keys = %w[world book status]
+        state_keys = %w[world book status canon]
         state_data  = data.slice(*state_keys)
         config_data = data.except(*state_keys)
         [config_data, state_data]

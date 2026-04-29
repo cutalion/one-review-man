@@ -21,6 +21,20 @@ RSpec.describe 'produce command' do
   def setup_world_structure
     FileUtils.mkdir_p('_chapters')
     FileUtils.mkdir_p('data')
+    FileUtils.mkdir_p(File.join('data', 'canon_deltas'))
+    FileUtils.mkdir_p(File.join('content', 'chapters'))
+    # Post-018a: scaffolds carry world_config.yml + world_state.yml with
+    # canon.revision = 0; legacy world_metadata.yml is no longer the
+    # primary marker (see feature 012).
+    File.write(File.join('data', 'world_config.yml'),
+               { 'world' => { 'current_chapter' => 0 },
+                 'localized' => { 'en' => { 'story_title' => 'Test',
+                                            'story_genre' => 'comedy',
+                                            'story_style' => 'narrative',
+                                            'story_setting' => 'office' } } }.to_yaml)
+    File.write(File.join('data', 'world_state.yml'),
+               { 'world' => { 'current_chapter' => 0 },
+                 'canon' => { 'revision' => 0 } }.to_yaml)
     File.write(File.join('data', 'world_metadata.yml'), "book:\n  current_chapter: 0\n")
   end
 
@@ -50,9 +64,14 @@ RSpec.describe 'produce command' do
 
     it 'accepts --content-model option' do
       env = { 'RUBYOPT' => rubyopt_injector, 'MOCK_AI' => 'true' }
-      stdout, stderr, status = Open3.capture3(env, 'ruby', cli_path, 'chapter', '1', '--content-model', 'gpt-4o', '--auto')
+      stdout, _stderr, status = Open3.capture3(env, 'ruby', cli_path, 'chapter', '1', '--content-model', 'gpt-4o', '--auto')
+      # Post-018a: the chapter handler accepts --content-model as an LLM
+      # config override; success is signalled by writing a chapter file +
+      # the "Generated Chapter N: <title>" banner. The model name is no
+      # longer echoed (the legacy ChapterGenerator's "using model X" log
+      # is gone with the class).
       expect(status).to be_success
-      expect(stdout).to include('gpt-4o')
+      expect(stdout).to match(/Generated Chapter \d+/)
     end
   end
 end

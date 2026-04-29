@@ -36,7 +36,8 @@ RSpec.describe 'Eidos::CLI::Produce (014-storyworld-pivot)' do
           story_style: "narrative"
     YAML
     File.write(File.join(root, 'data', 'world_state.yml'),
-               "world:\n  current_chapter: 0\n  target_chapters: 10\n")
+               "world:\n  current_chapter: 0\n  target_chapters: 10\ncanon:\n  revision: 0\n")
+    FileUtils.mkdir_p(File.join(root, 'data', 'canon_deltas'))
     File.write(File.join(root, 'data', 'settings.yml'),
                "llm:\n  provider: mock\n  model: mock\n")
     File.write(File.join(root, 'data', 'story_bible', 'facts.yml'), "facts: {}\n")
@@ -63,7 +64,9 @@ RSpec.describe 'Eidos::CLI::Produce (014-storyworld-pivot)' do
       files = Dir.glob(File.join(tmp_dir, 'content', 'chapters', '*.md'))
       expect(files).not_to be_empty
       expect(File.basename(files.first)).to match(/\A\d{3}-chapter\.md\z/)
-      expect(out).to include('Generating Chapter')
+      # Post-018a: chapter goes through PieceProducer; the CLI banner
+      # surfaces "Generated Chapter N: <title>" after the piece writes.
+      expect(out).to match(/Generated Chapter \d+/)
     end
   end
 
@@ -112,9 +115,9 @@ RSpec.describe 'Eidos::CLI::Produce (014-storyworld-pivot)' do
         Eidos::CLI::Produce.start(['chapter', '--auto', '-w', tmp_dir])
       end
 
-      # Chapter subcommand path emits the "Generating Chapter" banner;
+      # Chapter subcommand path emits "Generated Chapter N" (post-018a);
       # piece dispatch would emit "Generated haiku piece: …" style output.
-      expect(out).to include('Generating Chapter')
+      expect(out).to match(/Generated Chapter \d+/)
       expect(Dir.glob(File.join(tmp_dir, 'content', 'chapters', '*.md'))).not_to be_empty
     end
   end

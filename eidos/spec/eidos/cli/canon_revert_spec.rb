@@ -26,6 +26,7 @@ RSpec.describe Eidos::CLI::Canon, 'canon revert' do
     File.write(File.join(tmp_dir, 'data', 'world_config.yml'),
                { 'localized' => { 'en' => { 'title' => 'x' } } }.to_yaml)
     bible.setup
+    scaffold_world_state(tmp_dir)
 
     FileUtils.mkdir_p(File.join(tmp_dir, 'content', 'pieces', 'vignette'))
     File.write(File.join(tmp_dir, 'content', 'pieces', 'vignette', 'VIG001.md'), <<~PIECE)

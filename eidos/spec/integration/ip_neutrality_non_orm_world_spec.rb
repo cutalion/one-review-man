@@ -87,8 +87,10 @@ RSpec.describe 'IP-neutrality: non-ORM world produces clean prompts' do
 
     File.write(
       File.join(root, 'data', 'world_state.yml'),
-      { 'world' => { 'current_chapter' => 0 }, 'status' => {} }.to_yaml
+      { 'world' => { 'current_chapter' => 0 }, 'status' => {},
+        'canon' => { 'revision' => 0 } }.to_yaml
     )
+    FileUtils.mkdir_p(File.join(root, 'data', 'canon_deltas'))
 
     File.write(
       File.join(root, 'data', 'story_bible', 'characters', 'chef_marin.yml'),

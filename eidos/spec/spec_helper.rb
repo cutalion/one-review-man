@@ -17,6 +17,7 @@ $LOAD_PATH.unshift(File.expand_path('../lib', __dir__)) unless $LOAD_PATH.includ
 # mock file that depends on it.
 require_relative 'support/prompt_assertion_harness'
 require_relative 'support/mock_llm_service'
+require_relative 'support/world_state_fixture'
 
 # Provide RUBYOPT to inject mock LLM in subprocess CLI invocations
 ENV['RUBYOPT'] = [ENV.fetch('RUBYOPT', nil), "-r#{File.expand_path('support/inject_mock_llm', __dir__)}"].compact.join(' ')

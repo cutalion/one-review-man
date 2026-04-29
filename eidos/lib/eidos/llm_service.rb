@@ -29,7 +29,7 @@ module Eidos
       @debug_dir = nil
     end
 
-    # Simple text generation used by ChapterGenerator
+    # Simple text generation used by PieceProducer (non-structured forms)
     def generate_text(prompt:, context: {})
       # Deterministic mock mode for tests/validation
       if EnvUtils.mock_ai_enabled?

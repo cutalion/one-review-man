@@ -175,28 +175,56 @@ module Eidos
       method_option :output, type: :string, desc: 'Output directory for generated artifacts'
       method_option :prompt, type: :string,
                              desc: 'Extra guidance appended to the generation prompt (e.g. "keep it under 3 sentences")'
+      method_option 'dry-run', type: :boolean, default: false,
+                               desc: 'Print prompt + planned output without writing files'
+      method_option 'content-model', type: :string,
+                                     desc: 'Model name override for chapter generation'
       def chapter(_number = nil)
+        # 018a: chapter is now a thin shortcut over PieceProducer using the
+        # registered chapter form (structured_output: true). Same canon-delta
+        # contract, same revision counter, same frontmatter shape as every
+        # other piece form — modulo chapter-specific keys (title, summary,
+        # chapter_number) and the legacy `NNN-chapter.md` filename.
         abs_root = resolve_project_root!(options['world-dir'])
 
         Dir.chdir(abs_root) do
           ENV['DEBUG_AI'] = '1' if options[:debug]
 
-          require 'eidos/producers/chapter_producer'
-          producer = Eidos::Producers::ChapterProducer.new(project_root: abs_root)
-          result = producer.produce(
-            snapshot: options[:snapshot],
-            config: {
-              auto_generate: options[:auto],
-              model: options['content-model'],
-              extra_guidance: options[:prompt]
-            },
-            output: options[:output]
+          require 'eidos/configuration'
+          require 'eidos/llm_service'
+          require 'eidos/story_bible'
+          require 'eidos/audit_log'
+          require 'eidos/world_config'
+          require 'eidos/producers/piece_producer'
+
+          config = Eidos::Configuration.load(abs_root, 'llm.model' => options['content-model'])
+          llm_service = Eidos::LLMService.new(config)
+          bible = Eidos::StoryBible.new(project_root: abs_root)
+          audit_log = Eidos::AuditLog.new(world_path: abs_root)
+          world_config = begin
+            Eidos::WorldConfig.load_from_project(abs_root)
+          rescue Eidos::WorldConfig::NotFoundError
+            nil
+          end
+
+          producer = Eidos::Producers::PieceProducer.new(
+            world_path: abs_root,
+            llm_service: llm_service,
+            bible: bible,
+            audit_log: audit_log,
+            world_config: world_config
           )
 
-          unless result.success?
-            puts "Error: #{result.error}"
-            exit 1
-          end
+          piece = producer.produce(
+            form: 'chapter',
+            prompt: options[:prompt].to_s,
+            dry_run: options['dry-run']
+          )
+
+          say "Generated Chapter #{piece.chapter_number}: #{piece.title}", :green unless options['dry-run']
+        rescue StandardError => e
+          puts "Error: #{e.message}"
+          exit 1
         end
       end
 
@@ -353,98 +381,30 @@ module Eidos
 
         abs_root = File.expand_path(project_root)
 
-        # Load configuration with CLI overrides
-        require 'eidos/configuration'
-        config = Eidos::Configuration.load(abs_root, options)
+        # Post-018a: chapter prompts are assembled by PieceProducer using
+        # the registered chapter form's template. This subcommand surfaces
+        # the rendered prompt for the next chapter without invoking the LLM.
+        require 'eidos/form_registry'
+        require 'eidos/world_config'
 
-        Dir.chdir(abs_root) do
-          require 'eidos/chapter_generator'
-          generator = Eidos::ChapterGenerator.new(configuration: config, project_root: abs_root)
-          chapter_number = number ? number.to_i : generator.send(:determine_next_chapter_number)
-          built_prompt = generator.send(:build_chapter_prompt, chapter_number)
-          puts built_prompt
-        end
-      end
-
-      desc 'write [CHAPTER]', 'Agent-based chapter writing (experimental)'
-      option :requirements, type: :string, aliases: '-r', desc: 'Additional requirements for the chapter'
-      option :dry_run, type: :boolean, default: false, desc: 'Show what would be generated without writing'
-      option :force, type: :boolean, default: false, desc: 'Force overwrite if chapter exists'
-      def write(chapter = nil)
-        abs_root = resolve_project_root!(options['world-dir'])
-
-        # Determine chapter number using max(files, state) + 1 (same as ChapterGenerator)
-        chapter_number = if chapter
-                           chapter.to_i
-                         else
-                           determine_next_chapter_number(abs_root)
-                         end
-
-        # Check if chapter file already exists (unless --force)
-        chapters_dir = File.join(abs_root, 'content', 'chapters')
-        chapter_file = File.join(chapters_dir, format('%03d-chapter.md', chapter_number))
-
-        if File.exist?(chapter_file) && !options[:force]
-          say "Chapter #{chapter_number} already exists at #{chapter_file}", :yellow
-          say '   Use --force to overwrite, or specify a different chapter number.', :yellow
-          say "   Next available: #{determine_next_chapter_number(abs_root)}", :cyan
-          return
+        registry = Eidos::FormRegistry.new(world_path: abs_root)
+        chapter_form = registry.find('chapter')
+        world_config = begin
+          Eidos::WorldConfig.load_from_project(abs_root)
+        rescue Eidos::WorldConfig::NotFoundError
+          nil
         end
 
-        say "Agent-Writer: Generating Chapter #{chapter_number}...", :cyan
+        length = world_config&.respond_to?(:chapter_length_target) ? world_config.chapter_length_target : nil
+        length ||= chapter_form.default_length || chapter_form.default_shape
 
-        require 'eidos/writer_agent'
-        say "   Model: #{Eidos::WriterAgent::DEFAULT_MODEL}", :blue
-
-        # Initialize services
-        require 'eidos/configuration'
-        require 'eidos/llm_service'
-        require 'eidos/story_bible'
-        config = Eidos::Configuration.load(abs_root, {})
-        llm_service = Eidos::LLMService.new(config)
-        story_bible = Eidos::StoryBible.new(project_root: abs_root)
-
-        # Create agent
-        agent = Eidos::WriterAgent.new(
-          llm_service: llm_service,
-          story_bible: story_bible,
-          project_root: abs_root,
-          debug: options[:debug]
-        )
-
-        if options[:dry_run]
-          say "\n[Dry Run] Would generate chapter using these tools:", :yellow
-          require 'eidos/agent_tools/story_bible_tools'
-          Eidos::AgentTools::StoryBibleTools.definitions.each do |tool|
-            say "  - #{tool[:function][:name]}: #{tool[:function][:description].slice(0, 60)}...", :white
-          end
-          return
-        end
-
-        # Generate chapter
-        begin
-          result = agent.generate_chapter(chapter_number, requirements: options[:requirements])
-
-          # Show tool calls log
-          if options[:debug] && agent.tool_calls_log.any?
-            say "\nTool calls made:", :blue
-            agent.tool_calls_log.each do |call|
-              say "   - #{call[:name]}(#{call[:arguments].inspect})", :white
-            end
-          end
-
-          say "\nChapter generated successfully!", :green
-          say "   Title: #{result['title']}", :cyan
-          say "   Summary: #{result['summary'].slice(0, 100)}...", :white if result['summary']
-          say "   Word count: #{result['content'].to_s.split.length}", :white
-          say "   Characters: #{result['characters_featured'].join(', ')}", :white if result['characters_featured']&.any?
-
-          # Save the chapter
-          save_agent_chapter(abs_root, chapter_number, result)
-        rescue Eidos::LLMService::LLMError => e
-          say "\nAgent error: #{e.message}", :red
-          exit 1
-        end
+        template = chapter_form.prompt_template
+        rendered = template.dup
+        rendered.gsub!('{USER_PROMPT}', '')
+        rendered.gsub!('{LENGTH_TARGET}', length.to_s)
+        rendered.gsub!('{CANON_CONTEXT}', '')
+        rendered.gsub!('{CHAPTER_NUMBER}', (number || '').to_s)
+        puts rendered
       end
 
       private
@@ -458,68 +418,6 @@ module Eidos
         raw.to_s.match?(/\A\d+\z/) ? raw.to_i : raw.to_s
       end
 
-      # Determine next chapter number using max(files, state) + 1
-      # This is the same logic as ChapterGenerator.determine_next_chapter_number
-      def determine_next_chapter_number(project_root)
-        chapters_dir = File.join(project_root, 'content', 'chapters')
-        max_from_files = 0
-
-        if Dir.exist?(chapters_dir)
-          Dir.glob(File.join(chapters_dir, '*.md')).each do |path|
-            basename = File.basename(path)
-            # Match NNN-chapter.md only (no language suffix like .ru.md)
-            if basename =~ /^(\d{3})-chapter\.md$/
-              num = Regexp.last_match(1).to_i
-              max_from_files = [max_from_files, num].max
-            end
-          end
-        end
-
-        require 'eidos/world_config'
-        world_config = Eidos::WorldConfig.load_from_project(project_root)
-        current_in_metadata = world_config&.current_chapter || 0
-
-        [max_from_files, current_in_metadata].max + 1
-      end
-
-      def save_agent_chapter(project_root, chapter_number, result)
-        # Create chapter file
-        chapters_dir = File.join(project_root, 'content', 'chapters')
-        FileUtils.mkdir_p(chapters_dir)
-
-        filename = File.join(chapters_dir, format('%03d-chapter.md', chapter_number))
-
-        front_matter = {
-          'layout' => 'chapter',
-          'title' => result['title'],
-          'chapter_number' => chapter_number,
-          'summary' => result['summary'],
-          'characters' => result['characters_featured'] || [],
-          'generated_by' => 'agent-writer',
-          'generated_at' => Time.now.strftime('%Y-%m-%dT%H:%M:%S%:z'),
-          'lang' => 'en'
-        }
-
-        content = +"---\n"
-        content << front_matter.to_yaml.lines[1..].join
-        content << "---\n\n"
-        content << result['content'].to_s
-
-        File.write(filename, content)
-        say "   Saved to: #{filename}", :green
-
-        # Update world state
-        begin
-          require 'eidos/world_config'
-          world_config = Eidos::WorldConfig.load_from_project(project_root)
-          if world_config
-            world_config.update_current_chapter(chapter_number)
-            world_config.save!
-          end
-        rescue StandardError => e
-          say "   Could not update world state: #{e.message}", :yellow
-        end
-      end
     end
   end
 end

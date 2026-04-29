@@ -197,7 +197,7 @@ module Eidos
     end
 
     def find_chapter_file(chapter_number)
-      # Pad number to 3 digits to match ChapterGenerator convention
+      # Pad number to 3 digits to match the chapter filename convention
       padded_num = chapter_number.to_i.to_s.rjust(3, '0')
       chapters_dir = File.join(@project_root, 'content', 'chapters')
       

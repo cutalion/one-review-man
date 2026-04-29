@@ -150,7 +150,8 @@ class MockLLMService
     end
   end
 
-  # Structured chapter generation used by ChapterGenerator
+  # Structured chapter generation used by PieceProducer when the form
+  # declares structured_output: true (chapter form, post-018a).
   def generate_chapter_structured(prompt, *_)
     assert_prompt!(prompt, :generate_chapter_structured)
     capture_during_call do
