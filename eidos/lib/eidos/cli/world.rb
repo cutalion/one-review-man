@@ -96,55 +96,9 @@ module Eidos
         end
       end
 
-      # --- migrate --------------------------------------------------------------
-
-      desc 'migrate', 'Migrate legacy configuration format'
-      method_option 'world-dir', aliases: ['-b', '-w'], type: :string,
-                                 desc: 'Path to the world directory (defaults to current directory)'
-      def migrate
-        world_root = resolve_project_root(options['world-dir'])
-        unless world_root
-          say 'Not in a world directory.', :red
-          return
-        end
-
-        abs_root = File.expand_path(world_root)
-        legacy_path = File.join(abs_root, 'data', 'world_metadata.yml')
-        config_path = File.join(abs_root, 'data', 'world_config.yml')
-        state_path  = File.join(abs_root, 'data', 'world_state.yml')
-
-        if File.exist?(config_path) || File.exist?(state_path)
-          say 'New configuration files already exist. Migration skipped.', :yellow
-          return
-        end
-
-        unless File.exist?(legacy_path)
-          say "No legacy metadata found at #{legacy_path}.", :red
-          return
-        end
-
-        say "Migrating #{legacy_path}...", :blue
-
-        # Load legacy data
-        data = YAML.safe_load_file(legacy_path)
-
-        # Split data
-        state_keys = %w[world book status]
-        state_data  = data.slice(*state_keys)
-        config_data = data.except(*state_keys)
-
-        # Write new files
-        write_yaml_file(config_path, config_data)
-        write_yaml_file(state_path, state_data)
-
-        say 'Created data/world_config.yml', :green
-        say 'Created data/world_state.yml', :green
-
-        # Rename legacy file to backup
-        backup_path = "#{legacy_path}.bak"
-        FileUtils.mv(legacy_path, backup_path)
-        say "Archived legacy file to #{backup_path}", :green
-      end
+      # 018b: `world migrate` removed. The legacy world_metadata.yml →
+      # world_config.yml + world_state.yml split (feature 012) was a
+      # one-shot historical helper; every active world is past it.
 
       # --- version --------------------------------------------------------------
 

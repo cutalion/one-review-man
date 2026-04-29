@@ -4,8 +4,6 @@ require 'thor'
 require 'eidos/cli/helpers'
 require 'eidos/cli/unknown_command_help'
 require 'eidos/story_bible'
-require 'eidos/story_bible_migrator'
-require 'eidos/story_bible_exporter'
 
 module Eidos
   module CLI
@@ -16,23 +14,11 @@ module Eidos
 
       class_option 'world-dir', aliases: ['-w'], type: :string, desc: 'Path to the world directory'
 
-      desc 'migrate', 'Migrate existing data to Story Bible format'
-      def migrate
-        abs_root = resolve_project_root!(options['world-dir'])
-        Dir.chdir(abs_root) do
-          migrator = Eidos::StoryBibleMigrator.new(project_root: abs_root)
-          migrator.migrate!
-        end
-      end
-
-      desc 'export', 'Export Story Bible to Jekyll-compatible format (updates data/*.yml files)'
-      def export
-        abs_root = resolve_project_root!(options['world-dir'])
-        Dir.chdir(abs_root) do
-          exporter = Eidos::StoryBibleExporter.new(project_root: abs_root)
-          exporter.export_for_jekyll!
-        end
-      end
+      # 018b: `bible migrate` and `bible export` removed. Migration of
+      # legacy story-bible structure was a one-shot historical helper;
+      # `bible export` wrote into the source world (017 reframed Jekyll
+      # publishing to write into the destination via PieceProducer's
+      # `eidos publish jekyll`).
 
       desc 'list TYPE', 'List entities (characters, locations, facts, relationships, plot_threads)'
       def list(type)

@@ -458,7 +458,7 @@ Snapshots and branches serve different purposes: a **branch** is for *exploring*
 
 After accepting / reverting / rolling back / branching / merging:
 
-- `eidos bible list` reflects the new state of the canon.
+- `eidos bible list characters` (or `locations`, `facts`, `relationships`, `plot_threads`) reflects the new state of the canon.
 - `eidos canon history <entity-type> <entity-id>` shows the per-entity revision trail, including any rollbacks or reverts you applied.
 - `eidos canon branch list` shows your current branch context (the active branch is marked).
 - The pieces under `content/` are unchanged — they're historical artifacts of what the world looked like when they were produced. Their `canon_delta_ref` fields still point to the deltas that produced them, even if those deltas have been reverted.

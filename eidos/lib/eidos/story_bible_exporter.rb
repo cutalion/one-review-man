@@ -14,16 +14,10 @@ module Eidos
       @story_bible = StoryBible.new(project_root: @project_root)
     end
 
-    # Export all Story Bible data to Jekyll-compatible files in the data directory
-    def export_for_jekyll!
-      puts '📚 Exporting Story Bible to Jekyll format...'
-
-      export_characters
-      export_world_data
-      export_story_facts
-
-      puts '✅ Export complete!'
-    end
+    # 018b: `export_for_jekyll!` (the source-polluting variant) removed
+    # alongside the `eidos bible export` CLI command that was its only
+    # caller. Use `export_to(<dest>/_data)` to write Jekyll-compatible
+    # data into a publish destination without touching the source world.
 
     # Export to a specific destination (for site generation)
     def export_to(dest_dir)

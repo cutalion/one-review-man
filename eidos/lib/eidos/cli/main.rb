@@ -34,8 +34,6 @@ require 'eidos/cli/canon'
 require 'eidos/cli/produce'
 require 'eidos/cli/translate'
 require 'eidos/cli/publish'
-require 'eidos/cli/chapter_cli'
-require 'eidos/cli/character_cli'
 require 'eidos/cli/piece_cli'
 require 'eidos/cli/probe_cli'
 
@@ -60,13 +58,11 @@ module Eidos
       desc 'publish SUBCOMMAND ...ARGS', 'Publish content'
       subcommand 'publish', Eidos::CLI::Publish
 
-      # New SDK-based subcommands
-      desc 'chapter SUBCOMMAND ...ARGS', 'Chapter operations'
-      subcommand 'chapter', Eidos::CLI::ChapterCli
-
-      desc 'character SUBCOMMAND ...ARGS', 'Character operations'
-      subcommand 'character', Eidos::CLI::CharacterCli
-
+      # 018b: SDK-shadow `eidos chapter` and `eidos character` removed.
+      # Chapter operations route through `eidos produce chapter` and
+      # `eidos piece list --form chapter`; character operations route
+      # through `eidos bible list characters` / `eidos bible show
+      # characters/<id>`.
       desc 'piece SUBCOMMAND ...ARGS', 'Browse pieces across all forms (list/show)'
       subcommand 'piece', Eidos::CLI::PieceCli
 
