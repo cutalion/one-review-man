@@ -18,7 +18,7 @@ module Eidos
     # @raise [RuntimeError] when the template cannot be found in any location
     def load(name)
       candidate_paths(name).each do |path|
-        return File.read(path) if File.exist?(path)
+        return File.read(path, encoding: 'UTF-8') if File.exist?(path)
       end
       raise "Prompt template not found: #{name}. Searched: #{candidate_paths(name).join(', ')}"
     end

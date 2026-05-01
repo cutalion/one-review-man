@@ -125,7 +125,7 @@ module PromptUtils
   def self.build_prompt_from_file(template_file, placeholders, warn_unused: true, context: nil)
     raise "Template file not found: #{template_file}" unless File.exist?(template_file)
 
-    template = File.read(template_file)
+    template = File.read(template_file, encoding: 'UTF-8')
     build_prompt(template, placeholders, warn_unused: warn_unused, context: context)
   end
 end

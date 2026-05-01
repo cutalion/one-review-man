@@ -99,7 +99,7 @@ module Eidos
     # Read the prompt template contents from disk. Forms load templates lazily
     # so a registry of 8 built-ins doesn't pay the filesystem cost upfront.
     def prompt_template
-      @prompt_template ||= File.read(@prompt_template_path)
+      @prompt_template ||= File.read(@prompt_template_path, encoding: 'UTF-8')
     end
 
     def self.resolve_template_path(yaml_path, declared)
