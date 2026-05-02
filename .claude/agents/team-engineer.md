@@ -82,4 +82,4 @@ For each task in the plan, in order:
 - Pushing to remote (the lead may, you don't).
 - Editing files outside the plan's file map "while you're there."
 - Adding commented-out code, TODOs, or "removed in favor of X" markers.
-- Adding error handling for cases the spec doesn't list.
+- Adding error handling for cases the **plan** doesn't include. (Edge cases — null, empty, malformed inputs, race conditions — are the planner's call: they appear as test-shaped tasks in the plan, OR they don't and that's a deliberate scope decision. If you think a case matters and the plan doesn't cover it, stop and report — do not silently add it.)

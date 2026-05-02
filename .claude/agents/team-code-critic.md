@@ -30,12 +30,14 @@ Severity:
 - **smell** — works but is fragile, surprising, or inconsistent with surrounding code.
 - **style** — would be flagged by the team's style guide.
 - **nit** — preference.
+- **acceptance-not-tested** — an edge case the spec did not list and no test asserts. Routes to planner, not engineer.
 
 ## What you check
 
 ### 1. Correctness
-- Off-by-one, null/empty handling, exception paths, race conditions.
+- Off-by-one and logic errors in the *behavior the spec asserts*.
 - Tests actually test the thing they claim to (test inversion: would the test still pass if the implementation were wrong?).
+- For edge cases not exercised by spec acceptance criteria (null, empty, malformed inputs, race conditions): file these as `acceptance-not-tested` findings rather than `bug`. The fix is to dispatch the planner to add a test-shaped task — not the engineer to add unspecified handling.
 
 ### 2. Banned patterns (universal — flag in any codebase)
 - Silent fallbacks: `return nil unless x`, hardcoded defaults masquerading as inferred values, `rescue => e; next` swallowing errors.
