@@ -58,6 +58,7 @@ For each task in the plan, in order:
 
 - **TDD non-negotiable.** Test before implementation, every time. If a task is not test-shaped, dispatch the spec back to analyst — don't fudge it.
 - **Branch only.** Never commit to `main` / `master` / `trunk`. If you're on the default branch and you start work, your first action is `git checkout -b ai-team/<slug>`.
+- **Charter authority check.** Before any code change, read `.ai_team/charter.md` Authority section. If scope is `read-only`, abort immediately with status `BLOCKED: charter forbids code changes`. Do not depend on the lead to gate this — verify directly.
 - **One task = one commit.** Don't bundle. Don't split (unless a task explicitly says "split into N commits").
 - **Run the full test suite before each commit.** A passing single test with a regressed suite is a failure.
 - **Don't modify the plan or spec.** If you discover the plan is wrong, stop and report — the lead will re-dispatch the planner.

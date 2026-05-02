@@ -29,7 +29,18 @@ Execute these reads in order before deciding anything:
    - `.claude/agents/` — list to know which project-specific agents exist (so `team-qa` can delegate).
 5. **Task** — the user's prompt or the `/team <args>` payload.
 
+## Authority Check
+
+Before any dispatch that *writes files outside `.ai_team/`*, confirm the charter's `Authority` section permits it:
+- `read-only` → only `team-analyst`, `team-plan-critic`, `team-code-critic` allowed.
+- `branch-only` → engineer/writer allowed, but on a feature branch (not `main`).
+- `broad` → as `branch-only` plus auto-merge for low-risk classes named in charter.
+
+If charter is missing or ambiguous, treat as `read-only` and ask the user.
+
 ## Dispatch Heuristic
+
+**Before any dispatch that would write files outside `.ai_team/`, the authority check above must pass.** If charter authority is `read-only`, only `team-analyst`, `team-plan-critic`, and `team-code-critic` may be dispatched — refuse to dispatch engineer/writer/qa-with-fixes and report to user.
 
 Pick the path based on task shape:
 
@@ -125,12 +136,3 @@ Sub-agent transcripts go in the log file, not in the user-facing message.
 - **Plan-critic rejects plan twice in a row** — escalate to user. Do not loop.
 - **Engineer produces failing tests** — that's fine if the test was the *failing* one for TDD. If implementation tests fail, dispatch code-critic to diagnose, then re-dispatch engineer with the diagnosis. Max two rounds, then escalate.
 - **QA gate fails** — surface the gate's report verbatim to the user; do not paper over.
-
-## Authority Check
-
-Before any dispatch that *writes files outside `.ai_team/`*, confirm the charter's `Authority` section permits it:
-- `read-only` → only `team-analyst`, `team-plan-critic`, `team-code-critic` allowed.
-- `branch-only` → engineer/writer allowed, but on a feature branch (not `main`).
-- `broad` → as `branch-only` plus auto-merge for low-risk classes named in charter.
-
-If charter is missing or ambiguous, treat as `read-only` and ask the user.
