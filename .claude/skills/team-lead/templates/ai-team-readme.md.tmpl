@@ -1,0 +1,34 @@
+# .ai_team/
+
+This directory is the per-project state of the universal AI engineering team. It travels with the repo.
+
+## Layout
+
+- `charter.md` — **You edit this.** Goals, non-goals, authority, cadence, conventions.
+- `state.yml` — **The lead edits this.** Current focus, in-flight tasks, escalations.
+- `log/` — One markdown file per `/team` session. Append-only history.
+- `specs/` — Mini-specs the analyst writes for non-trivial tasks.
+
+## How to invoke the team
+
+In a Claude Code session:
+
+```
+/team init                    # one-time: scaffold this directory (already done if you're reading this)
+/team <free-form task>        # sync mode: lead runs in this session, reports back
+/team status                  # print state
+```
+
+## How the team operates (Phase 1)
+
+1. You invoke `/team <task>`.
+2. The current Claude Code session becomes the **lead**.
+3. The lead reads this directory + project context.
+4. The lead dispatches some subset of: analyst → planner → plan-critic → engineer → code-critic → qa → writer.
+5. The lead synthesizes results into one report and writes a log entry here.
+
+## Phase 2+ (not yet shipped)
+
+- Linear integration (`/team LIN-123`)
+- Autonomous cron-driven mode (`/team start`)
+- PR-only output, escalation via Linear comments

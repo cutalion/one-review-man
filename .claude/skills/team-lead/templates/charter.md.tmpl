@@ -1,0 +1,49 @@
+# Team Charter — {{PROJECT_NAME}}
+
+> Edit this file. It is read on every `/team` invocation. Stale charter = stale team behavior.
+
+## Goals
+
+1. {{GOAL_PLACEHOLDER}}
+2. (add more — order matters; earlier = higher priority)
+
+## Non-goals
+
+- (explicit non-goals; the team will refuse work that conflicts with these)
+
+## Authority
+
+- **Default scope:** branch-only
+- **May open PRs:** yes
+- **May merge PRs:** no
+- **May modify CI config:** no
+- **May modify .ai_team/:** yes (it's the team's own state)
+
+To grant broader authority, change `branch-only` → `broad` and list auto-mergeable classes:
+
+```
+broad: docs, dep-bumps-patch, comment-only-changes
+```
+
+## Cadence (Phase 3+ autonomous mode — ignored in Phase 1)
+
+- Default: hourly during 09:00-19:00 weekdays, project-local timezone
+- Override per-task with Linear label `cadence:N` (minutes)
+
+## Escalation
+
+- **Default channel:** Linear (set issue status to `Waiting for Input`) — ignored in Phase 1; escalations surface to terminal.
+- **P0 channel:** unset (Phase 4 will add Gmail).
+
+## Project conventions
+
+- **Language:** {{LANG_AUTODETECTED}}
+- **Test command:** {{TEST_CMD_AUTODETECTED}}
+- **Lint command:** {{LINT_CMD_AUTODETECTED}}
+- **Branch prefix:** `ai-team/`
+
+(Override any of these if auto-detection got them wrong.)
+
+## Notes
+
+(Anything else the team should know — house style, taboo refactors, hot files, weak spots in the test suite.)
