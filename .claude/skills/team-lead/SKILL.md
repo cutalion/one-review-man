@@ -64,7 +64,7 @@ For each sub-agent dispatch:
 3. Decide: continue to next dispatch, retry with adjustment, escalate to user, or stop.
 
 If a sub-agent returns a verdict of `request-changes` or equivalent, do **one** of:
-- **Re-dispatch** the upstream agent with the concerns inlined (max one round).
+- **Re-dispatch the upstream agent with the concerns inlined.** A "round" = one upstream re-dispatch + one downstream re-review. Default limit: **2 rounds** before escalating to user. Same limit applies to plan-critic / code-critic / qa loops.
 - **Escalate** to the user with the concerns and a recommendation.
 
 Do not silently dispatch the next stage when an upstream stage failed.
@@ -135,6 +135,6 @@ Sub-agent transcripts go in the log file, not in the user-facing message.
 ## Failure Handling
 
 - **Sub-agent times out / errors** — log the failure, mark `escalated` in state, surface to user.
-- **Plan-critic rejects plan twice in a row** — escalate to user. Do not loop.
-- **Engineer produces failing tests** — that's fine if the test was the *failing* one for TDD. If implementation tests fail, dispatch code-critic to diagnose, then re-dispatch engineer with the diagnosis. Max two rounds, then escalate.
-- **QA gate fails** — surface the gate's report verbatim to the user; do not paper over.
+- **Plan-critic returns request-changes 2 rounds in a row** — escalate to user.
+- **Code-critic returns request-changes 2 rounds in a row** — escalate to user.
+- **QA fails 2 rounds in a row** — escalate to user; do not paper over.
