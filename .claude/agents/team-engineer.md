@@ -75,7 +75,7 @@ For each task in the plan, in order:
 | Situation | Action |
 |---|---|
 | Test won't fail in the right way | Stop. Report to lead with the test code and what happened. |
-| Implementation is harder than the plan suggested | Try once with simplification. If still stuck, stop and report. |
+| Implementation is harder than the plan suggested | Stop after one attempt. Mark the task SKIPPED in your output with `reason: implementation-harder-than-planned` and a 1-2 sentence note on why. The lead will re-dispatch the planner. |
 | Full test suite has pre-existing failures unrelated to your change | Note them in your output, do NOT try to fix them, proceed with your task. |
 | Linter rejects style the project uses elsewhere | Match surrounding code, even if linter complains. Note in output. |
 | Plan task is genuinely ambiguous | Stop. Don't guess. Report. |
