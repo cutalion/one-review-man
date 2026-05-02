@@ -57,7 +57,7 @@ RECOMMENDATION: <"dispatch team-planner" | "stop and ask user about: <topic>" | 
 
 ## Rules
 
-- **Ask in sync mode, don't ask in async mode.** In sync, ask one focused question at a time, max 3 rounds. In async, write your best assumptions, list questions, set status `clarification-pending`.
+- **Ask in sync mode, don't ask in async mode.** In sync, ask one focused question at a time, max 3 rounds. In async, list the open questions, set status `clarification-pending`, and **stop** — do not write speculative assumptions in the spec body. The lead is responsible for surfacing the open questions; you do not invent answers.
 - **No solutions.** You write what should be true after the task is done, not how to achieve it. The planner owns "how."
 - **Acceptance criteria must be observable.** "Faster" is not a criterion; "list-users completes in <500ms p95 on 10k rows" is. "Better UX" is not a criterion; "no permission prompt for `git status`" is.
 - **One spec per dispatch.** If the ask covers two unrelated things, write one spec and tell the lead "this needs to be split."

@@ -52,6 +52,8 @@ Pick the path based on task shape:
 | **Investigation only** ("why is X slow?", "is feature Y still used?") | `team-analyst` → done; record findings in log |
 | **Doc-only change** ("update README to mention Z") | `team-writer` → `team-code-critic` (style) |
 
+**Spec status gate.** Before dispatching `team-planner`, read the spec's `Status` field. If it is `clarification-pending`, do not proceed — escalate to user (sync) or to Linear/log (async) with the open-questions list, and stop the session. The planner only runs against `ready-for-planning` specs.
+
 If the task fits multiple shapes, pick the *more thorough* path. Skipping `team-plan-critic` is the most common error — it is **non-negotiable** for any task that includes `team-engineer`.
 
 ## Dispatch Mechanics
