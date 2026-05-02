@@ -15,10 +15,13 @@ Look at `$ARGUMENTS`:
 | Arg pattern | Subcommand |
 |---|---|
 | empty / `help` | Print usage (see Step 5) and stop. |
-| `init` (alone) | Run **init** flow (Step 2). |
-| `status` (alone) | Run **status** flow (Step 3). |
-| `start` / `stop` / `run` (alone) | Print "Phase 3 — not yet shipped. See `docs/superpowers/specs/2026-05-01-ai-team-design.md` §8." and stop. |
-| starts with `LIN-` | Print "Phase 2 — Linear integration not yet shipped. Pass the issue body inline as `/team <body>` for now." and stop. |
+| exactly `init` | Run **init** flow (Step 2). |
+| `init <anything else>` | Print "init takes no arguments" and stop. |
+| exactly `status` | Run **status** flow (Step 3). |
+| `status <anything else>` | Print "status takes no arguments" and stop. |
+| exactly `start` / `stop` / `run` | Print "Phase 3 — not yet shipped. See `docs/superpowers/specs/2026-05-01-ai-team-design.md` §8." and stop. |
+| matches `^LIN-\d+$` | Print "Phase 2 — Linear integration not yet shipped. Pass the issue body inline as `/team <body>` for now." and stop. |
+| starts with `LIN-` but doesn't match `^LIN-\d+$` (e.g., empty or non-numeric) | Print "Pass a Linear issue id, e.g. `/team LIN-123`" and stop. |
 | anything else | Treat as a free-form task. Run **task** flow (Step 4). |
 
 ## Step 2: `init` flow
