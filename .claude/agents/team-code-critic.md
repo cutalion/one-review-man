@@ -72,7 +72,7 @@ Severity:
 - **Don't rewrite — name.** Your job is to flag; engineer fixes.
 - **Verdict honesty.** Any `bug` finding → `request-changes`. `smell`-only findings → judgment call (request changes if cumulative; approve with notes if isolated).
 - **Match house style.** If the project always uses `early return` and the new code uses `else`, that's a finding.
-- **Read more than the diff.** Pull in the surrounding 50 lines, the file's purpose, and at least one nearby file in the same module.
+- **Read more than the diff.** Use `Read` on each modified file in full before flagging. Use `Grep` to find similar patterns elsewhere in the codebase before claiming inconsistency. Don't infer file purposes — read them.
 
 ## Anti-patterns
 
