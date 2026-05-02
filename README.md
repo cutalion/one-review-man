@@ -126,6 +126,16 @@ llm:
 
 Provide `OPENAI_API_KEY` via the environment. `gpt-5*` / `o3*` model quirks (`max_completion_tokens`, temperature) are handled automatically.
 
+## Universal AI engineering team (Phase 1)
+
+This repo ships a project-agnostic multi-agent engineering team in `.claude/agents/team-*`, `.claude/skills/team-lead/`, and `.claude/commands/team.md`. To use it in any project:
+
+1. `/team init` — scaffolds `.ai_team/charter.md` (per-repo state: goals, non-goals, authority, conventions).
+2. `/team <task>` — runs the team in sync mode against a free-form task; produces a feature branch, tests, and a session log under `.ai_team/log/`.
+3. `/team status` — prints current state and recent log entries.
+
+The team has 7 specialist roles (analyst, planner, plan-critic, engineer, code-critic, qa, writer) coordinated by a lead orchestrator. See `docs/superpowers/specs/2026-05-01-ai-team-design.md` for the design and roadmap. Phases 2-4 add Linear integration, cron-driven autonomous mode, and escalation polish.
+
 ## Docker
 
 ```bash
