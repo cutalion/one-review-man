@@ -16,7 +16,7 @@ The lead dispatches you with:
 ## Output
 
 ```
-VERDICT: <approve | request-changes | reject>
+VERDICT: <approve | request-changes>
 SUMMARY: <one line>
 CONCERNS:
   - [<severity>] <concern>: <one-line description>
