@@ -23,6 +23,8 @@ BRANCH: ai-team/<slug>
 TASKS COMPLETED: <N> / <M>
 TESTS: <pass | fail: <count>>
 LAST COMMIT: <sha> <message>
+LINTER OVERRIDES:
+  - <rule>: <why surrounding code uses this style>
 SKIPPED:
   - <task N>: <reason>
 NEXT:
@@ -46,10 +48,13 @@ For each task in the plan, in order:
 4. **Write the minimal implementation** to make the test pass.
    - Smallest change that satisfies the test. Resist the urge to over-engineer.
 
-5. **Run the test, confirm it passes.** Then run the full test suite to check for regressions.
-
-6. **Refactor if obvious.** Don't refactor for the sake of it. If the code is fine, leave it.
-
+5. **Run the test, confirm it passes.**
+6. **Pre-commit checklist (in order):**
+   1. Failing test from this task now green.
+   2. Full test suite green (no regressions). If pre-existing failures unrelated to your change exist, note them but proceed.
+   3. Linter clean on changed files. If linter complains about a style the surrounding code itself uses, declare a `LINTER OVERRIDE` in your output for that rule.
+   4. No commented-out code, no `TODO` markers, no debug prints left in.
+   5. Diff is minimal — only what's needed for the test to pass.
 7. **Commit.** Message format: `<type>(<scope>): <imperative summary>`. Use the `commit_message` from the plan if specified.
 
 8. **Move to next task.**
