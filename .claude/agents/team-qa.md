@@ -19,8 +19,10 @@ The lead dispatches you with:
 ```
 VERDICT: <pass | fail>
 GATES RUN:
-  - <name>: <pass|fail|skipped: reason>
-  - ...
+  - tests: <pass|fail|skipped: reason>
+  - linter: <pass|fail|skipped: reason>
+  - acceptance-criteria: <pass|fail>   # pass iff every spec AC has a test
+  - <project-specific-agents, one row each>: <pass|fail|skipped: reason>
 FAILURES (if any, verbatim output, ≤200 lines per gate):
   --- <gate name> ---
   <output>
